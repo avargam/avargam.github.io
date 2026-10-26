@@ -1,0 +1,110 @@
+---
+import { getSection } from '../../../data/sections';
+import {
+  degree,
+  degreeNote,
+  degreeProgress,
+  languages,
+  major,
+  minor,
+} from '../../../data/education';
+import SectionShell from '../../ui/SectionShell.astro';
+import ItemChips from '../../ui/ItemChips.astro';
+import DetailCard from '../../ui/DetailCard.astro';
+import { formacionItems, DEFAULT_ITEM, type FormacionItemId } from './items';
+
+interface Props {
+  active: boolean;
+}
+
+const { active } = Astro.props;
+const section = getSection('formacion');
+const progress = degreeProgress();
+const card = (id: FormacionItemId) => {
+  const item = formacionItems.find((i) => i.id === id)!;
+  return { id, side: item.card.side, tip: item.card.tip, active: id === DEFAULT_ITEM };
+};
+---
+
+<SectionShell
+  section={section}
+  active={active}
+  hideTitle
+  hint="← → recorrer la ciudad · Enter abrir · Esc volver al cuarto"
+>
+  <DetailCard {...card('titulo')} eyebrow="Formación · Título" title={degree.title}>
+    <p class="text-muted mt-1 text-[20px]">{degree.org}</p>
+    <div class="mt-5 flex items-center gap-4 text-[17px] font-bold">
+      <span>{degree.startLabel}</span>
+      <div
+        class="bg-lilac relative h-[14px] w-[400px] rounded-full"
+        role="progressbar"
+        aria-label="Avance de la carrera"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div class="bg-pink h-full rounded-full" style={`width:${progress * 100}%`}></div>
+        <span
+          class="bg-wall border-plum absolute top-1/2 size-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full border-4"
+          style={`left:${progress * 100}%`}
+          aria-hidden="true"
+        ></span>
+      </div>
+      <span>{degree.endLabel}</span>
+    </div>
+    <p class="text-muted mt-3 ml-[62px] text-[15px]">{degreeNote()}</p>
+  </DetailCard>
+
+  {[major, minor].map((spec) => (
+    <DetailCard
+      {...card(spec.kind === 'Major' ? 'major' : 'minor')}
+      eyebrow={`Formación · ${spec.kind}`}
+      title={`${spec.kind} en ${spec.name}`}
+    >
+      <p class="text-muted mt-1 text-[20px]">{spec.summary}</p>
+      <ul class="mt-4 flex flex-wrap gap-2" aria-label="Aptitudes">
+        {spec.skills.map((skill) => (
+          <li class="bg-lilac text-ink rounded-full px-4 py-1.5 text-[16px] font-semibold">
+            {skill}
+          </li>
+        ))}
+      </ul>
+    </DetailCard>
+  ))}
+
+  <DetailCard {...card('idiomas')} eyebrow="Formación · Idiomas" title="Idiomas">
+    <dl class="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-5 gap-y-2 text-[20px]">
+      {languages.map((l) => (
+        <>
+          <dt class="font-bold">{l.name}</dt>
+          <dd class="text-muted">
+            {l.level}
+            {l.cert && ` · ${l.cert.name} ${l.cert.score}/${l.cert.max} (${l.cert.year})`}
+          </dd>
+        </>
+      ))}
+    </dl>
+  </DetailCard>
+
+  <ItemChips
+    slot="chips"
+    items={formacionItems}
+    current={active ? DEFAULT_ITEM : undefined}
+    label="Formación"
+  />
+</SectionShell>
+
+<script>
+  import { createItemNav } from '../../stage/itemNav';
+  import { registerSection } from '../../stage/router';
+  import { formacionItems, DEFAULT_ITEM } from './items';
+
+  const nav = createItemNav({
+    slug: 'formacion',
+    ids: formacionItems.map((i) => i.id),
+    defaultId: DEFAULT_ITEM,
+    describe: (id) => formacionItems.find((i) => i.id === id)?.name ?? '',
+  });
+  if (nav) registerSection('formacion', nav);
+</script>

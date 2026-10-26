@@ -1,12 +1,14 @@
 ---
 /**
  * El cuarto: navegación del sitio. Todas las rutas lo renderizan; `initial` indica qué sección
- * viene abierta (deep link). Las escenas son imágenes provisionales hasta que se porten.
+ * viene abierta (deep link). Las escenas aún no portadas son imágenes provisionales.
  */
 import { getSection, sections, type SectionSlug } from '../../data/sections';
 import World from '../stage/World.astro';
 import SectionChips from '../ui/SectionChips.astro';
 import ScenePlaceholder from '../scenes/ScenePlaceholder.astro';
+import CityScene from '../scenes/formacion/CityScene.astro';
+import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
 import SectionOverlay from './SectionOverlay.astro';
 import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
@@ -40,7 +42,7 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
   .join('\n');
 ---
 
-<div data-room-root>
+<main data-room-root>
   <World initial={open}>
     <div data-room-only inert={!!open}>
       <RoomBack />
@@ -58,7 +60,11 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
                 data-scene={s.slug}
                 inert={s.slug !== initial}
               >
-                <ScenePlaceholder slug={s.slug} />
+                {s.slug === 'formacion' ? (
+                  <CityScene open={initial === 'formacion'} />
+                ) : (
+                  <ScenePlaceholder slug={s.slug} />
+                )}
               </div>
             </div>
           ) : (
@@ -113,16 +119,20 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
         </p>
       </div>
 
-      {sections.map((s) => (
-        <SectionOverlay section={s} active={s.slug === initial}>
-          {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
-        </SectionOverlay>
-      ))}
+      {sections.map((s) =>
+        s.slug === 'formacion' ? (
+          <FormacionOverlay active={initial === 'formacion'} />
+        ) : (
+          <SectionOverlay section={s} active={s.slug === initial}>
+            {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
+          </SectionOverlay>
+        ),
+      )}
 
       <p data-announcer class="sr-only" aria-live="polite"></p>
     </div>
   </World>
-</div>
+</main>
 
 <style is:inline set:html={highlightCss} />
 

@@ -1,0 +1,165 @@
+---
+/**
+ * Escena de Formación: la ciudad al atardecer vista por la ventana. Es la misma en el cuarto
+ * (escala 0.28, en reposo) y a pantalla completa. Cada ítem es un edificio con un botón encima;
+ * los estados (hover, seleccionado) se pintan con CSS a partir de `data-selected`.
+ */
+import { languages } from '../../../data/education';
+import { formacionItems, DEFAULT_ITEM, type FormacionItemId } from './items';
+import frame from './art/frame.svg?raw';
+import sky from './art/sky.svg?raw';
+import idiomas from './art/idiomas.svg?raw';
+import major from './art/major.svg?raw';
+import titulo from './art/titulo.svg?raw';
+import minor from './art/minor.svg?raw';
+import sill from './art/sill.svg?raw';
+
+interface Props {
+  /** Sección abierta al cargar: muestra la selección inicial. */
+  open: boolean;
+}
+
+const { open } = Astro.props;
+const art: Record<FormacionItemId, string> = { idiomas, major, titulo, minor };
+/** Orden de dibujo (de atrás hacia adelante), como en el prototipo. */
+const drawOrder: FormacionItemId[] = ['idiomas', 'major', 'titulo', 'minor'];
+const items = drawOrder.map((id) => formacionItems.find((i) => i.id === id)!);
+
+const langPill = (l: (typeof languages)[number]) =>
+  `${l.code} · ${l.level === 'Nativo' ? 'nativo' : l.level}`;
+
+/** Una regla por ítem: hover/foco de su botón y estado seleccionado. */
+const stateCss = formacionItems
+  .map(({ id }) => {
+    const hover = `[data-items]:has([data-item-hit="${id}"]:is(:hover, :focus-visible))`;
+    const selected = `[data-items][data-selected="${id}"]`;
+    return `${hover} [data-building="${id}"] .shape { stroke: #8ADBC8; }
+${hover} [data-hover-label="${id}"] { opacity: 1; }
+${selected} [data-building="${id}"] :is(.halo, .selected-outline) { opacity: 1; }
+${selected} [data-selected-label="${id}"] { opacity: 1; }`;
+  })
+  .join('\n');
+---
+
+<div class="city absolute inset-0" data-items data-selected={open ? DEFAULT_ITEM : undefined}>
+  <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
+    <defs>
+      <clipPath id="formacion-glass">
+        <rect x="96" y="66" width="1408" height="848" rx="6"></rect>
+      </clipPath>
+      <radialGradient id="formacion-halo">
+        <stop offset="0" stop-color="#FF6FA3" stop-opacity="0.75"></stop>
+        <stop offset="0.6" stop-color="#FF6FA3" stop-opacity="0.35"></stop>
+        <stop offset="1" stop-color="#FF6FA3" stop-opacity="0"></stop>
+      </radialGradient>
+    </defs>
+    <g set:html={frame} />
+    <g clip-path="url(#formacion-glass)">
+      <g set:html={sky} />
+      {items.map((item) => (
+        <g data-building={item.id}>
+          <ellipse class="halo" {...item.halo} fill="url(#formacion-halo)" />
+          <g set:html={art[item.id]} />
+          <path
+            class="selected-outline"
+            d={item.outline}
+            fill="none"
+            stroke="#FF6FA3"
+            stroke-width="6"
+            stroke-dasharray="14 10"
+          />
+        </g>
+      ))}
+    </g>
+    <g set:html={sill} />
+  </svg>
+
+  <!-- Textos de la escena (HTML, en coordenadas de la escena) -->
+  <div aria-hidden="true">
+    <span class="city-pill bg-sun left-[250px] top-[704px] w-[130px]">Idiomas</span>
+    {languages.map((l, i) => (
+      <span
+        class:list={['city-pill left-[212px] w-[206px]', i === 0 ? 'bg-pink' : 'bg-mint']}
+        style={`top:${762 + i * 48}px`}
+      >
+        {langPill(l)}
+      </span>
+    ))}
+    <span class="city-pill bg-lilac left-[505px] top-[850px] h-[32px] w-[110px]">Major</span>
+    <span class="city-pill bg-mint left-[1160px] top-[578px] h-[28px] w-[90px] text-[16px]">
+      Minor
+    </span>
+    <span
+      class="city-pill city-state bg-pink left-[826px] top-[790px] w-[108px] text-[18px]"
+      data-selected-label="titulo"
+    >
+      Título
+    </span>
+    {formacionItems.map((item) => (
+      <span
+        class="city-pill city-state bg-sun border-plum -translate-x-1/2 border-3 px-5 whitespace-nowrap"
+        style={`left:${item.hoverLabel.x}px;top:${item.hoverLabel.y}px`}
+        data-hover-label={item.id}
+      >
+        {item.name.split(':')[0]}
+      </span>
+    ))}
+  </div>
+
+  <!-- Botones de los edificios -->
+  {formacionItems.map((item) => (
+    <button
+      type="button"
+      class="city-hit absolute"
+      style={`left:${item.hit.x}px;top:${item.hit.y}px;width:${item.hit.w}px;height:${item.hit.h}px`}
+      data-item-hit={item.id}
+      aria-label={item.name}
+      aria-controls={item.id}
+      aria-pressed={open && item.id === DEFAULT_ITEM ? 'true' : 'false'}
+    />
+  ))}
+</div>
+
+<style is:inline set:html={stateCss} />
+
+<style>
+  .city-pill {
+    position: absolute;
+    display: grid;
+    height: 34px;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--color-ink);
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .city-state,
+  .halo,
+  .selected-outline {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .city :global(.shape) {
+    transition: stroke 0.15s ease;
+  }
+
+  .city-hit {
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .city-hit:focus-visible {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .city-state,
+    .halo,
+    .selected-outline,
+    .city :global(.shape) {
+      transition: none;
+    }
+  }
+</style>

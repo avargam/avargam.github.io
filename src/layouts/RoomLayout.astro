@@ -11,13 +11,14 @@ const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="es" class="h-dvh overflow-hidden">
+<html lang="es" class="h-dvh overflow-clip">
   <head>
     <Head title={title} description={description} />
     <!-- Escala del escenario (1600×1000) al viewport, antes del primer paint para evitar un salto. -->
     <script is:inline>
       (() => {
         const root = document.documentElement;
+        root.classList.add('js');
         const fit = () =>
           root.style.setProperty('--fit', String(Math.min(innerWidth / 1600, innerHeight / 1000)));
         fit();
@@ -44,7 +45,7 @@ const { title, description } = Astro.props;
       </style>
     </noscript>
   </head>
-  <body class="bg-wall-deep h-dvh overflow-hidden">
+  <body class="bg-wall-deep h-dvh overflow-clip">
     <slot />
   </body>
 </html>

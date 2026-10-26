@@ -61,15 +61,8 @@ export function stopAll(): void {
   running.clear();
 }
 
-export async function moveCamera(
-  el: HTMLElement,
-  camera: Camera,
-  duration: number,
-): Promise<boolean> {
-  el.classList.add('is-moving');
-  const done = await tween(el, { transform: cameraTransform(camera) }, duration, EASE_CAMERA);
-  el.classList.remove('is-moving');
-  return done;
+export function moveCamera(el: HTMLElement, camera: Camera, duration: number): Promise<boolean> {
+  return tween(el, { transform: cameraTransform(camera) }, duration, EASE_CAMERA);
 }
 
 export async function fadeIn(el: HTMLElement, duration: number): Promise<boolean> {
