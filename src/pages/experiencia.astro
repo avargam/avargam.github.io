@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import Card from '../components/Card.astro';
+import { experience } from '../data/experience';
+import { skills } from '../data/skills';
+---
+
+<BaseLayout
+  title="Experiencia"
+  description="Experiencia profesional y herramientas de Alonso Vargas."
+>
+  <PageIntro eyebrow="Dónde he trabajado" title="Experiencia">
+    <p>Desarrollo web, investigación aplicada y casi cinco años enseñando y coordinando equipos.</p>
+  </PageIntro>
+
+  <ol class="grid gap-6">
+    {experience.map((job) => (
+      <Card as="li">
+        <p class="text-muted text-sm font-bold tracking-wide uppercase">{job.period}</p>
+        <h2 class="mt-1 text-xl font-bold">{job.title}</h2>
+        <p class="text-desk font-medium">{job.org}</p>
+        <p class="mt-3 leading-relaxed">{job.summary}</p>
+      </Card>
+    ))}
+  </ol>
+
+  <section class="mt-16" aria-labelledby="herramientas">
+    <h2 id="herramientas" class="mb-6 text-3xl font-extrabold">
+      Con qué trabajo
+    </h2>
+    <dl class="grid gap-6 sm:grid-cols-2">
+      {skills.map((group) => (
+        <Card as="div">
+          <dt class="font-display text-plum text-lg font-bold">{group.label}</dt>
+          <dd class="mt-3">
+            <ul class="flex flex-wrap gap-2">
+              {group.items.map((item) => (
+                <li class="bg-mint text-ink rounded-full px-3 py-1 text-sm font-medium">{item}</li>
+              ))}
+            </ul>
+          </dd>
+        </Card>
+      ))}
+    </dl>
+  </section>
+</BaseLayout>

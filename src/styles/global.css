@@ -1,0 +1,87 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/dm-sans';
+
+/*
+ * Tokens de la paleta "A4b vaporwave" con cortinas y estantería de "A4a".
+ * Tailwind genera utilidades a partir de estos nombres: bg-wall, text-ink, border-plum, etc.
+ */
+@theme {
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Superficies (cuarto) */
+  --color-wall: #f9ddf0;
+  --color-wall-deep: #edb8dc;
+  --color-floor: #b676b0;
+  --color-plum: #5a2f6b;
+  --color-desk: #7d4690;
+  --color-shelf: #dda2bc;
+
+  /* Texto */
+  --color-ink: #2b2d42;
+  --color-muted: #5b4a6b;
+
+  /* Acentos */
+  --color-pink: #ff6fa3;
+  --color-hotpink: #ff4fa3;
+  --color-violet: #7b6cf6;
+  --color-periwinkle: #6f82e0;
+  --color-mint: #8adbc8;
+  --color-sun: #ffe86b;
+  --color-peach: #ff9e7a;
+  --color-indigo: #2a1b6b;
+  --color-lilac: #c6b8ff;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-wall font-body text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display text-plum;
+  }
+
+  a {
+    @apply underline decoration-pink decoration-2 underline-offset-4 hover:text-violet;
+  }
+
+  :focus-visible {
+    @apply outline-3 outline-offset-4 outline-violet;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+/* Escena ilustrada: cada objeto es un enlace */
+.scene {
+  --font-body: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  @apply block h-auto w-full;
+}
+
+.scene .hotspot {
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s ease;
+}
+
+.scene .hotspot:hover,
+.scene .hotspot:focus-visible {
+  filter: brightness(1.08) drop-shadow(0 0 10px rgb(255 255 255 / 0.9));
+}
+
+.scene .hotspot:focus-visible {
+  outline: 3px solid #7b6cf6;
+  outline-offset: 6px;
+}

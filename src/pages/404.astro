@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageIntro from '../components/PageIntro.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<BaseLayout title="No encontrado">
+  <PageIntro eyebrow="Error 404" title="Esa página no existe">
+    <p>Puede que el enlace esté mal escrito o que la sección se haya movido.</p>
+    <p class="mt-4">
+      <a href={`${base}/`}>Volver al cuarto →</a>
+    </p>
+  </PageIntro>
+</BaseLayout>

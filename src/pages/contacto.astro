@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import Card from '../components/Card.astro';
+import { profile } from '../data/profile';
+
+const channels = [
+  { label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
+  { label: 'GitHub', value: 'github.com/avargam', href: profile.links.github },
+  { label: 'LinkedIn', value: 'Alonso Vargas Manríquez', href: profile.links.linkedin },
+];
+---
+
+<BaseLayout title="Contacto" description="Cómo contactar a Alonso Vargas.">
+  <PageIntro eyebrow="Escríbeme" title="Contacto">
+    <p>El correo es la forma más directa. También me encuentras en GitHub y LinkedIn.</p>
+  </PageIntro>
+
+  <ul class="grid gap-6 sm:grid-cols-3">
+    {channels.map((c) => (
+      <Card as="li">
+        <p class="text-muted text-sm font-bold tracking-wide uppercase">{c.label}</p>
+        <p class="mt-2 break-words">
+          <a
+            href={c.href}
+            class="font-bold"
+            rel={c.href.startsWith('http') ? 'noopener' : undefined}
+          >
+            {c.value}
+          </a>
+        </p>
+      </Card>
+    ))}
+  </ul>
+</BaseLayout>

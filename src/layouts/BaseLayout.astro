@@ -1,0 +1,94 @@
+---
+import '../styles/global.css';
+import { profile } from '../data/profile';
+import { sections } from '../data/nav';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = `${profile.name}: ${profile.tagline}.` } = Astro.props;
+const pageTitle = title ? `${title} · ${profile.shortName}` : profile.name;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f9ddf0" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+  </head>
+  <body class="min-h-dvh">
+    <a
+      href="#contenido"
+      class="bg-plum text-wall sr-only rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-10"
+    >
+      Saltar al contenido
+    </a>
+
+    <header class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 pt-6">
+      <a href={`${base}/`} class="font-display text-plum text-xl font-extrabold no-underline">
+        {profile.name}
+      </a>
+      <nav aria-label="Secciones">
+        <ul class="flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium">
+          {sections.map((s) => {
+            const href = `${base}/${s.slug}`;
+            const active = currentPath === href;
+            return (
+              <li>
+                <a
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                  class:list={[
+                    'no-underline hover:underline',
+                    active && 'text-plum font-bold underline',
+                  ]}
+                >
+                  {s.label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </header>
+
+    <main id="contenido" class="mx-auto max-w-5xl px-4 py-10">
+      <slot />
+    </main>
+
+    <footer class="border-wall-deep text-muted mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t px-4 py-8 text-sm">
+      <p>
+        © {new Date().getFullYear()} {profile.name}
+      </p>
+      <ul class="flex flex-wrap gap-x-5 gap-y-1">
+        <li>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        </li>
+        <li>
+          <a href={profile.links.github} rel="noopener">
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a href={profile.links.linkedin} rel="noopener">
+            LinkedIn
+          </a>
+        </li>
+      </ul>
+    </footer>
+  </body>
+</html>

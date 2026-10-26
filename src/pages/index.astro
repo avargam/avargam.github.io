@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Scene from '../components/Scene.astro';
+import { profile } from '../data/profile';
+import { sections } from '../data/nav';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<BaseLayout>
+  <section class="mb-10 max-w-2xl">
+    <h1 class="text-5xl font-extrabold tracking-tight sm:text-6xl">
+      Hola, soy <span class="text-pink">{profile.shortName}</span>.
+    </h1>
+    <p class="text-muted mt-5 text-lg leading-relaxed">{profile.intro}</p>
+    <p class="text-muted mt-3 text-base">Este es mi cuarto: cada objeto lleva a una sección.</p>
+  </section>
+
+  <div class="border-plum overflow-hidden rounded-3xl border-2 shadow-[8px_8px_0_var(--color-plum)]">
+    <Scene />
+  </div>
+
+  <nav aria-label="Todas las secciones" class="mt-12">
+    <h2 class="mb-4 text-2xl font-bold">O ve directo a una sección</h2>
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {sections.map((s) => (
+        <li>
+          <a
+            href={`${base}/${s.slug}`}
+            class="border-plum hover:bg-sun block rounded-2xl border-2 bg-white/70 p-4 no-underline shadow-[4px_4px_0_var(--color-plum)] transition-colors"
+          >
+            <span class="font-display text-plum text-lg font-bold">{s.label}</span>
+            <span class="text-muted block text-sm">{s.description}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</BaseLayout>
