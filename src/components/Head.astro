@@ -1,0 +1,25 @@
+---
+import { profile } from '../data/profile';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = `${profile.name}: ${profile.tagline}.` } = Astro.props;
+const pageTitle = title ? `${title} · ${profile.shortName}` : profile.name;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname.replace(/(index)?(\.html)?$/, ''), Astro.site);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<meta name="theme-color" content="#f9ddf0" />
+<link rel="canonical" href={canonical} />
+<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_CL" />
