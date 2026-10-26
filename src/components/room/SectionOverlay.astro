@@ -1,19 +1,17 @@
 ---
 /**
  * Capa HTML de una sección, a escala 1:1 sobre la escena: Volver, contenido y chips.
- * Provisional (Fase 0): el contenido real llega con cada escena.
+ * Provisional: el contenido real llega con cada escena. Las secciones `tilt` reciben su escena por slot.
  */
 import type { Section } from '../../data/sections';
 import SectionChips from '../ui/SectionChips.astro';
-import TestBox from '../stage/TestBox.astro';
 
 interface Props {
   section: Section;
   active: boolean;
-  color: string;
 }
 
-const { section, active, color } = Astro.props;
+const { section, active } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
@@ -25,7 +23,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 >
   {section.transition === 'tilt' && (
     <div class="pointer-events-auto absolute inset-0" data-scene={section.slug} inert={!active}>
-      <TestBox label={`Escena ${section.label}`} color={color} />
+      <slot />
     </div>
   )}
 

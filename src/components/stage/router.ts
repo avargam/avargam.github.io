@@ -51,18 +51,19 @@ function queryStage() {
   const root = document.querySelector<HTMLElement>('[data-room-root]');
   const stage = root?.querySelector<HTMLElement>('[data-stage]');
   const camera = root?.querySelector<HTMLElement>('[data-camera]');
-  const roomUi = root?.querySelector<HTMLElement>('[data-room-ui]');
   const announcer = root?.querySelector<HTMLElement>('[data-announcer]');
-  if (!root || !stage || !camera || !roomUi || !announcer) return null;
-  return { root, stage, camera, roomUi, announcer };
+  if (!root || !stage || !camera || !announcer) return null;
+  return { root, stage, camera, announcer };
 }
 
 export function initRouter(): void {
   const dom = queryStage();
   if (!dom) return;
-  const { root, stage, camera, roomUi, announcer } = dom;
+  const { root, stage, camera, announcer } = dom;
 
   const all = (selector: string) => [...root.querySelectorAll<HTMLElement>(selector)];
+  /** Etiquetas, chips y pista: se desvanecen antes del zoom. */
+  const roomUi = all('[data-room-ui]');
   const overlays = all('[data-overlay]');
   const scenes = all('[data-scene]');
   const roomOnly = all('[data-room-only]');
@@ -115,8 +116,10 @@ export function initRouter(): void {
       if (!(await tween(stage, { opacity: '0' }, DURATION.cut)) || !alive()) return;
       for (const el of others) el.hidden = true;
       await moveCamera(camera, cameraFor(target ? sectionBySlug(target) : undefined), 0);
-      roomUi.hidden = target !== null;
-      roomUi.style.opacity = '1';
+      for (const el of roomUi) {
+        el.hidden = target !== null;
+        el.style.opacity = '1';
+      }
       if (overlay) {
         overlay.hidden = false;
         overlay.style.opacity = '1';
@@ -127,7 +130,7 @@ export function initRouter(): void {
       if (target !== null) {
         // Entrar: etiquetas fuera → zoom → overlay.
         await Promise.all([
-          fadeOut(roomUi, DURATION.labelsOut),
+          ...roomUi.map((el) => fadeOut(el, DURATION.labelsOut)),
           ...others.map((el) => fadeOut(el, DURATION.overlayOut)),
         ]);
         if (!alive()) return;
@@ -144,7 +147,8 @@ export function initRouter(): void {
         await Promise.all(others.map((el) => fadeOut(el, DURATION.overlayOut)));
         if (!alive()) return;
         if (!(await moveCamera(camera, cameraFor(undefined), DURATION.camera)) || !alive()) return;
-        if (!(await fadeIn(roomUi, DURATION.labelsIn)) || !alive()) return;
+        const shown = await Promise.all(roomUi.map((el) => fadeIn(el, DURATION.labelsIn)));
+        if (shown.includes(false) || !alive()) return;
       }
     }
 

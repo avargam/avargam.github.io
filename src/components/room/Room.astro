@@ -1,14 +1,17 @@
 ---
 /**
  * El cuarto: navegación del sitio. Todas las rutas lo renderizan; `initial` indica qué sección
- * viene abierta (deep link). Provisional (Fase 0): objetos y escenas son cajas de prueba.
+ * viene abierta (deep link). Las escenas son imágenes provisionales hasta que se porten.
  */
-import { profile } from '../../data/profile';
 import { getSection, sections, type SectionSlug } from '../../data/sections';
 import World from '../stage/World.astro';
-import TestBox from '../stage/TestBox.astro';
 import SectionChips from '../ui/SectionChips.astro';
+import ScenePlaceholder from '../scenes/ScenePlaceholder.astro';
 import SectionOverlay from './SectionOverlay.astro';
+import RoomBack from './RoomBack.astro';
+import NamePlate from './NamePlate.astro';
+import RoomLabel from './RoomLabel.astro';
+import ContactEnvelopes from './ContactEnvelopes.astro';
 import { objectRect, rectStyle, sceneInObject } from '../stage/geometry';
 
 interface Props {
@@ -19,50 +22,81 @@ const { initial } = Astro.props;
 const open = initial ? getSection(initial) : undefined;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-const testColors: Record<SectionSlug, string> = {
-  formacion: 'var(--color-periwinkle)',
-  experiencia: 'var(--color-peach)',
-  proyectos: 'var(--color-lilac)',
-  'fuera-del-codigo': 'var(--color-mint)',
-  contacto: 'var(--color-sun)',
-};
+/** Margen del contorno punteado de hover alrededor del objeto. */
+const OUTLINE = 14;
+
+/**
+ * Objeto, etiqueta y chip de una sección se resaltan juntos cuando cualquiera de los tres
+ * tiene hover o foco. Una regla por sección; solo CSS.
+ */
+const highlightCss = sections
+  .map(({ slug }) => {
+    const active = `[data-room-root]:has([data-hotspot="${slug}"]:hover, [data-hotspot="${slug}"]:focus-visible, [data-label="${slug}"] a:hover, [data-room-ui] [data-chip="${slug}"]:hover, [data-room-ui] [data-chip="${slug}"]:focus-visible)`;
+    return `${active} [data-object="${slug}"] .room-outline { opacity: 1; }
+${active} [data-label="${slug}"] .room-label-pill { background: var(--color-hotpink); }
+${active} [data-room-ui] [data-chip="${slug}"] { background: var(--color-plum); color: var(--color-wall); }
+${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-pink); }`;
+  })
+  .join('\n');
 ---
 
 <div data-room-root>
   <World initial={open}>
-    <div class="room-bg absolute inset-0" data-room-only inert={!!open} aria-hidden="true">
-      <p class="font-display text-plum/40 absolute bottom-40 left-10 text-5xl font-extrabold">
-        Cuarto (provisional)
-      </p>
+    <div data-room-only inert={!!open}>
+      <RoomBack />
     </div>
 
-    {sections.map((s) => (
-      <div class="room-object absolute" style={rectStyle(objectRect(s))}>
-        {s.transition === 'zoom' && (
-          <div class="absolute inset-0 overflow-hidden">
-            <div
-              class="absolute top-0 left-0 h-[1000px] w-[1600px] origin-top-left"
-              style={`transform: ${sceneInObject(s)}`}
-              data-scene={s.slug}
-              inert={s.slug !== initial}
-            >
-              <TestBox label={`Escena ${s.label}`} color={testColors[s.slug]} />
+    {sections.map((s) => {
+      const r = objectRect(s);
+      return (
+        <div class="absolute" style={rectStyle(r)} data-object={s.slug}>
+          {s.transition === 'zoom' ? (
+            <div class="absolute inset-0 overflow-hidden rounded">
+              <div
+                class="absolute top-0 left-0 h-[1000px] w-[1600px] origin-top-left"
+                style={`transform: ${sceneInObject(s)}`}
+                data-scene={s.slug}
+                inert={s.slug !== initial}
+              >
+                <ScenePlaceholder slug={s.slug} />
+              </div>
             </div>
-          </div>
-        )}
-        {s.transition === 'tilt' && (
-          <div class="bg-pink border-plum absolute inset-0 rounded border-3" aria-hidden="true" />
-        )}
-        <a
-          href={`${base}/${s.slug}`}
-          data-section={s.slug}
-          data-hotspot={s.slug}
-          data-room-only
-          inert={!!open}
-          aria-label={s.label}
-          class="room-hotspot absolute inset-0"
-        />
-      </div>
+          ) : (
+            <ContactEnvelopes rect={r} />
+          )}
+          <svg
+            class="room-outline pointer-events-none absolute overflow-visible"
+            style={`left:${-OUTLINE}px;top:${-OUTLINE}px;width:${r.w + 2 * OUTLINE}px;height:${r.h + 2 * OUTLINE}px`}
+            aria-hidden="true"
+          >
+            <rect
+              x="3"
+              y="3"
+              width={r.w + 2 * OUTLINE - 6}
+              height={r.h + 2 * OUTLINE - 6}
+              rx={Math.min(22, (r.h + 2 * OUTLINE) / 2 - 3)}
+              fill="none"
+              stroke="#FF4FA3"
+              stroke-width="6"
+              stroke-dasharray="14 10"
+            />
+          </svg>
+          <a
+            href={`${base}/${s.slug}`}
+            data-section={s.slug}
+            data-hotspot={s.slug}
+            data-room-only
+            inert={!!open}
+            aria-label={s.label}
+            class="room-hotspot absolute inset-0 rounded"
+          />
+        </div>
+      );
+    })}
+
+    <NamePlate />
+    {sections.map((s) => (
+      <RoomLabel section={s} hidden={!!open} />
     ))}
 
     <div slot="overlay" class="contents">
@@ -71,23 +105,26 @@ const testColors: Record<SectionSlug, string> = {
         data-room-only
         hidden={!!open}
         inert={!!open}
-        class="absolute inset-x-0 bottom-6 flex flex-col items-center gap-3"
+        class="absolute inset-x-0 top-[930px] flex flex-col items-center gap-[6px]"
       >
-        <h1 class="sr-only">{profile.name}</h1>
         <SectionChips label="Secciones del cuarto" />
-        <p class="text-plum text-lg">
+        <p class="text-wall text-[15px] font-bold">
           Haz clic en un objeto · o usa Tab y las flechas · Enter para entrar
         </p>
       </div>
 
       {sections.map((s) => (
-        <SectionOverlay section={s} active={s.slug === initial} color={testColors[s.slug]} />
+        <SectionOverlay section={s} active={s.slug === initial}>
+          {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
+        </SectionOverlay>
       ))}
 
       <p data-announcer class="sr-only" aria-live="polite"></p>
     </div>
   </World>
 </div>
+
+<style is:inline set:html={highlightCss} />
 
 <script>
   import { initRouter } from '../stage/router';
@@ -96,25 +133,22 @@ const testColors: Record<SectionSlug, string> = {
 </script>
 
 <style>
-  .room-bg {
-    background: linear-gradient(
-      var(--color-wall) 0 64%,
-      var(--color-wall-deep) 64% 76%,
-      var(--color-floor) 76%
-    );
+  .room-outline {
+    opacity: 0;
+    transition: opacity 0.15s ease;
   }
 
-  .room-hotspot {
-    border-radius: 6px;
-  }
-
-  .room-hotspot:hover,
   .room-hotspot:focus-visible {
-    outline: 5px dashed var(--color-hotpink);
-    outline-offset: 8px;
+    outline: none;
   }
 
   .room-hotspot[inert] {
     pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-outline {
+      transition: none;
+    }
   }
 </style>

@@ -1,0 +1,35 @@
+---
+/**
+ * Provisional: imagen del prototipo (escena sin UI) mientras la escena no esté portada.
+ * Cada fase que porta una escena borra su imagen de `src/assets/placeholders/`.
+ */
+import { Image } from 'astro:assets';
+import type { SectionSlug } from '../../data/sections';
+import formacion from '../../assets/placeholders/formacion.webp';
+import experiencia from '../../assets/placeholders/experiencia.webp';
+import proyectos from '../../assets/placeholders/proyectos.webp';
+import fueraDelCodigo from '../../assets/placeholders/fuera-del-codigo.webp';
+import contacto from '../../assets/placeholders/contacto.webp';
+
+interface Props {
+  slug: SectionSlug;
+}
+
+const images = {
+  formacion,
+  experiencia,
+  proyectos,
+  'fuera-del-codigo': fueraDelCodigo,
+  contacto,
+};
+---
+
+<Image
+  src={images[Astro.props.slug]}
+  alt=""
+  width={1600}
+  height={1000}
+  densities={[1, 2]}
+  class="absolute inset-0 h-full w-full"
+  draggable="false"
+/>

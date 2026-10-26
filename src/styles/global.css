@@ -73,25 +73,3 @@
     }
   }
 }
-
-/* Escena ilustrada: cada objeto es un enlace */
-.scene {
-  --font-body: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  @apply block h-auto w-full;
-}
-
-.scene .hotspot {
-  cursor: pointer;
-  text-decoration: none;
-  transition: filter 0.15s ease;
-}
-
-.scene .hotspot:hover,
-.scene .hotspot:focus-visible {
-  filter: brightness(1.08) drop-shadow(0 0 10px rgb(255 255 255 / 0.9));
-}
-
-.scene .hotspot:focus-visible {
-  outline: 3px solid #7b6cf6;
-  outline-offset: 6px;
-}
