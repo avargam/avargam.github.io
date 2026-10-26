@@ -1,0 +1,65 @@
+---
+/**
+ * Etiqueta de un objeto del cuarto: píldora + conector. Es un enlace clicable, pero fuera del
+ * orden de tabulación y del árbol de accesibilidad (el objeto ya es el enlace con nombre).
+ */
+import type { Section } from '../../data/sections';
+
+interface Props {
+  section: Section;
+  hidden: boolean;
+}
+
+const { section, hidden } = Astro.props;
+const { x, y, color, line } = section.roomLabel;
+const [x1, y1, x2, y2] = line;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<div
+  class="room-label"
+  data-room-ui
+  data-room-only
+  data-label={section.slug}
+  hidden={hidden}
+  inert={hidden}
+>
+  <svg
+    class="pointer-events-none absolute inset-0 h-[1000px] w-[1600px]"
+    viewBox="0 0 1600 1000"
+    aria-hidden="true"
+  >
+    <line
+      x1={x1}
+      y1={y1}
+      x2={x2}
+      y2={y2}
+      stroke="#2B2D42"
+      stroke-width="2.5"
+      stroke-linecap="round"
+    />
+  </svg>
+  <a
+    href={`${base}/${section.slug}`}
+    data-section={section.slug}
+    tabindex="-1"
+    aria-hidden="true"
+    class="room-label-pill text-ink absolute flex h-[38px] -translate-x-1/2 -translate-y-1/2 items-center rounded-full px-6 text-[21px] font-bold whitespace-nowrap no-underline"
+    style={`left:${x}px;top:${y}px;--label:${color}`}
+  >
+    {section.label}
+  </a>
+</div>
+
+<style>
+  .room-label-pill {
+    background: var(--label);
+    transition: background-color 0.15s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-label-pill {
+      transition: none;
+    }
+  }
+</style>
