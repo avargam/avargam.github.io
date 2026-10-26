@@ -17,3 +17,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/
+
+# prototipos y documentos internos
+prototype/
