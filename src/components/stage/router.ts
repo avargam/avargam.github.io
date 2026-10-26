@@ -28,8 +28,28 @@ interface HistoryState {
 }
 
 /**
- * Cómo pasar de una sección a otra (chips o teclas 1–5): `cut` funde directo; `via-room` sale
- * al cuarto y vuelve a entrar.
+ * Comportamiento propio de una sección abierta (ítems, teclado). Se registra con
+ * `registerSection` desde el script de la sección.
+ */
+export interface SectionController {
+  /** Después del zoom de entrada (o del fundido): aplica la selección inicial. */
+  enter(): void;
+  /** Antes del zoom de salida: quita la selección para que la escena vuelva al reposo. */
+  leave(): void;
+  /** Teclas dentro de la sección (← →, dígitos…). Devuelve `true` si la consumió. */
+  onKey(event: KeyboardEvent): boolean;
+}
+
+const controllers = new Map<SectionSlug, SectionController>();
+
+export function registerSection(slug: SectionSlug, controller: SectionController): void {
+  controllers.set(slug, controller);
+}
+
+/**
+ * Cómo pasar de una sección a otra con un enlace directo entre secciones: `cut` funde directo;
+ * `via-room` sale al cuarto y vuelve a entrar. (El teclado no cambia de sección dentro de una:
+ * los dígitos eligen ítems.)
  */
 const SWITCH_MODE = 'cut' as 'cut' | 'via-room';
 
@@ -110,6 +130,7 @@ export function initRouter(): void {
     const others = overlays.filter((el) => el !== overlay && !el.hidden);
     const reduced = prefersReducedMotion();
     const isSwitch = from !== null && target !== null;
+    if (from !== null) controllers.get(from)?.leave();
 
     if (reduced || (isSwitch && SWITCH_MODE === 'cut')) {
       // Fundido: oscurece el escenario, cambia todo de golpe y vuelve a mostrarlo.
@@ -120,6 +141,7 @@ export function initRouter(): void {
         el.hidden = target !== null;
         el.style.opacity = '1';
       }
+      if (target !== null) controllers.get(target)?.enter();
       if (overlay) {
         overlay.hidden = false;
         overlay.style.opacity = '1';
@@ -141,6 +163,7 @@ export function initRouter(): void {
           !alive()
         )
           return;
+        controllers.get(target)?.enter();
         if (overlay && (!(await fadeIn(overlay, DURATION.overlayIn)) || !alive())) return;
       } else {
         // Salir: overlay fuera → zoom inverso → etiquetas.
@@ -214,7 +237,12 @@ export function initRouter(): void {
     const el = event.target as HTMLElement;
     if (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
 
-    const byKey = sections.find((s) => s.key === event.key);
+    if (current !== null && controllers.get(current)?.onKey(event)) {
+      event.preventDefault();
+      return;
+    }
+
+    const byKey = current === null ? sections.find((s) => s.key === event.key) : undefined;
     if (byKey) {
       event.preventDefault();
       navigate(byKey.slug);
