@@ -1,0 +1,84 @@
+---
+/**
+ * Tarjeta de detalle de un ítem con globo: la tarjeta queda anclada por su borde inferior
+ * (y = 390) a un lado de la escena, y la punta del globo apunta al objeto.
+ * Visible si tiene `data-active` (JS) o, sin JS, si es el `:target`.
+ */
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  side: 'left' | 'right';
+  tip: { x: number; y: number };
+  active: boolean;
+}
+
+const { id, eyebrow, title, side, tip, active } = Astro.props;
+
+const CARD = { w: 700, bottom: 390, left: side === 'left' ? 300 : 760 };
+const BASE_HALF = 45;
+const baseX = Math.min(
+  Math.max(tip.x, CARD.left + 40 + BASE_HALF),
+  CARD.left + CARD.w - 40 - BASE_HALF,
+);
+const baseY = CARD.bottom - 5;
+const tail = `${baseX - BASE_HALF},${baseY} ${baseX + BASE_HALF},${baseY} ${tip.x},${tip.y}`;
+const titleId = `${id}-titulo`;
+---
+
+<article
+  id={id}
+  data-item-card={id}
+  data-active={active ? '' : undefined}
+  data-default={active ? '' : undefined}
+  aria-labelledby={titleId}
+  class="detail-card absolute inset-0"
+>
+  <div
+    class="card-box shell-enter bg-wall border-plum pointer-events-auto absolute rounded-[26px] border-4 px-10 pt-8 pb-7 shadow-[6px_8px_0_var(--color-plum)]"
+    style={`left:${CARD.left}px;width:${CARD.w}px;bottom:${1000 - CARD.bottom}px;--i:1`}
+  >
+    <p class="text-violet text-[15px] font-extrabold tracking-[0.16em] uppercase">{eyebrow}</p>
+    <h2 id={titleId} class="mt-2 text-[35px] leading-tight font-extrabold">
+      {title}
+    </h2>
+    <slot />
+  </div>
+  <svg
+    class="shell-enter pointer-events-none absolute inset-0"
+    width="1600"
+    height="1000"
+    viewBox="0 0 1600 1000"
+    style="--i: 1"
+    aria-hidden="true"
+  >
+    <polygon points={tail} fill="#F9DDF0"></polygon>
+    <path
+      d={`M${baseX - BASE_HALF} ${baseY + 1} L${tip.x} ${tip.y} L${baseX + BASE_HALF} ${baseY + 1}`}
+      fill="none"
+      stroke="#5A2F6B"
+      stroke-width="4"
+      stroke-linejoin="round"
+    ></path>
+  </svg>
+</article>
+
+<style>
+  .detail-card {
+    display: none;
+  }
+
+  .detail-card[data-active] {
+    display: block;
+  }
+
+  /* Sin JS: el chip es un ancla y la tarjeta apuntada reemplaza a la de por defecto. */
+  :global(html:not(.js)) .detail-card:target {
+    display: block;
+  }
+
+  :global(html:not(.js) [data-overlay]:has(.detail-card:target))
+    .detail-card[data-default]:not(:target) {
+    display: none;
+  }
+</style>

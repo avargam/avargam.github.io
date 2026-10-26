@@ -1,0 +1,29 @@
+---
+/** Chips numerados de los ítems de una sección. Sin JS son anclas a la tarjeta (`:target`). */
+import type { SectionItem } from '../stage/itemNav';
+import Chip from './Chip.astro';
+
+interface Props {
+  items: SectionItem[];
+  current?: string;
+  label: string;
+}
+
+const { items, current, label } = Astro.props;
+---
+
+<nav aria-label={label}>
+  <ul class="flex gap-3">
+    {items.map((item, i) => (
+      <li>
+        <Chip
+          number={String(i + 1)}
+          label={item.chip}
+          href={`#${item.id}`}
+          current={item.id === current ? 'true' : undefined}
+          data-item-chip={item.id}
+        />
+      </li>
+    ))}
+  </ul>
+</nav>
