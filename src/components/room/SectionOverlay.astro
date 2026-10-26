@@ -1,0 +1,51 @@
+---
+/**
+ * Capa HTML de una sección, a escala 1:1 sobre la escena: Volver, contenido y chips.
+ * Provisional (Fase 0): el contenido real llega con cada escena.
+ */
+import type { Section } from '../../data/sections';
+import SectionChips from '../ui/SectionChips.astro';
+import TestBox from '../stage/TestBox.astro';
+
+interface Props {
+  section: Section;
+  active: boolean;
+  color: string;
+}
+
+const { section, active, color } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section
+  data-overlay={section.slug}
+  aria-labelledby={`titulo-${section.slug}`}
+  hidden={!active}
+  class="pointer-events-none absolute inset-0"
+>
+  {section.transition === 'tilt' && (
+    <div class="pointer-events-auto absolute inset-0" data-scene={section.slug} inert={!active}>
+      <TestBox label={`Escena ${section.label}`} color={color} />
+    </div>
+  )}
+
+  <a
+    href={`${base}/`}
+    data-back
+    class="bg-plum text-wall pointer-events-auto absolute top-14 left-10 flex items-center gap-3 rounded-full px-7 py-4 text-2xl font-medium no-underline shadow-[0_6px_0_rgb(0_0_0/0.2)]"
+  >
+    <span aria-hidden="true">←</span> Volver al cuarto
+  </a>
+
+  <div class="bg-wall border-plum pointer-events-auto absolute top-36 right-24 w-[620px] rounded-3xl border-4 p-10 shadow-[10px_10px_0_var(--color-plum)]">
+    <p class="text-violet text-lg font-bold tracking-widest uppercase">Sección {section.key}</p>
+    <h1 id={`titulo-${section.slug}`} tabindex="-1" class="mt-2 text-6xl font-extrabold">
+      {section.label}
+    </h1>
+    <p class="text-muted mt-4 text-2xl">{section.description}</p>
+  </div>
+
+  <div class="pointer-events-auto absolute bottom-8 left-1/2 -translate-x-1/2">
+    <SectionChips current={section.slug} label="Secciones" />
+  </div>
+</section>
