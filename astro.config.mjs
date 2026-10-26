@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 // Si algún día se publica como proyecto (repo con otro nombre), agregar `base: '/nombre-repo'`.
 export default defineConfig({
   site: 'https://avargam.github.io',
+  // `formacion.html` en vez de `formacion/index.html`: Pages lo sirve en `/formacion` sin redirigir a `/formacion/`.
+  build: { format: 'file' },
   vite: {
     plugins: [tailwindcss()],
   },
