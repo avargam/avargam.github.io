@@ -1,0 +1,58 @@
+---
+import type { Section } from '../../data/sections';
+import { cameraFor, cameraTransform } from './geometry';
+
+interface Props {
+  /** Sección abierta al cargar la ruta; sin ella, la cámara muestra el cuarto. */
+  initial?: Section;
+}
+
+const { initial } = Astro.props;
+---
+
+<!--
+  viewport: ocupa la ventana y hace letterbox.
+  fit:      el escenario de 1600×1000, escalado a la ventana con --fit (ver RoomLayout).
+  camera:   el cuarto con sus escenas; la cámara es su transform.
+  Lo que va en el slot "overlay" queda por encima de la cámara a escala 1:1 (tarjetas, chips, Volver).
+-->
+<div class="stage-viewport">
+  <div class="stage-fit" data-stage>
+    <div
+      class="stage-camera"
+      data-camera
+      style={`transform: ${cameraTransform(cameraFor(initial))}`}
+    >
+      <slot />
+    </div>
+    <slot name="overlay" />
+  </div>
+</div>
+
+<style is:global>
+  .stage-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .stage-fit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1600px;
+    height: 1000px;
+    overflow: hidden;
+    transform: translate(-50%, -50%) scale(var(--fit, 1));
+  }
+
+  .stage-camera {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+  }
+
+  .stage-camera.is-moving {
+    will-change: transform;
+  }
+</style>

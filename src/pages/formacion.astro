@@ -1,36 +1,11 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageIntro from '../components/PageIntro.astro';
-import Card from '../components/Card.astro';
-import { education, languages } from '../data/education';
+import RoomLayout from '../layouts/RoomLayout.astro';
+import Room from '../components/room/Room.astro';
+import { getSection } from '../data/sections';
+
+const section = getSection('formacion');
 ---
 
-<BaseLayout title="Formación" description="Estudios e idiomas de Alonso Vargas.">
-  <PageIntro eyebrow="De dónde vengo" title="Formación">
-    <p>Estudios universitarios e idiomas.</p>
-  </PageIntro>
-
-  <ul class="grid gap-6">
-    {education.map((e) => (
-      <Card as="li">
-        <p class="text-muted text-sm font-bold tracking-wide uppercase">{e.period}</p>
-        <h2 class="mt-1 text-xl font-bold">{e.title}</h2>
-        <p class="text-desk font-medium">{e.org}</p>
-        <p class="mt-3 leading-relaxed">{e.summary}</p>
-      </Card>
-    ))}
-  </ul>
-
-  <section class="mt-12" aria-labelledby="idiomas">
-    <h2 id="idiomas" class="mb-4 text-2xl font-bold">
-      Idiomas
-    </h2>
-    <ul class="flex flex-wrap gap-3">
-      {languages.map((l) => (
-        <li class="bg-lilac text-ink rounded-full px-4 py-2 font-medium">
-          {l.name} · {l.level}
-        </li>
-      ))}
-    </ul>
-  </section>
-</BaseLayout>
+<RoomLayout title={section.label} description={section.description}>
+  <Room initial={section.slug} />
+</RoomLayout>

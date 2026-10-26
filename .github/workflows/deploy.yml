@@ -2,7 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
@@ -35,7 +37,9 @@ jobs:
         with:
           path: dist
 
+  # Solo producción despliega; en dev y en las PRs el build sirve de verificación.
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

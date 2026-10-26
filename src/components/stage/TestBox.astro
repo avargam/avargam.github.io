@@ -1,0 +1,35 @@
+---
+/** Provisional (Fase 0): una "escena" de 1600×1000 con grilla, para probar la cámara sin dibujos. Se borra en la Fase 1. */
+interface Props {
+  label: string;
+  color: string;
+}
+
+const { label, color } = Astro.props;
+---
+
+<div class="test-box" style={`--box: ${color}`} aria-hidden="true">
+  <span>{label}</span>
+</div>
+
+<style>
+  .test-box {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background:
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.35) 0 4px, transparent 4px 100px),
+      repeating-linear-gradient(0deg, rgb(255 255 255 / 0.35) 0 4px, transparent 4px 100px),
+      var(--box);
+    outline: 24px solid var(--color-plum);
+    outline-offset: -24px;
+  }
+
+  .test-box span {
+    font-family: var(--font-display);
+    font-size: 140px;
+    font-weight: 800;
+    color: var(--color-plum);
+  }
+</style>
