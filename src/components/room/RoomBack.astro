@@ -6,17 +6,6 @@
  */
 import Avatar from './Avatar.astro';
 import Cat from './Cat.astro';
-
-const shelfBooks = [
-  '#3B2A80',
-  '#5A2F6B',
-  '#2A1B6B',
-  '#7D4690',
-  '#4A2A8C',
-  '#1B1245',
-  '#3B2A80',
-  '#5A2F6B',
-];
 ---
 
 <svg class="absolute inset-0" viewBox="0 0 1600 1000" aria-hidden="true">
@@ -94,37 +83,7 @@ const shelfBooks = [
   <path d="M1062 444 L1132 424 L1146 476 L1090 496Z" fill="#FFC857" />
   <polygon points="1080,490 1142,474 1190,590 1020,590" fill="#FFE9A8" opacity="0.35" />
 
-  <!-- estantería: repisas inferiores y gabinete (las dos de arriba son la escena de Fuera del código) -->
-  <rect x="1240" y="319" width="272" height="170" fill="#5A2F6B" />
-  <rect x="1248" y="319" width="256" height="75" fill="#EBBFDD" />
-  <rect x="1248" y="394" width="256" height="8" fill="#7D4690" />
-  <rect x="1248" y="402" width="256" height="75" fill="#EBBFDD" />
-  <rect x="1248" y="477" width="256" height="8" fill="#7D4690" />
-  {shelfBooks.map((fill, k) => (
-    <rect
-      x={1260 + k * 14}
-      y={346 - (k % 3) * 6}
-      width="12"
-      height={48 + (k % 3) * 6}
-      rx="1.5"
-      fill={fill}
-    />
-  ))}
-  <ellipse cx="1430" cy="386" rx="26" ry="6" fill="#3B2A80" />
-  <path d="M1416 384 Q1430 362 1444 384Z" fill="#3B2A80" />
-  <rect
-    x="1264"
-    y="448"
-    width="90"
-    height="29"
-    rx="4"
-    fill="#7B6CF6"
-    stroke="#5A2F6B"
-    stroke-width="2"
-  />
-  <ellipse cx="1309" cy="448" rx="38" ry="7" fill="#1B1245" />
-  <rect x="1410" y="422" width="38" height="55" rx="5" fill="#3B2A80" />
-  <circle cx="1429" cy="458" r="12" fill="#1B1245" stroke="#FF6FA3" stroke-width="2" />
+  <!-- gabinete bajo la estantería (las 4 repisas son la escena de Fuera del código) -->
   <rect
     x="1240"
     y="489"

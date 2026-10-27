@@ -6,7 +6,6 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import type { SectionSlug } from '../../data/sections';
-import fueraDelCodigo from '../../assets/placeholders/fuera-del-codigo.webp';
 import contacto from '../../assets/placeholders/contacto.webp';
 
 interface Props {
@@ -14,7 +13,6 @@ interface Props {
 }
 
 const images: Partial<Record<SectionSlug, ImageMetadata>> = {
-  'fuera-del-codigo': fueraDelCodigo,
   contacto,
 };
 const image = images[Astro.props.slug];
