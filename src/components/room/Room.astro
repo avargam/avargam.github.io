@@ -60,11 +60,7 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
                 data-scene={s.slug}
                 inert={s.slug !== initial}
               >
-                {s.slug === 'formacion' ? (
-                  <CityScene open={initial === 'formacion'} />
-                ) : (
-                  <ScenePlaceholder slug={s.slug} />
-                )}
+                {s.slug === 'formacion' ? <CityScene /> : <ScenePlaceholder slug={s.slug} />}
               </div>
             </div>
           ) : (

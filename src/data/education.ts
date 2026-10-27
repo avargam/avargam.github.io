@@ -25,6 +25,8 @@ export interface Specialization {
   name: string;
   summary: string;
   skills: string[];
+  /** Versiones cortas de `skills`, para espacios chicos (el panel del Minor). */
+  short?: string[];
 }
 
 export const major: Specialization = {
@@ -49,6 +51,7 @@ export const minor: Specialization = {
     'Visualización interactiva de datos',
     'Modelamiento de datos en SQL',
   ],
+  short: ['Scraping', 'Análisis con Python', 'Visualización', 'Modelamiento SQL'],
 };
 
 export interface Language {

@@ -1,11 +1,13 @@
 ---
 /**
  * Escena de Formación: la ciudad al atardecer vista por la ventana. Es la misma en el cuarto
- * (escala 0.28, en reposo) y a pantalla completa. Cada ítem es un edificio con un botón encima;
- * los estados (hover, seleccionado) se pintan con CSS a partir de `data-selected`.
+ * (escala 0.28) y a pantalla completa. Cada ítem es un edificio con un botón encima; al elegirlo
+ * la cámara se acerca a su fachada y aparece su detalle (`CityDetails`).
  */
-import { languages } from '../../../data/education';
-import { formacionItems, DEFAULT_ITEM, type FormacionItemId } from './items';
+import { getSection, type ZoomSection } from '../../../data/sections';
+import { cameraForSceneRect, cameraTransform } from '../../stage/geometry';
+import CityDetails from './CityDetails.astro';
+import { formacionItems, type FormacionItemId } from './items';
 import frame from './art/frame.svg?raw';
 import sky from './art/sky.svg?raw';
 import idiomas from './art/idiomas.svg?raw';
@@ -14,61 +16,42 @@ import titulo from './art/titulo.svg?raw';
 import minor from './art/minor.svg?raw';
 import sill from './art/sill.svg?raw';
 
-interface Props {
-  /** Sección abierta al cargar: muestra la selección inicial. */
-  open: boolean;
-}
-
-const { open } = Astro.props;
 const art: Record<FormacionItemId, string> = { idiomas, major, titulo, minor };
 /** Orden de dibujo (de atrás hacia adelante), como en el prototipo. */
 const drawOrder: FormacionItemId[] = ['idiomas', 'major', 'titulo', 'minor'];
-const items = drawOrder.map((id) => formacionItems.find((i) => i.id === id)!);
+const section = getSection('formacion') as ZoomSection;
 
-const langPill = (l: (typeof languages)[number]) =>
-  `${l.code} · ${l.level === 'Nativo' ? 'nativo' : l.level}`;
-
-/** Una regla por ítem: hover/foco de su botón y estado seleccionado. */
-const stateCss = formacionItems
+/** Hover/foco del botón de un edificio: borde menta y píldora con su nombre. */
+const hoverCss = formacionItems
   .map(({ id }) => {
     const hover = `[data-items]:has([data-item-hit="${id}"]:is(:hover, :focus-visible))`;
-    const selected = `[data-items][data-selected="${id}"]`;
     return `${hover} [data-building="${id}"] .shape { stroke: #8ADBC8; }
-${hover} [data-hover-label="${id}"] { opacity: 1; }
-${selected} [data-building="${id}"] :is(.halo, .selected-outline) { opacity: 1; }
-${selected} [data-selected-label="${id}"] { opacity: 1; }`;
+${hover} [data-hover-label="${id}"] { opacity: 1; }`;
   })
+  .join('\n');
+
+/** Sin JS, un chip (#ítem) acerca la cámara con CSS y muestra el detalle sin animación. */
+const noJsCss = formacionItems
+  .map(
+    ({ id, frame }) =>
+      `html:not(.js) [data-camera]:has(#${id}:target) { transform: ${cameraTransform(cameraForSceneRect(section, frame))} !important; }
+html:not(.js) #${id}:target { display: block; }`,
+  )
   .join('\n');
 ---
 
-<div class="city absolute inset-0" data-items data-selected={open ? DEFAULT_ITEM : undefined}>
+<div class="city absolute inset-0" data-items>
   <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
     <defs>
       <clipPath id="formacion-glass">
         <rect x="96" y="66" width="1408" height="848" rx="6"></rect>
       </clipPath>
-      <radialGradient id="formacion-halo">
-        <stop offset="0" stop-color="#FF6FA3" stop-opacity="0.75"></stop>
-        <stop offset="0.6" stop-color="#FF6FA3" stop-opacity="0.35"></stop>
-        <stop offset="1" stop-color="#FF6FA3" stop-opacity="0"></stop>
-      </radialGradient>
     </defs>
     <g set:html={frame} />
     <g clip-path="url(#formacion-glass)">
       <g set:html={sky} />
-      {items.map((item) => (
-        <g data-building={item.id}>
-          <ellipse class="halo" {...item.halo} fill="url(#formacion-halo)" />
-          <g set:html={art[item.id]} />
-          <path
-            class="selected-outline"
-            d={item.outline}
-            fill="none"
-            stroke="#FF6FA3"
-            stroke-width="6"
-            stroke-dasharray="14 10"
-          />
-        </g>
+      {drawOrder.map((id) => (
+        <g data-building={id} set:html={art[id]} />
       ))}
     </g>
     <g set:html={sill} />
@@ -76,28 +59,17 @@ ${selected} [data-selected-label="${id}"] { opacity: 1; }`;
 
   <!-- Textos de la escena (HTML, en coordenadas de la escena) -->
   <div aria-hidden="true">
-    <span class="city-pill bg-sun left-[250px] top-[704px] w-[130px]">Idiomas</span>
-    {languages.map((l, i) => (
-      <span
-        class:list={['city-pill left-[212px] w-[206px]', i === 0 ? 'bg-pink' : 'bg-mint']}
-        style={`top:${762 + i * 48}px`}
-      >
-        {langPill(l)}
-      </span>
-    ))}
-    <span class="city-pill bg-lilac left-[505px] top-[850px] h-[32px] w-[110px]">Major</span>
-    <span class="city-pill bg-mint left-[1160px] top-[578px] h-[28px] w-[90px] text-[16px]">
+    <span class="city-pill bg-lilac top-[850px] left-[505px] h-[32px] w-[110px]">Major</span>
+    <span class="city-pill bg-mint top-[578px] left-[1160px] h-[28px] w-[90px] text-[16px]">
       Minor
     </span>
-    <span
-      class="city-pill city-state bg-pink left-[826px] top-[790px] w-[108px] text-[18px]"
-      data-selected-label="titulo"
-    >
-      Título
-    </span>
+    <div class="led idle-screen">
+      <span class="idle-alt px on-y">IDIOMAS</span>
+      <span class="idle-alt px on-m">ES · EN</span>
+    </div>
     {formacionItems.map((item) => (
       <span
-        class="city-pill city-state bg-sun border-plum -translate-x-1/2 border-3 px-5 whitespace-nowrap"
+        class="city-pill hover-label bg-sun border-plum -translate-x-1/2 border-3 px-5 whitespace-nowrap"
         style={`left:${item.hoverLabel.x}px;top:${item.hoverLabel.y}px`}
         data-hover-label={item.id}
       >
@@ -105,6 +77,8 @@ ${selected} [data-selected-label="${id}"] { opacity: 1; }`;
       </span>
     ))}
   </div>
+
+  <CityDetails />
 
   <!-- Botones de los edificios -->
   {formacionItems.map((item) => (
@@ -115,12 +89,13 @@ ${selected} [data-selected-label="${id}"] { opacity: 1; }`;
       data-item-hit={item.id}
       aria-label={item.name}
       aria-controls={item.id}
-      aria-pressed={open && item.id === DEFAULT_ITEM ? 'true' : 'false'}
+      aria-pressed="false"
     />
   ))}
 </div>
 
-<style is:inline set:html={stateCss} />
+<style is:inline set:html={hoverCss} />
+<style is:inline set:html={noJsCss} />
 
 <style>
   .city-pill {
@@ -134,11 +109,14 @@ ${selected} [data-selected-label="${id}"] { opacity: 1; }`;
     font-weight: 700;
   }
 
-  .city-state,
-  .halo,
-  .selected-outline {
+  .hover-label {
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Al acercarse a un edificio, las píldoras de hover sobran. */
+  [data-items][data-selected] .hover-label {
+    display: none;
   }
 
   .city :global(.shape) {
@@ -154,12 +132,131 @@ ${selected} [data-selected-label="${id}"] { opacity: 1; }`;
     outline: none;
   }
 
+  .city-hit[aria-pressed='true'] {
+    cursor: default;
+  }
+
+  /* Pantalla publicitaria de Idiomas en reposo: alterna dos textos tenues. */
+  .idle-screen {
+    position: absolute;
+    top: 598px;
+    left: 206px;
+    width: 218px;
+    height: 118px;
+    transition: opacity 0.25s;
+  }
+
+  .idle-alt {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    opacity: 0;
+    animation: idle-alt 6s infinite;
+  }
+
+  .idle-alt + .idle-alt {
+    animation-delay: 3s;
+  }
+
+  @keyframes idle-alt {
+    0%,
+    45% {
+      opacity: 0.55;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  [data-selected='idiomas'] .idle-screen {
+    opacity: 0;
+  }
+
+  .city :global(.cone) {
+    opacity: 0.3;
+    transition: opacity 0.6s;
+  }
+
+  [data-selected='idiomas'] :global(.cone) {
+    opacity: 0.85;
+  }
+
+  /* Ventanas que se encienden en cascada al elegir un edificio (las marca el script). */
+  .city :global(.win-on) {
+    animation: win-on 0.5s ease-out both;
+  }
+
+  @keyframes win-on {
+    0% {
+      fill: #4b3a8f;
+    }
+    40% {
+      fill: #fff6b0;
+    }
+    100% {
+      fill: #ffe86b;
+    }
+  }
+
+  /* Pantallas LED: puntos nítidos sobre fondo oscuro (también la usa CityDetails). */
+  .city :global(.led) {
+    overflow: hidden;
+    border: 2px solid #050310;
+    background: #0b0720;
+  }
+
+  .city :global(.led)::after {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 50%, rgb(11 7 32 / 0.9) 58%) 0 0 / 1.8px 1.8px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .city :global(.px) {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .city :global(.on-p) {
+    color: #ffc2da;
+    text-shadow:
+      0 0 2px #ff4fa3,
+      0 0 5px #ff4fa3;
+  }
+
+  .city :global(.on-m) {
+    color: #cffff3;
+    text-shadow:
+      0 0 2px #4fd1b5,
+      0 0 5px #4fd1b5;
+  }
+
+  .city :global(.on-y) {
+    color: #fff4b8;
+    text-shadow:
+      0 0 2px #ffcf3a,
+      0 0 5px #ffcf3a;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .city-state,
-    .halo,
-    .selected-outline,
-    .city :global(.shape) {
+    .hover-label,
+    .idle-screen,
+    .idle-alt,
+    .city :global(.shape),
+    .city :global(.cone),
+    .city :global(.win-on) {
       transition: none;
+      animation: none;
+    }
+
+    .idle-alt:first-child {
+      opacity: 0.55;
     }
   }
 </style>
