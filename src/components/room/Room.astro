@@ -9,6 +9,8 @@ import SectionChips from '../ui/SectionChips.astro';
 import ScenePlaceholder from '../scenes/ScenePlaceholder.astro';
 import CityScene from '../scenes/formacion/CityScene.astro';
 import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
+import CorkScene from '../scenes/experiencia/CorkScene.astro';
+import ExperienciaOverlay from '../scenes/experiencia/ExperienciaOverlay.astro';
 import SectionOverlay from './SectionOverlay.astro';
 import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
@@ -53,14 +55,20 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       return (
         <div class="absolute" style={rectStyle(r)} data-object={s.slug}>
           {s.transition === 'zoom' ? (
-            <div class="absolute inset-0 overflow-hidden rounded">
+            <div class="absolute inset-0 overflow-clip rounded">
               <div
                 class="absolute top-0 left-0 h-[1000px] w-[1600px] origin-top-left"
                 style={`transform: ${sceneInObject(s)}`}
                 data-scene={s.slug}
                 inert={s.slug !== initial}
               >
-                {s.slug === 'formacion' ? <CityScene /> : <ScenePlaceholder slug={s.slug} />}
+                {s.slug === 'formacion' ? (
+                  <CityScene />
+                ) : s.slug === 'experiencia' ? (
+                  <CorkScene />
+                ) : (
+                  <ScenePlaceholder slug={s.slug} />
+                )}
               </div>
             </div>
           ) : (
@@ -118,6 +126,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       {sections.map((s) =>
         s.slug === 'formacion' ? (
           <FormacionOverlay active={initial === 'formacion'} />
+        ) : s.slug === 'experiencia' ? (
+          <ExperienciaOverlay active={initial === 'experiencia'} />
         ) : (
           <SectionOverlay section={s} active={s.slug === initial}>
             {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}

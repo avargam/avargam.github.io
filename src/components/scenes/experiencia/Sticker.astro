@@ -1,0 +1,108 @@
+---
+/**
+ * Sticker del corcho: forma SVG con borde blanco y sombra (sin filtros, para que el zoom no
+ * tenga que re-rasterizar desenfoques) y texto HTML encima.
+ */
+import type { PlacedSticker } from './board';
+
+interface Props {
+  sticker: PlacedSticker;
+  /** Retraso del levantamiento por cargo (cuando le llega el hilo), como variables CSS. */
+  delays: string;
+}
+
+const { sticker: s, delays } = Astro.props;
+const { w, h } = s.rect;
+/** El ojal de la etiqueta y el ancho extra de los títulos corren el texto a la derecha. */
+const shift =
+  s.title && (s.shape === 'tag' || s.shape === 'disk') ? 24 : s.shape === 'tag' ? 16 : 0;
+const stroke = { 'stroke-width': 9, 'stroke-linejoin': 'round' } as const;
+---
+
+<div
+  class:list={['sticker absolute', s.title && 'is-title']}
+  style={`left:${s.rect.x}px;top:${s.rect.y}px;width:${w}px;height:${h}px;rotate:${s.rotate}deg;${delays}`}
+  data-sticker={s.id}
+  data-jobs={s.jobs.join(' ') || undefined}
+>
+  <svg class="absolute inset-0 overflow-visible" width={w} height={h} aria-hidden="true">
+    {[
+      { dy: 7, fill: '#2A1B6B', line: '#2A1B6B', opacity: 0.16 },
+      { dy: 0, fill: s.color, line: '#FFFFFF', opacity: 1 },
+    ].map(({ dy, fill, line, opacity }) => (
+      <g transform={`translate(0 ${dy})`} opacity={opacity} fill={fill} stroke={line} {...stroke}>
+        {s.shape === 'pill' && <rect width={w} height={h} rx={h / 2} />}
+        {s.shape === 'patch' && <rect width={w} height={h} rx="9" />}
+        {s.shape === 'disk' && <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />}
+        {s.shape === 'tag' && <path d={`M0 ${h / 2} L18 0 H${w} V${h} H18 Z`} />}
+      </g>
+    ))}
+    {s.shape === 'pill' && (
+      <rect x="4" y="3" width={w - 8} height={(h - 6) / 2} rx={h / 4} fill="#fff" opacity=".28" />
+    )}
+    {s.shape === 'patch' && (
+      <rect
+        x="5"
+        y="5"
+        width={w - 10}
+        height={h - 10}
+        rx="5"
+        fill="none"
+        stroke="#2B2D42"
+        stroke-width="2"
+        stroke-dasharray="5 4"
+        opacity=".4"
+      />
+    )}
+    {s.shape === 'disk' && (
+      <path
+        d={`M14 ${h * 0.3} Q${w / 2} ${h * 0.05} ${w - 14} ${h * 0.3}`}
+        fill="none"
+        stroke="#fff"
+        stroke-width="3"
+        opacity=".55"
+        stroke-linecap="round"
+      />
+    )}
+    {s.shape === 'tag' && (
+      <circle
+        cx="16"
+        cy={h / 2}
+        r="4.5"
+        fill="#FFFFFF"
+        stroke="#2B2D42"
+        stroke-width="1.5"
+        opacity=".9"
+      />
+    )}
+  </svg>
+  <span class="sticker-text" style={shift ? `padding-left:${shift}px` : undefined}>
+    {s.label}
+  </span>
+</div>
+
+<style>
+  .sticker {
+    transition:
+      translate 0.3s cubic-bezier(0.3, 1.4, 0.5, 1),
+      scale 0.3s cubic-bezier(0.3, 1.4, 0.5, 1),
+      opacity 0.3s;
+  }
+
+  .sticker-text {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--color-ink);
+    font-size: 20px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .is-title .sticker-text {
+    color: var(--color-wall);
+    font-family: var(--font-display);
+    font-size: 25px;
+  }
+</style>
