@@ -12,11 +12,13 @@ interface Props {
   hideTitle?: boolean;
   /** Pista de teclado abajo. Proyectos no la usa: va en el menú Ayuda de su escena. */
   hint?: string;
+  /** Pista en pantallas táctiles (sin teclado): reemplaza a `hint`. */
+  touchHint?: string;
   /** Sobre un fondo oscuro (la mesa de Contacto), la pista va clara. */
   hintTone?: 'dark' | 'light';
 }
 
-const { section, active, hideTitle = false, hint, hintTone = 'dark' } = Astro.props;
+const { section, active, hideTitle = false, hint, touchHint, hintTone = 'dark' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const titleId = `titulo-${section.slug}`;
 ---
@@ -36,6 +38,7 @@ const titleId = `titulo-${section.slug}`;
   <a
     href={`${base}/`}
     data-back
+    data-screen="top-left"
     class="shell-enter bg-plum text-wall pointer-events-auto absolute top-[56px] left-[40px] flex h-[52px] items-center gap-3 rounded-full px-6 text-[20px] font-bold no-underline shadow-[0_6px_0_rgb(43_45_66/0.25)]"
   >
     <svg width="28" height="20" viewBox="0 0 28 20" aria-hidden="true">
@@ -54,11 +57,13 @@ const titleId = `titulo-${section.slug}`;
   <div
     class="shell-enter pointer-events-auto absolute top-[920px] left-1/2 -translate-x-1/2"
     style="--i: 2"
+    data-screen="bottom"
   >
     <slot name="chips" />
   </div>
-  {hint && (
+  {(hint || touchHint) && (
     <p
+      data-screen="hint"
       class:list={[
         'shell-enter absolute top-[978px] left-0 w-full text-center text-[15px] font-semibold',
         hintTone === 'dark'
@@ -67,7 +72,8 @@ const titleId = `titulo-${section.slug}`;
       ]}
       style="--i: 3"
     >
-      {hint}
+      {hint && <span data-hint={touchHint ? 'keys' : undefined}>{hint}</span>}
+      {touchHint && <span data-hint="touch">{touchHint}</span>}
     </p>
   )}
 </section>

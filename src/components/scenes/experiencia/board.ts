@@ -186,6 +186,10 @@ export const threadTime = (job: JobId) => {
   return (n - 1) * THREAD.stagger + THREAD.draw + 150;
 };
 
+/** La postal (`Postcard.astro`). En el teléfono no cabe entera: se encuadra su mitad del texto. */
+export const POSTCARD: Rect = { x: 640, y: 80, w: 850, h: 570 };
+export const POSTCARD_TEXT: Rect = { ...POSTCARD, w: POSTCARD.w / 2 };
+
 /* ---------- Ítems ---------- */
 
 export const experienciaItems: ExperienciaItem[] = [

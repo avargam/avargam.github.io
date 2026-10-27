@@ -1,14 +1,15 @@
 # avargam.github.io
 
-Sitio personal de Alonso Vargas Manríquez: perfil profesional, enlaces y hub de proyectos, presentado como un cuarto ilustrado donde cada objeto lleva a una sección.
+Sitio personal de Alonso Vargas Manríquez: un cuarto ilustrado donde cada objeto es una sección (Formación, Experiencia, Proyectos, Fuera del código y Contacto). Al elegir uno, la cámara entra en él y el objeto se vuelve la escena de la sección.
 
 ## Stack
 
-- [Astro](https://astro.build) + TypeScript (estricto): HTML estático, casi sin JavaScript en el cliente
+- [Astro](https://astro.build) + TypeScript (estricto): HTML estático; el JavaScript del cliente es la cámara y la interacción de cada escena
 - [Tailwind CSS v4](https://tailwindcss.com) con los colores de la paleta como tokens (`src/styles/global.css`)
+- Ilustraciones en SVG; animaciones con CSS y Web Animations, sin librerías
 - ESLint (flat config) + Prettier (con plugins de Astro y Tailwind)
 - GitHub Actions → GitHub Pages
-- Tipografías autoalojadas con Fontsource (Bricolage Grotesque y DM Sans): sin pedidos a Google Fonts
+- Tipografías autoalojadas con Fontsource (Bricolage Grotesque, DM Sans y Caveat)
 
 ## Empezar
 
@@ -29,68 +30,73 @@ npm run dev        # http://localhost:4321
 | `npm run format`       | Prettier (escribe cambios)             |
 | `npm run format:check` | Prettier (solo verifica; lo usa el CI) |
 
+## Cómo funciona
+
+- **Una sola app en todas las rutas.** `/`, `/formacion`, `/experiencia`… renderizan el mismo cuarto (`components/room/Room.astro`) con la sección indicada ya abierta. En el cliente, `components/stage/router.ts` intercepta los enlaces, mueve la cámara y actualiza la URL; sin JS, cada enlace carga su página con la escena abierta.
+- **Escenario y cámara.** Todo vive en un escenario de 1600×1000 (`stage/World.astro`) que se ajusta a la ventana. La cámara es un `transform` sobre el cuarto (`stage/geometry.ts` calcula, `stage/camera.ts` anima).
+- **Dos tipos de sección** (`data/sections.ts`):
+  - `zoom`: la escena está dentro del objeto del cuarto, a escala, y la cámara entra hasta ella (Formación, Experiencia, Proyectos, Fuera del código);
+  - `tilt`: el objeto es muy chico para un zoom hasta 1:1; la cámara se acerca y la escena, vista desde arriba, entra inclinada encima (Contacto).
+- **Ítems.** Cada sección tiene ítems (edificios, notas, carpetas, repisas, objetos de la mesa) que se eligen con clic, chips numerados o teclado. Comparten `stage/itemNav.ts`, salvo Contacto (`scenes/contacto/deskClient.ts`), donde los objetos se arrastran y pueden estar varios abiertos.
+- **Pantallas táctiles.** En un teléfono el escenario llena la pantalla y se recorre con el dedo (`stage/pan.ts`). En el cuarto, un toque resalta un objeto y el segundo entra. La UI de cada capa (`data-screen`) se dibuja a tamaño de pantalla.
+- **Animaciones ambientales** del cuarto (taza, gato, estrellas, ventanas, monitor, post-it): solo con el cuarto en reposo, con `--ambient-state` (ver `World.astro`). Con `prefers-reduced-motion`, no hay.
+
 ## Estructura
 
 ```
 src/
-  components/   Scene.astro (la ilustración con enlaces), Card, PageIntro
-  data/         Contenido editable: perfil, experiencia, proyectos, etc.
-  layouts/      BaseLayout.astro (head, navegación, pie)
-  pages/        Una página por sección (ruta = nombre de archivo)
-  styles/       global.css (Tailwind + tokens de la paleta)
-public/         Archivos estáticos (favicon)
-design/         Fuente de diseño: scene.svg de referencia
-.github/workflows/deploy.yml
+  components/
+    stage/        escenario, geometría, cámara, router, ítems y paneo
+    room/         el cuarto: fondo, etiquetas, miniatura de Contacto, gato, avatar
+    scenes/<slug>/  escena de cada sección, su capa HTML (Overlay) y su lógica
+    ui/           SectionShell (Volver, chips, pista), chips
+    Head.astro    metadatos y la imagen para compartir de cada ruta
+  data/           contenido editable (ver abajo)
+  layouts/        RoomLayout.astro (ajuste del escenario al viewport)
+  pages/          una página por ruta, el 404 y el sitemap
+public/
+  cv/             el CV en PDF
+  og/             imágenes para compartir (las genera scripts/og.mjs)
+scripts/          herramientas opcionales (no corren en el build)
 ```
 
 ## Cómo editar el contenido
 
-Todo el texto vive en `src/data/*.ts`, tipado, sin tocar las páginas:
+El texto vive en `src/data/`, tipado; las escenas lo leen al hacer el build.
 
-- `profile.ts`: nombre, presentación, correo y enlaces
-- `projects.ts`: **hay un marcador de posición**; reemplázalo por tu proyecto real y agrega más objetos al arreglo
-- `personal.ts`: favoritos de "Fuera del código" (también son marcadores)
-- `experience.ts`, `education.ts`, `skills.ts`: trayectoria y herramientas
-- `nav.ts`: lista de secciones (alimenta el menú y las tarjetas de la portada)
+- `profile.ts`: nombre, cargo, correo y enlaces (GitHub, LinkedIn)
+- `education.ts`, `experience.ts`, `skills.ts`: Formación y Experiencia
+- `projects.ts`: las carpetas de Proyectos
+- `personal.ts`: los temas y objetos de Fuera del código (tomos, películas, juegos)
+- `contact.ts`: los objetos de la mesa de Contacto
 
-### Agregar una sección nueva
+Casos especiales:
 
-1. Crea `src/pages/<slug>.astro` (copia `formacion.astro` como base).
-2. Agrega `{ slug, label, description }` en `src/data/nav.ts`.
-3. Si quieres que tenga un objeto en la escena, envuelve un grupo del SVG en `Scene.astro` con `<a class="hotspot" href={href('<slug>')} aria-label="…"><title>…</title>…</a>`.
-
-## La escena
-
-`src/components/Scene.astro` es un SVG inline. Cada objeto clicable está envuelto en `<a class="hotspot">` (hover y foco por teclado en `global.css`). Las etiquetas de colores son decorativas (`aria-hidden`): la navegación accesible está en el menú y en las tarjetas bajo la ilustración.
-
-`design/scene.svg` es la misma ilustración sin enlaces, útil como referencia o para abrirla en un editor.
+- **Música** (`music.json`): un disco por artista. La portada es `src/assets/music/<id>.jpg` (o `.png`, `.webp`) y `audio` es una URL o una ruta de `public/`. `node scripts/fetch-music.mjs` completa desde iTunes la portada y el audio que falten.
+- **Clips de Cine**: `films[].clips` en `personal.ts`, con archivos en `public/clips/`. Mientras no haya clips, la pantalla muestra escenas de relleno.
+- **CV**: se reemplaza `public/cv/AlonsoVargas_CV.pdf` (el sitio es público: sin teléfono ni dirección).
+- **Imágenes para compartir**: si cambia el dibujo de una escena, con el sitio corriendo, `node scripts/og.mjs` vuelve a generar `public/og/*.jpg`. Usa Playwright: una vez, `npx playwright install chromium`, o `CHROME_PATH=/ruta/a/chrome`.
 
 ## Paleta
 
-Base "A4b Vaporwave" con las cortinas y la estantería de "A4a". Los tokens están en `@theme` de `src/styles/global.css` y generan utilidades como `bg-wall`, `text-plum`, `border-plum`, `bg-mint`.
+Los tokens están en `@theme` de `src/styles/global.css` y generan utilidades como `bg-wall`, `text-plum`, `border-plum`, `bg-mint`.
 
-| Token        | Valor     | Uso                          |
-| ------------ | --------- | ---------------------------- |
-| `wall`       | `#f9ddf0` | Fondo                        |
-| `plum`       | `#5a2f6b` | Títulos y bordes             |
-| `ink`        | `#2b2d42` | Texto principal              |
-| `muted`      | `#5b4a6b` | Texto secundario             |
-| `pink`       | `#ff6fa3` | Acento principal             |
-| `violet`     | `#7b6cf6` | Enlaces y foco               |
-| `periwinkle` | `#6f82e0` | Cortinas                     |
-| `mint`       | `#8adbc8` | Etiquetas "Fuera del código" |
+| Token    | Valor     | Uso                   |
+| -------- | --------- | --------------------- |
+| `wall`   | `#f9ddf0` | Pared y fondos claros |
+| `plum`   | `#5a2f6b` | Títulos, bordes       |
+| `ink`    | `#2b2d42` | Texto principal       |
+| `muted`  | `#5b4a6b` | Texto secundario      |
+| `pink`   | `#ff6fa3` | Acento principal      |
+| `violet` | `#7b6cf6` | Etiquetas y detalles  |
+| `mint`   | `#8adbc8` | Acento secundario     |
+| `sun`    | `#ffe86b` | Hover, luces          |
+| `lilac`  | `#c6b8ff` | Chips, acento suave   |
 
-## Despliegue (GitHub Pages)
+## Ramas y despliegue
 
-1. Crea el repositorio **`avargam.github.io`** en GitHub (nombre exacto, así el sitio queda en `https://avargam.github.io` sin `base`).
-2. En el repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Haz push a `main`. El workflow ejecuta lint, formato, tipos y build, y publica `dist/`.
+- `main` es producción: cada push despliega en GitHub Pages (`https://avargam.github.io`).
+- `dev` integra; cada cambio llega en una rama `feat/...` con su PR a `dev`.
+- El workflow (`.github/workflows/deploy.yml`) corre lint, formato, tipos y build en `dev`, `main` y las PRs, pero solo despliega desde `main`.
 
-Si el repositorio se llama distinto, agrega `base: '/nombre-del-repo'` en `astro.config.mjs` y ajusta `site`.
-
-## Pendiente de completar
-
-- [ ] Reemplazar el proyecto de ejemplo en `src/data/projects.ts`
-- [ ] Escribir tus favoritos en `src/data/personal.ts`
-- [ ] Ajustar el avatar para que se parezca más a ti (en `Scene.astro` y `design/scene.svg`)
-- [ ] Revisar versiones de las acciones de GitHub en `deploy.yml` al crear el repo
+Si el repositorio se llamara distinto de `avargam.github.io`, habría que agregar `base: '/nombre-del-repo'` en `astro.config.mjs` y ajustar `site`.

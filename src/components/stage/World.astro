@@ -57,4 +57,106 @@ const { initial } = Astro.props;
     inset: 0;
     transform-origin: 0 0;
   }
+
+  /*
+   * Pantallas táctiles: el escenario llena la pantalla y se recorre con el dedo (stage/pan.ts), así
+   * que el navegador no debe desplazar ni hacer zoom con los gestos. La UI de las capas
+   * (`data-screen`) se ancla al borde de lo visible (--vx, --vy) y deshace la escala (--inv), para
+   * verse a tamaño de pantalla.
+   */
+  html.touch .stage-viewport {
+    touch-action: none;
+  }
+
+  /*
+   * Animaciones ambientales del cuarto (vapor, gato, estrellas, ventanas, monitor, post-it): cada
+   * una usa `animation-play-state: var(--ambient-state, paused)`, así corren solo con el cuarto en
+   * reposo (`data-view="room"`, lo pone el router): no repintan la escena durante el zoom ni
+   * distraen dentro de una sección. Con movimiento reducido, cada componente las quita.
+   */
+  [data-view='room'] {
+    --ambient-state: running;
+  }
+
+  html.touch [data-screen] {
+    scale: var(--inv);
+    translate: none;
+  }
+
+  html.touch [data-screen='top-left'] {
+    top: calc(var(--vy) + 12px * var(--inv));
+    left: calc(var(--vx) + 12px * var(--inv));
+    transform-origin: 0 0;
+  }
+
+  html.touch [data-screen='top-right'] {
+    top: calc(var(--vy) + 12px * var(--inv));
+    right: calc(var(--vx) + 12px * var(--inv));
+    left: auto;
+    transform-origin: 100% 0;
+  }
+
+  /* Chips abajo, en una fila que se desplaza sola si no cabe. */
+  html.touch [data-screen='bottom'] {
+    top: auto;
+    bottom: calc(var(--vy) + 12px * var(--inv));
+    left: var(--vx);
+    width: var(--sw);
+    transform-origin: 0 100%;
+    touch-action: pan-x;
+  }
+
+  /* Centrada si cabe; si no, parte a la izquierda y se desplaza (los márgenes automáticos centran). */
+  html.touch [data-screen='bottom'] ul {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 4px 12px;
+    scrollbar-width: none;
+  }
+
+  html.touch [data-screen='bottom'] {
+    align-items: stretch;
+  }
+
+  html.touch [data-screen='bottom'] nav {
+    width: 100%;
+  }
+
+  html.touch [data-screen='bottom'] li:first-child {
+    margin-left: auto;
+  }
+
+  html.touch [data-screen='bottom'] li:last-child {
+    margin-right: auto;
+  }
+
+  html.touch [data-screen='bottom'] .chip {
+    height: 44px;
+  }
+
+  html.touch [data-screen='hint'] {
+    top: auto;
+    bottom: calc(var(--vy) + 68px * var(--inv));
+    left: var(--vx);
+    width: var(--sw);
+    transform-origin: 0 100%;
+  }
+
+  /* Las placas con el título no caben junto a Volver: en el teléfono se ocultan (el h1 sigue ahí). */
+  html.touch [data-plate] {
+    display: none;
+  }
+
+  /* Pistas: la de teclado con mouse, la de toque en pantallas táctiles. */
+  html.touch [data-hint='keys'],
+  html:not(.touch) [data-hint='touch'] {
+    display: none;
+  }
+
+  /* En horizontal no hay alto para la pista. */
+  @media (max-height: 500px) {
+    html.touch [data-screen='hint'] {
+      display: none;
+    }
+  }
 </style>

@@ -49,7 +49,7 @@ html:not(.js) #${id}:target { display: block; }`,
     </defs>
     <g set:html={frame} />
     <g clip-path="url(#formacion-glass)">
-      <g set:html={sky} />
+      <g class="sky" set:html={sky} />
       {drawOrder.map((id) => (
         <g data-building={id} set:html={art[id]} />
       ))}
@@ -98,6 +98,64 @@ html:not(.js) #${id}:target { display: block; }`,
 <style is:inline set:html={noJsCss} />
 
 <style>
+  /*
+   * Ambiente (solo con el cuarto en reposo, ver `--ambient-state` en World.astro): algunas estrellas
+   * titilan y algunas ventanas encendidas se apagan un rato (partes del SVG insertado: usan la
+   * variable `--ambient-state`).
+   */
+  .sky :global(circle:nth-child(3n)),
+  [data-building] :global(rect[fill='#FFE86B']:nth-of-type(9n + 4)) {
+    animation: var(--ambient) infinite;
+    animation-play-state: var(--ambient-state, paused);
+  }
+
+  .sky :global(circle:nth-child(3n)) {
+    --ambient: twinkle 2.8s ease-in-out;
+  }
+
+  .sky :global(circle:nth-child(6n)) {
+    animation-delay: -1.4s;
+  }
+
+  .sky :global(circle:nth-child(9n)) {
+    animation-duration: 4.1s;
+  }
+
+  [data-building] :global(rect[fill='#FFE86B']:nth-of-type(9n + 4)) {
+    --ambient: window-off 11s steps(1);
+  }
+
+  [data-building] :global(rect[fill='#FFE86B']:nth-of-type(18n + 4)) {
+    animation-delay: -5s;
+  }
+
+  [data-building='minor'] :global(rect[fill='#FFE86B']:nth-of-type(9n + 4)) {
+    animation-delay: -8s;
+    animation-duration: 13s;
+  }
+
+  @keyframes twinkle {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  @keyframes window-off {
+    70% {
+      fill: #4b3a8f;
+    }
+    90% {
+      fill: #ffe86b;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sky :global(circle),
+    [data-building] :global(rect) {
+      animation: none;
+    }
+  }
+
   .city-pill {
     position: absolute;
     display: grid;

@@ -20,8 +20,9 @@ const { active } = Astro.props;
   active={active}
   hideTitle
   hint="Elige una nota · ← → recorrer · Esc quitar"
+  touchHint="Toca una nota · desliza para recorrer"
 >
-  <div class="plate shell-enter" style="--i: 1" aria-hidden="true">
+  <div class="plate shell-enter" style="--i: 1" aria-hidden="true" data-plate>
     Experiencia
     <span class="plate-pin"></span>
   </div>
@@ -30,18 +31,28 @@ const { active } = Astro.props;
 
 <script>
   import { createItemNav } from '../../stage/itemNav';
-  import { registerSection } from '../../stage/router';
+  import { panToSceneRect, registerSection } from '../../stage/router';
   import { prefersReducedMotion } from '../../stage/camera';
-  import { experienciaItem, experienciaItems, threadTime } from './board';
+  import { POSTCARD_TEXT, experienciaItem, experienciaItems, threadTime } from './board';
   import type { JobId } from '../../../data/experience';
 
   const nav = createItemNav({
     slug: 'experiencia',
     ids: experienciaItems.map((i) => i.id),
     describe: (id) => experienciaItem(id)?.name ?? '',
-    /** La postal llega cuando el hilo (animado con CSS) termina de tenderse. */
+    /**
+     * La postal llega cuando el hilo (animado con CSS) termina de tenderse. En el teléfono, la
+     * cámara va mientras tanto a la mitad del texto de la postal (o a la fila de Skills).
+     */
     focus(id, instant) {
-      if (!id || id === 'skills' || instant || prefersReducedMotion()) return Promise.resolve(true);
+      if (!id) return Promise.resolve(true);
+      const item = experienciaItem(id);
+      void panToSceneRect(
+        'experiencia',
+        id === 'skills' && item ? item.hit : POSTCARD_TEXT,
+        instant,
+      );
+      if (id === 'skills' || instant || prefersReducedMotion()) return Promise.resolve(true);
       return new Promise((resolve) => setTimeout(() => resolve(true), threadTime(id as JobId)));
     },
   });

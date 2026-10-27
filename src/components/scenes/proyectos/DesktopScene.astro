@@ -31,7 +31,7 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
 
 <div class="desktop absolute inset-0" data-items>
   <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
-    <g set:html={desktop} />
+    <g class="wallpaper" set:html={desktop} />
   </svg>
 
   <div class="menubar">
@@ -121,6 +121,72 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
 <style is:inline set:html={noJsCss} />
 
 <style>
+  /*
+   * Ambiente (solo con el cuarto en reposo, ver `--ambient-state` en World.astro): las líneas horizontales
+   * de la grilla avanzan cada una hasta la siguiente (el ciclo se repite sin salto) y las franjas
+   * del sol bajan.
+   */
+  .wallpaper :global(line[x1='56']),
+  .wallpaper :global(rect[x='600'][width='400']) {
+    animation: grid-run 2.6s linear infinite;
+    animation-play-state: var(--ambient-state, paused);
+  }
+
+  .wallpaper :global(line[y1='664']) {
+    --dy: 12px;
+  }
+  .wallpaper :global(line[y1='676']) {
+    --dy: 21px;
+  }
+  .wallpaper :global(line[y1='697']) {
+    --dy: 29px;
+  }
+  .wallpaper :global(line[y1='726']) {
+    --dy: 37px;
+  }
+  .wallpaper :global(line[y1='763']) {
+    --dy: 45px;
+  }
+  .wallpaper :global(line[y1='808']) {
+    --dy: 54px;
+  }
+  .wallpaper :global(line[y1='862']) {
+    --dy: 62px;
+  }
+  .wallpaper :global(line[y1='924']) {
+    --dy: 70px;
+  }
+
+  .wallpaper :global(rect[x='600'][width='400']) {
+    --dy: 26px;
+    animation-name: stripe-down;
+    animation-duration: 5.2s;
+  }
+
+  @keyframes grid-run {
+    to {
+      transform: translateY(var(--dy));
+    }
+  }
+
+  @keyframes stripe-down {
+    0% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.95;
+    }
+    to {
+      transform: translateY(var(--dy));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wallpaper :global(:is(line, rect)) {
+      animation: none;
+    }
+  }
+
   .menubar {
     position: absolute;
     top: 50px;

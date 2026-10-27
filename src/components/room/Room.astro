@@ -34,11 +34,13 @@ const OUTLINE = 14;
 
 /**
  * Objeto, etiqueta y chip de una sección se resaltan juntos cuando cualquiera de los tres
- * tiene hover o foco. Una regla por sección; solo CSS.
+ * tiene hover o foco, o cuando un primer toque lo eligió (`data-armed`, en pantallas táctiles).
+ * Una regla por sección; solo CSS.
  */
 const highlightCss = sections
   .map(({ slug }) => {
-    const active = `[data-room-root]:has([data-hotspot="${slug}"]:hover, [data-hotspot="${slug}"]:focus-visible, [data-label="${slug}"] a:hover, [data-room-ui] [data-chip="${slug}"]:hover, [data-room-ui] [data-chip="${slug}"]:focus-visible)`;
+    // En pantallas táctiles el :hover queda pegado donde estuvo el dedo: allí resalta solo el toque.
+    const active = `:is(html:not(.touch) [data-room-root]:has([data-hotspot="${slug}"]:hover, [data-hotspot="${slug}"]:focus-visible, [data-label="${slug}"] a:hover, [data-room-ui] [data-chip="${slug}"]:hover, [data-room-ui] [data-chip="${slug}"]:focus-visible), [data-room-root][data-armed="${slug}"])`;
     return `${active} [data-object="${slug}"] .room-outline { opacity: 1; }
 ${active} [data-label="${slug}"] .room-label-pill { background: var(--color-hotpink); }
 ${active} [data-room-ui] [data-chip="${slug}"] { background: var(--color-plum); color: var(--color-wall); }
@@ -118,13 +120,19 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       <div
         data-room-ui
         data-room-only
+        data-screen="bottom"
         hidden={!!open}
         inert={!!open}
-        class="absolute inset-x-0 top-[930px] flex flex-col items-center gap-[6px]"
+        class="room-ui absolute inset-x-0 top-[930px] flex flex-col items-center gap-[6px]"
       >
         <SectionChips label="Secciones del cuarto" />
         <p class="text-wall text-[15px] font-bold">
-          Haz clic en un objeto · o usa Tab y las flechas · Enter para entrar
+          <span data-hint="keys">
+            Haz clic en un objeto · o usa Tab y las flechas · Enter para entrar
+          </span>
+          <span data-hint="touch" data-room-hint>
+            Desliza para recorrer · toca un objeto
+          </span>
         </p>
       </div>
 
@@ -167,6 +175,17 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
 
   .room-hotspot[inert] {
     pointer-events: none;
+  }
+
+  /* En el teléfono, la pista va arriba de los chips, con sombra para leerse sobre el cuarto. */
+  :global(html.touch) .room-ui {
+    flex-direction: column-reverse;
+  }
+
+  :global(html.touch) .room-ui > p {
+    text-shadow:
+      0 0 4px var(--color-plum),
+      0 0 8px var(--color-plum);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,8 @@
 /**
  * Escena de Contacto: la mesa del escritorio vista desde arriba, con un objeto por canal (sobre,
  * paquete, tarjetero, carpeta) y cosas sueltas (lápiz, estampillas, stickers). Todo se arrastra;
- * un clic abre el objeto (`deskClient.ts`). Va sobre la cámara a 1:1 y entra inclinada (router).
+ * un clic abre el objeto (`deskClient.ts`). Va sobre la cámara a 1:1 y entra inclinada (router);
+ * en pantallas táctiles, la mesa tiene su propia escala y se recorre con el dedo.
  *
  * Cada objeto es un `.desk-obj` posicionado con --x, --y y --r. Su `.desk-hit` (un ancla #id, al
  * fondo) recibe el puntero y el teclado: el dibujo encima no captura clics, salvo enlaces y botones.
@@ -274,10 +275,6 @@ const loot = LOOT.map((l) => ({ ...l, x: HOME.github.x + l.dx, y: HOME.github.y 
       )}
     </div>
   ))}
-
-  <button type="button" class="tidy" data-desk-tidy>
-    ↺ Ordenar la mesa
-  </button>
 </div>
 
 <style>
@@ -507,32 +504,6 @@ const loot = LOOT.map((l) => ({ ...l, x: HOME.github.x + l.dx, y: HOME.github.y 
   .pencil {
     width: 380px;
     height: 30px;
-  }
-
-  /* ---------- Ordenar ---------- */
-  .tidy {
-    position: absolute;
-    top: 60px;
-    right: 40px;
-    padding: 10px 20px;
-    border: 3px solid var(--color-plum);
-    border-radius: 999px;
-    background: var(--color-wall);
-    box-shadow: 0 4px 0 var(--color-plum);
-    color: var(--color-plum);
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .tidy:is(:hover, :focus-visible) {
-    background: var(--color-sun);
-    outline: none;
-  }
-
-  /* Sin JS no se puede arrastrar: no hay nada que ordenar. */
-  :global(html:not(.js)) .tidy {
-    display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

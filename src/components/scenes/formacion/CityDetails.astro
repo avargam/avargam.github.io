@@ -245,10 +245,19 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     width: 116px;
     height: 150px;
     transform-origin: 50% 0;
-    filter: drop-shadow(1.5px 2px 0 rgb(0 0 0 / 0.25));
     animation:
       unroll 0.7s 0.4s cubic-bezier(0.3, 1.3, 0.5, 1) both,
       sway 4s 1.2s ease-in-out infinite;
+  }
+
+  /* Sombra: una copia desplazada de la tela (sin filtro, que se recalcularía en cada vaivén). */
+  .pendon::before {
+    position: absolute;
+    inset: 0;
+    background: rgb(0 0 0 / 0.25);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 90%, 0 100%);
+    content: '';
+    translate: 1.5px 2px;
   }
 
   .pendon-cloth {
@@ -407,8 +416,8 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     border: 2px solid var(--color-plum);
     border-radius: 3px;
     background: var(--color-paper);
+    box-shadow: 1.5px 2px 0 rgb(0 0 0 / 0.25);
     color: var(--color-ink);
-    filter: drop-shadow(1.5px 2px 0 rgb(0 0 0 / 0.25));
     transform-origin: 50% 0;
     animation:
       unroll 0.7s 2.5s cubic-bezier(0.3, 1.3, 0.5, 1) both,

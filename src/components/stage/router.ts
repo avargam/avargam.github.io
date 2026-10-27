@@ -20,7 +20,22 @@ import {
   tiltOut,
   tween,
 } from './camera';
-import { cameraFor, cameraForSceneRect, ROOM_CAMERA, type Rect } from './geometry';
+import {
+  cameraFor,
+  cameraForSceneRect,
+  cameraTransform,
+  clampCamera,
+  objectRect,
+  panRange,
+  readView,
+  ROOM_CAMERA,
+  sceneToRoom,
+  STAGE_H,
+  STAGE_W,
+  type Camera,
+  type Rect,
+} from './geometry';
+import { stopPan, trackPan, type PanTarget } from './pan';
 
 type Target = SectionSlug | null;
 type HistoryMode = 'push' | 'replace' | 'none';
@@ -51,6 +66,43 @@ export function registerSection(slug: SectionSlug, controller: SectionController
 }
 
 let stageCamera: HTMLElement | null = null;
+
+/** Pantalla táctil: el escenario la llena y se recorre con el dedo (lo decide `RoomLayout`). */
+export const isTouch = (): boolean => document.documentElement.classList.contains('touch');
+
+const ROOM_RECT: Rect = { x: 0, y: 0, w: STAGE_W, h: STAGE_H };
+
+/** Hasta dónde se puede recorrer: el cuarto, o la escena de una sección `zoom` (las `tilt` no mueven la cámara). */
+function panBounds(slug: SectionSlug | null): Rect | null {
+  const section = slug ? sectionBySlug(slug) : undefined;
+  if (!section) return ROOM_RECT;
+  return section.transition === 'zoom' ? objectRect(section) : null;
+}
+
+/** Transform actual de la cámara (también a mitad de una animación). */
+function readCamera(el: HTMLElement): Camera {
+  const m = new DOMMatrix(getComputedStyle(el).transform);
+  return { k: m.a, x: m.e, y: m.f };
+}
+
+/**
+ * En pantallas táctiles, centra una zona de la escena sin cambiar el zoom (la postal de una nota,
+ * la ventana de un proyecto): lo demás se ve deslizando. Con mouse no hace nada, porque se ve todo.
+ */
+export function panToSceneRect(slug: SectionSlug, rect: Rect, instant = false): Promise<boolean> {
+  const section = sectionBySlug(slug);
+  stageCamera ??= document.querySelector<HTMLElement>('[data-camera]');
+  if (!isTouch() || !stageCamera || section?.transition !== 'zoom') return Promise.resolve(true);
+  const r = sceneToRoom(section, rect);
+  const { k } = cameraFor(section);
+  const centered = {
+    k,
+    x: STAGE_W / 2 - k * (r.x + r.w / 2),
+    y: STAGE_H / 2 - k * (r.y + r.h / 2),
+  };
+  const duration = instant || prefersReducedMotion() ? 0 : DURATION.item * 0.6;
+  return moveCamera(stageCamera, clampCamera(centered, objectRect(section)), duration);
+}
 
 /**
  * Mueve la cámara dentro de una sección abierta: a una zona de su escena (un ítem) o, con
@@ -124,6 +176,7 @@ export function initRouter(): void {
   let settled = true;
   let generation = 0;
   history.replaceState({ section: current, fromRoom: false } satisfies HistoryState, '');
+  if (current === null) root.dataset.view = 'room';
 
   const announce = (message: string) => {
     announcer.textContent = message;
@@ -151,8 +204,12 @@ export function initRouter(): void {
     const alive = () => id === generation;
     current = target;
     settled = false;
+    disarm();
+    // Las animaciones ambientales del cuarto se pausan durante el zoom y dentro de las secciones.
+    delete root.dataset.view;
 
     stopAll();
+    stopPan();
     updateHistory(target, mode, from);
     document.title = titleFor(target);
     applyInert(target);
@@ -226,6 +283,7 @@ export function initRouter(): void {
     }
 
     settled = true;
+    if (target === null) root.dataset.view = 'room';
     if (target !== null) {
       overlay?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
       announce(sectionBySlug(target)?.label ?? '');
@@ -270,15 +328,71 @@ export function initRouter(): void {
     links[next]?.focus();
   }
 
+  /* ---------- pantallas táctiles: paneo y doble toque ---------- */
+  const roomHint = root.querySelector<HTMLElement>('[data-room-hint]');
+  const ROOM_HINT = roomHint?.textContent ?? '';
+
+  /** En el cuarto, el primer toque en un objeto lo resalta y lo centra; el segundo entra. */
+  function arm(slug: SectionSlug) {
+    const section = sectionBySlug(slug);
+    if (!section) return;
+    root.dataset.armed = slug;
+    const label = `Toca de nuevo para entrar a ${section.label}`;
+    if (roomHint) roomHint.textContent = label;
+    announce(label);
+    const r = objectRect(section);
+    const centered = { k: 1, x: STAGE_W / 2 - (r.x + r.w / 2), y: STAGE_H / 2 - (r.y + r.h / 2) };
+    stopPan();
+    void moveCamera(camera, clampCamera(centered, ROOM_RECT), prefersReducedMotion() ? 0 : 450);
+  }
+
+  function disarm() {
+    if (!root.dataset.armed) return;
+    delete root.dataset.armed;
+    if (roomHint) roomHint.textContent = ROOM_HINT;
+  }
+
+  const cameraPan: PanTarget = {
+    read: () => readCamera(camera),
+    write: (c) => {
+      camera.style.transform = cameraTransform(c);
+    },
+    range: (c) => panRange(c.k, panBounds(current) ?? ROOM_RECT),
+  };
+
+  root.addEventListener('pointerdown', (event) => {
+    if (!isTouch() || !settled || event.button !== 0 || !panBounds(current)) return;
+    // La UI de pantalla (chips con su propio scroll) y la mesa de Contacto manejan su arrastre.
+    if ((event.target as Element).closest('[data-screen], [data-desk]')) return;
+    stopAll();
+    trackPan(event, root, cameraPan, readView().s);
+  });
+
+  /** Al girar el teléfono cambia lo visible: la cámara vuelve al encuadre de la sección. */
+  addEventListener('resize', () => {
+    if (!isTouch() || !settled) return;
+    void moveCamera(camera, cameraFor(current ? sectionBySlug(current) : undefined), 0);
+  });
+  // El HTML trae la cámara calculada para el escenario completo; en pantallas táctiles se ve una
+  // franja, así que se recalcula (salvo con un #ítem, que ya encuadró su sección).
+  if (isTouch() && !location.hash) {
+    void moveCamera(camera, cameraFor(current ? sectionBySlug(current) : undefined), 0);
+  }
+
   root.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = (event.target as Element).closest<HTMLAnchorElement>(
       'a[data-section], a[data-back]',
     );
-    if (!link) return;
+    if (!link) {
+      disarm();
+      return;
+    }
     event.preventDefault();
-    navigate(link.hasAttribute('data-back') ? null : (link.dataset.section as SectionSlug));
+    const slug = link.dataset.section as SectionSlug | undefined;
+    if (slug && isTouch() && current === null && root.dataset.armed !== slug) return arm(slug);
+    navigate(link.hasAttribute('data-back') ? null : (slug ?? null));
   });
 
   addEventListener('popstate', () => go(targetFromPath(location.pathname), 'none'));
