@@ -6,6 +6,7 @@
  *   escena:  [data-items]            raíz que recibe `data-selected`
  *            [data-item-hit=id]      botón del objeto
  *            [data-item-detail=id]   capa de detalle (id = ancla `#id`), visible con `data-active`
+ *                                    (y `data-leaving` mientras sale)
  *   overlay: [data-item-chip=id]     chip numerado (`<a href="#id">`)
  */
 import type { SectionSlug } from '../../data/sections';
@@ -63,7 +64,12 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
       if (key === id) el.setAttribute('aria-current', 'true');
       else el.removeAttribute('aria-current');
     }
-    for (const el of details.values()) el.removeAttribute('data-active');
+    // La capa que estaba activa queda con `data-leaving` hasta que termina su animación de salida
+    // (si la sección define una; si no, el atributo no tiene efecto).
+    for (const el of details.values()) {
+      el.toggleAttribute('data-leaving', el.hasAttribute('data-active'));
+      el.removeAttribute('data-active');
+    }
   }
 
   async function select(id: string, { hash = true, announce = true, instant = false } = {}) {
@@ -96,6 +102,11 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
     hits.get(next)?.focus({ preventScroll: true });
   };
 
+  for (const el of details.values()) {
+    el.addEventListener('animationend', (event) => {
+      if (event.target === el) el.removeAttribute('data-leaving');
+    });
+  }
   for (const [id, el] of hits) el.addEventListener('click', () => void select(id));
   for (const [id, el] of chips) {
     el.addEventListener('click', (event) => {
