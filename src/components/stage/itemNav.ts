@@ -7,7 +7,8 @@
  *            [data-item-hit=id]      botón del objeto
  *            [data-item-detail=id]   capa de detalle (id = ancla `#id`), visible con `data-active`
  *                                    (y `data-leaving` mientras sale)
- *   overlay: [data-item-chip=id]     chip numerado (`<a href="#id">`)
+ *            [data-item-clear]       botón que vuelve a la vista de la sección (opcional)
+ *   overlay: [data-item-chip=id]     chip numerado (`<a href="#id">`; también puede ir en la escena)
  */
 import type { SectionSlug } from '../../data/sections';
 import type { SectionController } from './router';
@@ -44,7 +45,11 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
     );
   const hits = byId<HTMLButtonElement>(items, 'data-item-hit');
   const details = byId(items, 'data-item-detail');
-  const chips = byId<HTMLAnchorElement>(overlay, 'data-item-chip');
+  // Los chips suelen ir en el overlay; en Proyectos son las pestañas de la barra de tareas (escena).
+  const chips = new Map([
+    ...byId<HTMLAnchorElement>(overlay, 'data-item-chip'),
+    ...byId<HTMLAnchorElement>(items, 'data-item-chip'),
+  ]);
 
   let token = 0;
   const selected = () => items.dataset.selected ?? null;
@@ -108,6 +113,15 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
     });
   }
   for (const [id, el] of hits) el.addEventListener('click', () => void select(id));
+  for (const el of items.querySelectorAll('[data-item-clear]')) {
+    el.addEventListener('click', (event) => {
+      event.preventDefault();
+      // El botón desaparece con su capa: el foco vuelve al objeto del ítem.
+      const id = selected();
+      clear();
+      if (id) hits.get(id)?.focus({ preventScroll: true });
+    });
+  }
   for (const [id, el] of chips) {
     el.addEventListener('click', (event) => {
       event.preventDefault();

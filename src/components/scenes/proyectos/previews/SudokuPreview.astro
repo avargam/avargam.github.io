@@ -1,0 +1,246 @@
+---
+/**
+ * Vista previa de Sudoku Coach (460×340): se detecta el tablero de papel, se leen las celdas y la
+ * pista se revela en tres etapas, como en la app. Se anima con la ventana activa.
+ */
+const S = 252 / 9;
+const OX = 104;
+const OY = 30;
+// Sudoku clásico; en la fila 5, columna 5 (vacía) va un 5.
+const PUZZLE = '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79';
+const PENCIL = new Set([13, 22, 39, 59]);
+const TARGET = { row: 4, col: 4, digit: '5' };
+
+const digits = [...PUZZLE].flatMap((d, i) =>
+  d === '.' ? [] : [{ d, row: Math.floor(i / 9), col: i % 9, pencil: PENCIL.has(i) }],
+);
+const lines = Array.from({ length: 10 }, (_, i) => ({ at: i * S, width: i % 3 === 0 ? 2.6 : 1 }));
+const hints = [
+  { text: '1 · Single oculto', color: '#C6B8FF' },
+  { text: '2 · Mira la fila 5', color: '#FFE86B' },
+  { text: '3 · Aquí va un 5', color: '#FF6FA3' },
+];
+---
+
+<svg class="sudoku" width="460" height="340" viewBox="0 0 460 340" aria-hidden="true">
+  <rect width="460" height="340" fill="#3B2A80"></rect>
+  <g transform="rotate(-3 230 156)">
+    <rect x={OX - 22} y={OY - 16} width="296" height="290" rx="4" fill="#FFF6E6"></rect>
+    <rect
+      class="row"
+      x={OX}
+      y={OY + TARGET.row * S}
+      width="252"
+      height={S}
+      fill="#FFE86B"
+      opacity=".6"
+    ></rect>
+    {lines.map(({ at, width }) => (
+      <>
+        <line
+          x1={OX}
+          y1={OY + at}
+          x2={OX + 252}
+          y2={OY + at}
+          stroke="#2B2D42"
+          stroke-width={width}
+        />
+        <line
+          x1={OX + at}
+          y1={OY}
+          x2={OX + at}
+          y2={OY + 252}
+          stroke="#2B2D42"
+          stroke-width={width}
+        />
+      </>
+    ))}
+    {digits.map(({ d, row, col, pencil }) => (
+      <text
+        class:list={['digit', pencil && 'pencil']}
+        style={`--r:${row}`}
+        x={OX + col * S + S / 2}
+        y={OY + row * S + S / 2 + 7}
+      >
+        {d}
+      </text>
+    ))}
+    <rect
+      class="target"
+      x={OX + TARGET.col * S + 2}
+      y={OY + TARGET.row * S + 2}
+      width={S - 4}
+      height={S - 4}
+      fill="none"
+      stroke="#FF4FA3"
+      stroke-width="4"
+    ></rect>
+    <text
+      class="placed"
+      x={OX + TARGET.col * S + S / 2}
+      y={OY + TARGET.row * S + S / 2 + 8}
+      text-anchor="middle"
+      fill="#FF4FA3"
+    >
+      {TARGET.digit}
+    </text>
+    <rect class="scan" x={OX} y={OY} width="252" height="4" fill="#8ADBC8"></rect>
+  </g>
+  <path
+    class="quad"
+    pathLength="1"
+    d={`M${OX - 8} ${OY - 4} L${OX + 262} ${OY - 14} L${OX + 274} ${OY + 254} L${OX + 4} ${OY + 266} Z`}
+  ></path>
+  {hints.map((hint, i) => (
+    <g class="hint" style={`--h:${i}`}>
+      <rect x={20 + i * 142} y="300" width="134" height="30" rx="15" fill={hint.color} />
+      <text x={87 + i * 142} y="320" text-anchor="middle" class="hint-text">
+        {hint.text}
+      </text>
+    </g>
+  ))}
+</svg>
+
+<style>
+  .digit {
+    fill: var(--color-ink);
+    font-size: 19px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  .digit.pencil {
+    fill: #6c6c8a;
+    font-size: 18px;
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .placed {
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  .hint-text {
+    fill: var(--color-ink);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .quad {
+    fill: none;
+    stroke: var(--color-mint);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-width: 4;
+  }
+
+  .scan,
+  .row,
+  .target,
+  .placed,
+  .hint {
+    opacity: 0;
+  }
+
+  .placed {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Secuencia: detectar (0.5 s) → leer (1.3 s) → pista en tres etapas (2.8 s, 3.9 s, 5 s). */
+  :global(:is([data-active], html:not(.js) :target)) .quad {
+    animation: sudoku-dash 0.8s 0.5s forwards;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .scan {
+    animation: sudoku-scan 1.2s 1.3s both;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .digit {
+    animation: sudoku-read 0.3s calc(1.3s + var(--r) * 120ms) both;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .hint {
+    animation: sudoku-show 0.3s calc(2.8s + var(--h) * 1.1s) forwards;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .row {
+    animation: sudoku-show 0.4s 3.9s forwards;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .target {
+    animation:
+      sudoku-show 0.3s 3.9s forwards,
+      sudoku-pulse 1s 4.2s infinite;
+  }
+
+  :global(:is([data-active], html:not(.js) :target)) .placed {
+    animation: sudoku-pop 0.4s 5s forwards;
+  }
+
+  @keyframes sudoku-dash {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes sudoku-scan {
+    0% {
+      opacity: 0.9;
+      translate: 0 0;
+    }
+
+    100% {
+      opacity: 0;
+      translate: 0 252px;
+    }
+  }
+
+  @keyframes sudoku-read {
+    50% {
+      fill: #2bb596;
+    }
+  }
+
+  @keyframes sudoku-show {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes sudoku-pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes sudoku-pop {
+    from {
+      opacity: 0;
+      scale: 2;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Sin movimiento: el estado final (tablero detectado y pista completa). */
+  @media (prefers-reduced-motion: reduce) {
+    .quad {
+      stroke-dashoffset: 0;
+    }
+
+    .row,
+    .target,
+    .placed,
+    .hint {
+      opacity: 1;
+    }
+
+    :global(:is([data-active], html:not(.js) :target)) * {
+      animation: none !important;
+    }
+  }
+</style>
