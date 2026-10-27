@@ -8,10 +8,18 @@
  *   [data-desk-card]     la tarjeta de LinkedIn (`data-in-holder`, `data-flipped`)
  *   [data-loot]          lo que trae el paquete (`data-out` cuando está en la mesa)
  *   [data-desk-sticker]       estampillas y stickers: se pegan al sobre (`[data-stuck]`)
- *   [data-copy-email], [data-desk-tidy]   botones
+ *   [data-copy-email]    botón de la carta ("Ordenar", `[data-desk-tidy]`, está en la capa)
  */
-import { prefersReducedMotion } from '../../stage/camera';
-import type { SectionController } from '../../stage/router';
+import { moveCamera, prefersReducedMotion } from '../../stage/camera';
+import {
+  cameraTransform,
+  clampCamera,
+  panRange,
+  readView,
+  type Camera,
+} from '../../stage/geometry';
+import { trackPan, stopPan, type PanTarget } from '../../stage/pan';
+import { isTouch, type SectionController } from '../../stage/router';
 import { contact, contacts, type ContactId } from '../../../data/contact';
 import { profile } from '../../../data/profile';
 import { SIZE, cardInHolder, type Spot } from './desk';
@@ -124,6 +132,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     else mark(id, on);
     if (id === 'correo' && !on) stamp.removeAttribute('data-on');
     if (hash) setHash();
+    if (on) centerDesk(objects.get(id));
     announce(on ? (contact(id)?.name ?? '') : `${contact(id)?.chip} cerrado`);
   }
 
@@ -288,6 +297,39 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     if (el === pato) quack();
   }
 
+  /* ---------- pantallas táctiles: la mesa a su escala, con paneo ---------- */
+  // La mesa se aleja hasta que el sobre (lo más ancho, ~600) quepa a lo ancho de la pantalla; lo
+  // demás se ve deslizando la mesa vacía. Con mouse se ve entera y no se mueve.
+  const DESK = { x: 0, y: 0, w: 1600, h: 1000 };
+  const readDesk = (): Camera => {
+    const m = new DOMMatrix(getComputedStyle(root).transform);
+    return { k: m.a, x: m.e, y: m.f };
+  };
+  const deskPan: PanTarget = {
+    read: readDesk,
+    write: (c) => {
+      root.style.transform = cameraTransform(c);
+    },
+    range: (c) => panRange(c.k, DESK),
+  };
+
+  /** Centra la mesa en un objeto (o en el sobre, al entrar). */
+  function centerDesk(el: HTMLElement = envelope, instant = false) {
+    if (!isTouch()) return;
+    stopPan();
+    const k = Math.min(1, (readView().w * 0.96) / 600);
+    const p = pos.get(el)!;
+    const cx = p.x + el.offsetWidth / 2;
+    const cy = p.y + el.offsetHeight / 2;
+    const target = clampCamera({ k, x: 800 - k * cx, y: 500 - k * cy }, DESK);
+    void moveCamera(root, target, instant || prefersReducedMotion() ? 0 : 450);
+  }
+  if (isTouch()) {
+    root.style.transformOrigin = '0 0';
+    centerDesk(envelope, true);
+    addEventListener('resize', () => centerDesk(envelope, true));
+  }
+
   /* ---------- arrastrar y soltar ---------- */
   let drag: {
     el: HTMLElement;
@@ -306,7 +348,11 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     const target = event.target as Element;
     if (event.button !== 0 || target.closest('a:not(.desk-hit), button')) return;
     const el = target.closest<HTMLElement>('.desk-obj');
-    if (!el) return;
+    if (!el) {
+      // La mesa vacía se recorre con el dedo.
+      if (isTouch()) trackPan(event, root, deskPan, readView().s);
+      return;
+    }
     event.preventDefault();
     el.setPointerCapture(event.pointerId);
     if (el.parentElement === stuck) unstick(el);
@@ -377,8 +423,8 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
       return;
     }
     if (target.closest('[data-copy-email]')) void copyEmail();
-    if (target.closest('[data-desk-tidy]')) void tidy();
   });
+  overlay.querySelector('[data-desk-tidy]')?.addEventListener('click', () => void tidy());
 
   for (const [id, chip] of chips) {
     chip.addEventListener('click', (event) => {
@@ -406,6 +452,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
 
   return {
     enter() {
+      centerDesk(envelope, true);
       const id = fromHash();
       if (id) toggle(id, true, { hash: false });
     },

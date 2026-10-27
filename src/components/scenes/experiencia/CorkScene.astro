@@ -261,6 +261,33 @@ html:not(.js) #${id}:target { display: block; }`;
 <style is:inline set:html={noJsCss} />
 
 <style>
+  /* Ambiente (solo con el cuarto en reposo): cada tanto, una corriente levanta un post-it. */
+  .postit[data-postit='cetiuc'] {
+    animation: draft 9s 3s ease-in-out infinite;
+    animation-play-state: var(--ambient-state, paused);
+    transform-origin: 50% 6px;
+  }
+
+  @keyframes draft {
+    0%,
+    82%,
+    100% {
+      transform: none;
+    }
+    88% {
+      transform: perspective(300px) rotateX(18deg) rotate(-3deg);
+    }
+    94% {
+      transform: perspective(300px) rotateX(-4deg) rotate(1deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .postit[data-postit='cetiuc'] {
+      animation: none;
+    }
+  }
+
   .postit {
     padding: 0 22px;
     border-radius: 3px;

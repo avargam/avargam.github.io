@@ -11,6 +11,7 @@
  * Música (audio y reproductor) y Juegos (el d20) tienen además su propia lógica aquí.
  */
 import { prefersReducedMotion } from '../../stage/camera';
+import { panToSceneRect } from '../../stage/router';
 import type { ItemNav } from '../../stage/itemNav';
 
 export interface Shelf {
@@ -60,6 +61,9 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     detail.setAttribute('data-open', '');
     for (const video of detail.querySelectorAll('video')) void video.play().catch(() => {});
     if (topic === 'musica') music.play(id);
+    // En el teléfono, el detalle (libro, consola, pantalla) puede quedar fuera de la franja visible.
+    const { offsetLeft: x, offsetTop: y, offsetWidth: w, offsetHeight: h } = detail;
+    if (w && h) void panToSceneRect('fuera-del-codigo', { x, y, w, h });
     setHash(id);
     if (announcer) announcer.textContent = detail.getAttribute('aria-label') ?? '';
   }

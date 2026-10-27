@@ -10,7 +10,7 @@
     stroke-width="12"
     stroke-linecap="round"
   />
-  <ellipse cx="990" cy="856" rx="78" ry="40" fill="#F0A04B" />
+  <ellipse class="breath" cx="990" cy="856" rx="78" ry="40" fill="#F0A04B" />
   <circle cx="926" cy="846" r="30" fill="#F0A04B" />
   <path d="M906 826 L910 800 L928 820Z M942 820 L956 798 L960 826Z" fill="#F0A04B" />
   <path
@@ -28,3 +28,25 @@
     stroke-linecap="round"
   />
 </g>
+
+<style>
+  /* Respira: el lomo sube y baja despacio. */
+  .breath {
+    animation: breath 3.6s ease-in-out infinite;
+    animation-play-state: var(--ambient-state, paused);
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .breath {
+      animation: none;
+    }
+  }
+
+  @keyframes breath {
+    50% {
+      transform: scale(1.025, 1.07);
+    }
+  }
+</style>

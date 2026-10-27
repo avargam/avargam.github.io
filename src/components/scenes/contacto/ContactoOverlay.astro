@@ -32,10 +32,20 @@ const { active } = Astro.props;
   hideTitle
   hintTone="light"
   hint="Arrastra las cosas · clic o 1–4 para abrir · C copia el correo · Esc cerrar"
+  touchHint="Arrastra las cosas · toca para abrir · desliza la mesa"
 >
-  <div class="plate shell-enter" style="--i: 1" aria-hidden="true">
+  <div class="plate shell-enter" style="--i: 1" aria-hidden="true" data-plate>
     Contacto
   </div>
+  <button
+    type="button"
+    class="tidy shell-enter pointer-events-auto"
+    style="--i: 1"
+    data-desk-tidy
+    data-screen="top-right"
+  >
+    ↺ Ordenar<span class="long"> la mesa</span>
+  </button>
   <ItemChips slot="chips" items={contactoItems} label="Contacto" />
 </SectionShell>
 
@@ -49,6 +59,46 @@ const { active } = Astro.props;
 </script>
 
 <style>
+  .tidy {
+    position: absolute;
+    top: 60px;
+    right: 40px;
+    padding: 10px 20px;
+    border: 3px solid var(--color-plum);
+    border-radius: 999px;
+    background: var(--color-wall);
+    box-shadow: 0 4px 0 var(--color-plum);
+    color: var(--color-plum);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .tidy:is(:hover, :focus-visible) {
+    background: var(--color-sun);
+    outline: none;
+  }
+
+  /* En el teléfono va junto a Volver: más corto. */
+  :global(html.touch) .tidy {
+    padding: 8px 14px;
+    font-size: 16px;
+  }
+
+  :global(html.touch) .tidy .long {
+    display: none;
+  }
+
+  /* Sin JS no se puede arrastrar: no hay nada que ordenar. */
+  :global(html:not(.js)) .tidy {
+    display: none;
+  }
+
+  /* En el teléfono, la mesa toma su color más allá del dibujo (se ve más que el escenario). */
+  :global(html.touch) [data-tilt-scene] {
+    background: #8e55a3;
+  }
+
   .plate {
     position: absolute;
     top: 58px;

@@ -108,7 +108,8 @@ export function moveCamera(
  * El objeto está en el centro del escenario porque la cámara se centra en él.
  */
 const TILT = {
-  start: 'translate(0px, 40px) perspective(1400px) rotateX(62deg) scale(0.2)',
+  // Del tamaño de las miniaturas con la cámara a `zoom` (2,6): ~100 de ancho × 2,6 ≈ 0,16 del escenario.
+  start: 'translate(0px, 32px) perspective(1400px) rotateX(62deg) scale(0.16)',
   upright: 'translate(0px, 14px) perspective(1400px) rotateX(0deg) scale(0.55)',
   flat: 'translate(0px, 0px) perspective(1400px) rotateX(0deg) scale(1)',
 };

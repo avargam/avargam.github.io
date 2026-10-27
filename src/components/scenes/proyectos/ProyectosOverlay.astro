@@ -17,15 +17,19 @@ const { active } = Astro.props;
 
 <script>
   import { createItemNav } from '../../stage/itemNav';
-  import { registerSection } from '../../stage/router';
-  import { proyectosItem, proyectosItems } from './desk';
+  import { panToSceneRect, registerSection } from '../../stage/router';
+  import { WINDOW, proyectosItem, proyectosItems } from './desk';
 
   const nav = createItemNav({
     slug: 'proyectos',
     ids: proyectosItems.map((i) => i.id),
     describe: (id) => proyectosItem(id)?.name ?? '',
-    // La ventana se abre en cuanto se elige: no hay cámara ni espera.
-    focus: () => Promise.resolve(true),
+    // La ventana se abre en cuanto se elige; en el teléfono, la cámara centra su mitad del texto.
+    focus(id, instant) {
+      const text = { ...WINDOW, x: WINDOW.x + WINDOW.w / 2, w: WINDOW.w / 2 };
+      if (id) void panToSceneRect('proyectos', text, instant);
+      return Promise.resolve(true);
+    },
   });
   if (nav) registerSection('proyectos', nav);
 </script>

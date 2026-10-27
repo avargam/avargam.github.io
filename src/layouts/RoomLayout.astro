@@ -14,13 +14,34 @@ const { title, description } = Astro.props;
 <html lang="es" class="h-dvh overflow-clip">
   <head>
     <Head title={title} description={description} />
-    <!-- Escala del escenario (1600×1000) al viewport, antes del primer paint para evitar un salto. -->
+    <!--
+      Escala del escenario (1600×1000) al viewport, antes del primer paint para evitar un salto.
+      Con mouse, el escenario cabe entero (letterbox). En pantallas táctiles lo llena (cover) y lo que
+      sobra se recorre con el dedo (stage/pan.ts). --vw/--vh/--vx/--vy son la parte visible del
+      escenario en sus unidades, y --inv deshace la escala para dibujar la UI a tamaño de pantalla.
+      La misma cuenta está en `readView` (stage/geometry.ts).
+    -->
     <script is:inline>
       (() => {
         const root = document.documentElement;
         root.classList.add('js');
-        const fit = () =>
-          root.style.setProperty('--fit', String(Math.min(innerWidth / 1600, innerHeight / 1000)));
+        const touch = matchMedia('(pointer: coarse)').matches;
+        root.classList.toggle('touch', touch);
+        const set = (name, value) => root.style.setProperty(name, value);
+        const fit = () => {
+          const fx = innerWidth / 1600;
+          const fy = innerHeight / 1000;
+          const s = touch ? Math.max(fx, fy) : Math.min(fx, fy);
+          const vw = Math.min(1600, innerWidth / s);
+          const vh = Math.min(1000, innerHeight / s);
+          set('--fit', String(s));
+          set('--inv', String(1 / s));
+          set('--sw', `${innerWidth}px`);
+          set('--vw', `${vw}px`);
+          set('--vh', `${vh}px`);
+          set('--vx', `${(1600 - vw) / 2}px`);
+          set('--vy', `${(1000 - vh) / 2}px`);
+        };
         fit();
         addEventListener('resize', fit);
       })();
