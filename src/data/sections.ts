@@ -26,6 +26,10 @@ export interface ZoomSection extends SectionBase {
   placement: Placement;
   /** Parte de la escena visible en el cuarto, en coordenadas de la escena. */
   crop?: Rect;
+  /** Adónde va la cámara al entrar, si no es todo `crop` (en coordenadas de la escena). */
+  frame?: Rect;
+  /** Alto de la escena, si es más alta que el escenario (1000). */
+  height?: number;
 }
 
 /** El objeto es muy pequeño para un zoom: la escena entra con fundido/tilt sobre el cuarto. */
@@ -76,11 +80,14 @@ export const sections: Section[] = [
     slug: 'fuera-del-codigo',
     roomLabel: { x: 1375, y: 91, color: 'var(--color-mint)', line: [1375, 108, 1375, 148] },
     label: 'Fuera del código',
-    description: 'Juegos, anime y cómics, policial y música.',
+    description: 'Juegos, anime y cómics, cine y música.',
     key: '4',
     transition: 'zoom',
     placement: { x: 1195.9, y: 127.5, scale: 0.225 },
-    crop: { x: 196, y: 100, w: 1208, h: 752 },
+    // La estantería completa (4 repisas) se ve en el cuarto; al entrar, la cámara encuadra las dos de arriba.
+    crop: { x: 196, y: 100, w: 1208, h: 1512 },
+    frame: { x: 196, y: 100, w: 1208, h: 752 },
+    height: 1612,
   },
   {
     slug: 'contacto',

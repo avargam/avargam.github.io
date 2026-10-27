@@ -67,6 +67,13 @@ export function cameraForSceneRect(section: ZoomSection, r: Rect): Camera {
   });
 }
 
-/** Cámara final de una sección. Las de tipo `tilt` no mueven la cámara: su escena se superpone. */
+/**
+ * Cámara final de una sección: su `frame` o, si no tiene, todo lo que se ve en el cuarto. Las de
+ * tipo `tilt` no mueven la cámara: su escena se superpone.
+ */
 export const cameraFor = (section: Section | undefined): Camera =>
-  section?.transition === 'zoom' ? cameraCovering(objectRect(section)) : ROOM_CAMERA;
+  section?.transition === 'zoom'
+    ? section.frame
+      ? cameraForSceneRect(section, section.frame)
+      : cameraCovering(objectRect(section))
+    : ROOM_CAMERA;

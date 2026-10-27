@@ -31,7 +31,16 @@ interface Options {
   focus: (id: string | null, instant: boolean) => Promise<boolean>;
 }
 
-export function createItemNav({ slug, ids, describe, focus }: Options): SectionController | null {
+/** Además del controlador para el router, deja elegir un ítem desde el script de la sección. */
+export interface ItemNav extends SectionController {
+  /** Elige un ítem; resuelve `true` cuando la cámara llegó (y no la interrumpió otra selección). */
+  select(id: string, instant?: boolean): Promise<boolean>;
+  /** Pasa al ítem siguiente (`1`) o anterior (`-1`). */
+  step(delta: number): void;
+  selected(): string | null;
+}
+
+export function createItemNav({ slug, ids, describe, focus }: Options): ItemNav | null {
   const itemsEl = document.querySelector<HTMLElement>(`[data-scene="${slug}"] [data-items]`);
   const overlayEl = document.querySelector<HTMLElement>(`[data-overlay="${slug}"]`);
   const announcer = document.querySelector<HTMLElement>('[data-announcer]');
@@ -82,8 +91,9 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
     mark(id);
     if (hash) setHash(id);
     if (announce && announcer) announcer.textContent = describe(id);
-    const arrived = await focus(id, instant);
-    if (arrived && my === token) details.get(id)?.setAttribute('data-active', '');
+    const arrived = (await focus(id, instant)) && my === token;
+    if (arrived) details.get(id)?.setAttribute('data-active', '');
+    return arrived;
   }
 
   /** Vuelve a la vista de la sección. Con `camera: false`, la cámara la maneja el router (al salir). */
@@ -136,6 +146,9 @@ export function createItemNav({ slug, ids, describe, focus }: Options): SectionC
   }
 
   return {
+    select: (id, instant = false) => select(id, { instant }),
+    step,
+    selected,
     enter() {
       const id = fromHash();
       if (id) void select(id, { hash: false, announce: false });

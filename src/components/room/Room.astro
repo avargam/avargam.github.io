@@ -13,6 +13,8 @@ import CorkScene from '../scenes/experiencia/CorkScene.astro';
 import ExperienciaOverlay from '../scenes/experiencia/ExperienciaOverlay.astro';
 import DesktopScene from '../scenes/proyectos/DesktopScene.astro';
 import ProyectosOverlay from '../scenes/proyectos/ProyectosOverlay.astro';
+import ShelfScene from '../scenes/fuera-del-codigo/ShelfScene.astro';
+import FueraOverlay from '../scenes/fuera-del-codigo/FueraOverlay.astro';
 import SectionOverlay from './SectionOverlay.astro';
 import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
@@ -59,8 +61,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
           {s.transition === 'zoom' ? (
             <div class="absolute inset-0 overflow-clip rounded">
               <div
-                class="absolute top-0 left-0 h-[1000px] w-[1600px] origin-top-left"
-                style={`transform: ${sceneInObject(s)}`}
+                class="absolute top-0 left-0 w-[1600px] origin-top-left"
+                style={`height: ${s.height ?? 1000}px; transform: ${sceneInObject(s)}`}
                 data-scene={s.slug}
                 inert={s.slug !== initial}
               >
@@ -70,6 +72,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
                   <CorkScene />
                 ) : s.slug === 'proyectos' ? (
                   <DesktopScene />
+                ) : s.slug === 'fuera-del-codigo' ? (
+                  <ShelfScene />
                 ) : (
                   <ScenePlaceholder slug={s.slug} />
                 )}
@@ -134,6 +138,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
           <ExperienciaOverlay active={initial === 'experiencia'} />
         ) : s.slug === 'proyectos' ? (
           <ProyectosOverlay active={initial === 'proyectos'} />
+        ) : s.slug === 'fuera-del-codigo' ? (
+          <FueraOverlay active={initial === 'fuera-del-codigo'} />
         ) : (
           <SectionOverlay section={s} active={s.slug === initial}>
             {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
