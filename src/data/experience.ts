@@ -69,7 +69,7 @@ export const experience: Job[] = [
     org: 'CENIA · Contrato de formación',
     summary:
       'Desarrollé el Observatorio Científico de Sciencenia, mi proyecto de título: una plataforma interactiva con cerca de 500 publicaciones obtenidas por scraping y un gráfico para explorar cómo se relacionan entre sí.',
-    stack: ['Python', 'JavaScript / TypeScript', 'React', 'PostgreSQL', 'Docker'],
+    stack: ['Python', 'JavaScript / TypeScript', 'React', 'PostgreSQL', 'Git'],
     postIt: {
       period: 'MAR – JUL 2026',
       lines: ['Desarrollador', 'Web'],
@@ -115,7 +115,7 @@ export const experience: Job[] = [
     org: 'CETIUC',
     summary:
       'Módulos de frontend en React sobre una API en Node.js, incluyendo la generación de documentos de asesoría y assessments personalizados para los clientes.',
-    stack: ['React', 'Node.js', 'JavaScript / TypeScript', 'Git', 'Scrum'],
+    stack: ['React', 'Node.js', 'JavaScript / TypeScript', 'Git', 'Docker', 'Scrum'],
     postIt: {
       period: 'AGO – NOV 2023',
       lines: ['Desarrollador', 'Frontend'],
