@@ -52,8 +52,7 @@ export function objectRect(section: Section): Rect {
 
 /** Cámara que hace que `r` cubra el escenario completo, centrado. */
 export function cameraCovering(r: Rect): Camera {
-  const k = Math.max(STAGE_W / r.w, STAGE_H / r.h);
-  return { k, x: STAGE_W / 2 - k * (r.x + r.w / 2), y: STAGE_H / 2 - k * (r.y + r.h / 2) };
+  return cameraCentering(r, Math.max(STAGE_W / r.w, STAGE_H / r.h));
 }
 
 /** Cámara que encuadra una zona de la escena (en coordenadas de la escena), p. ej. un ítem. */
@@ -67,13 +66,20 @@ export function cameraForSceneRect(section: ZoomSection, r: Rect): Camera {
   });
 }
 
+/** Cámara a escala `k` con el centro de `r` en el centro del escenario. */
+export function cameraCentering(r: Rect, k: number): Camera {
+  return { k, x: STAGE_W / 2 - k * (r.x + r.w / 2), y: STAGE_H / 2 - k * (r.y + r.h / 2) };
+}
+
 /**
  * Cámara final de una sección: su `frame` o, si no tiene, todo lo que se ve en el cuarto. Las de
- * tipo `tilt` no mueven la cámara: su escena se superpone.
+ * tipo `tilt` se acercan solo hasta `zoom`: su escena entra encima, a 1:1.
  */
 export const cameraFor = (section: Section | undefined): Camera =>
-  section?.transition === 'zoom'
-    ? section.frame
-      ? cameraForSceneRect(section, section.frame)
-      : cameraCovering(objectRect(section))
-    : ROOM_CAMERA;
+  !section
+    ? ROOM_CAMERA
+    : section.transition === 'tilt'
+      ? cameraCentering(section.object, section.zoom)
+      : section.frame
+        ? cameraForSceneRect(section, section.frame)
+        : cameraCovering(objectRect(section));

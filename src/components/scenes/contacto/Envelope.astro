@@ -1,0 +1,320 @@
+---
+/**
+ * Correo: un sobre cerrado con la dirección al frente. Al abrirlo, la solapa gira y la carta sube
+ * con "Escribir" (`mailto:`) y "Copiar dirección"; copiar estampa "¡COPIADO!" en la carta. Las
+ * estampillas y stickers que se sueltan encima quedan pegados en `[data-stuck]`.
+ */
+import { profile } from '../../../data/profile';
+import { contact } from '../../../data/contact';
+import { HOME, spotStyle } from './desk';
+
+interface Props {
+  z: number;
+}
+
+const item = contact('correo')!;
+const [line1, line2] = profile.tagline.split(', ');
+---
+
+<div
+  id="correo"
+  class="desk-obj envelope"
+  style={spotStyle(HOME.correo, Astro.props.z)}
+  data-desk-obj="correo"
+>
+  <a
+    href="#correo"
+    class="desk-hit"
+    data-desk-hit="correo"
+    aria-expanded="false"
+    aria-label={item.name}
+  ></a>
+  <section class="letter" aria-label="Carta">
+    <p class="hand">Escríbeme a:</p>
+    <p class="mail">{profile.email}</p>
+    <svg width="380" height="14" viewBox="0 0 380 14" aria-hidden="true">
+      <path
+        d="M4 9 q120 -10 240 0 t130 0"
+        fill="none"
+        stroke="var(--color-pink)"
+        stroke-width="5"
+        stroke-linecap="round"
+      ></path>
+    </svg>
+    <p class="line">
+      {line1},<br />
+      {line2}.
+    </p>
+    <div class="acts">
+      <a class="desk-btn pink" href={item.href}>
+        ✉ Escribir
+      </a>
+      <button type="button" class="desk-btn" data-copy-email>
+        Copiar dirección
+      </button>
+    </div>
+    <p class="copied" aria-hidden="true">
+      ¡COPIADO!
+    </p>
+  </section>
+  <div class="paper"></div>
+  <svg class="front" width="570" height="400" viewBox="0 0 570 400" aria-hidden="true">
+    <text x="60" y="310" class="to">
+      PARA
+    </text>
+    <text x="60" y="354" class="address">
+      {profile.email}
+    </text>
+    <path
+      d="M60 368 q120 -10 240 0 t130 0"
+      fill="none"
+      stroke="var(--color-pink)"
+      stroke-width="5"
+      stroke-linecap="round"
+    ></path>
+    <rect
+      x="470"
+      y="40"
+      width="64"
+      height="74"
+      rx="3"
+      fill="none"
+      stroke="var(--color-plum)"
+      stroke-width="2"
+      stroke-dasharray="6 6"
+      opacity=".35"
+    ></rect>
+  </svg>
+  <div class="flap" aria-hidden="true">
+    <svg class="out" width="570" height="214" viewBox="0 0 570 214">
+      <polygon
+        points="2,4 285,208 568,4"
+        fill="#ffe9d0"
+        stroke="var(--color-plum)"
+        stroke-width="5"
+        stroke-linejoin="round"
+      ></polygon>
+      <circle
+        cx="285"
+        cy="198"
+        r="34"
+        fill="var(--color-hotpink)"
+        stroke="var(--color-plum)"
+        stroke-width="4"
+      ></circle>
+      <circle
+        cx="285"
+        cy="198"
+        r="23"
+        fill="none"
+        stroke="#fff"
+        stroke-width="3"
+        opacity=".6"
+      ></circle>
+    </svg>
+    <svg class="in" width="570" height="214" viewBox="0 0 570 214">
+      <polygon
+        points="2,210 285,6 568,210"
+        fill="#f2d6c0"
+        stroke="var(--color-plum)"
+        stroke-width="5"
+        stroke-linejoin="round"
+      ></polygon>
+    </svg>
+  </div>
+  <div class="stuck" data-stuck></div>
+</div>
+
+<style>
+  .envelope {
+    width: 570px;
+    height: 400px;
+  }
+
+  .paper {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border: 5px solid var(--color-plum);
+    border-radius: 12px;
+    background: var(--color-paper);
+    box-shadow: var(--sh, 8px 10px 0) var(--shadow);
+    transition: box-shadow 0.15s;
+  }
+
+  .front {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+  }
+
+  .to {
+    fill: var(--color-violet);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2.2px;
+  }
+
+  .address {
+    fill: var(--color-plum);
+    font-family: var(--font-display);
+    font-size: 46px;
+    font-weight: 800;
+  }
+
+  /* La solapa gira sobre el borde de arriba; abierta, queda detrás de la carta. */
+  .flap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    width: 570px;
+    height: 214px;
+    transform: perspective(1600px) rotateX(0deg);
+    transform-origin: 50% 0;
+    transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
+  }
+
+  .flap svg {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    backface-visibility: hidden;
+  }
+
+  .flap .in {
+    transform: rotateX(180deg);
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .flap {
+    z-index: 0;
+    transform: perspective(1600px) rotateX(180deg);
+    transition:
+      transform 0.45s cubic-bezier(0.5, 0, 0.3, 1),
+      z-index 0s 0.22s;
+  }
+
+  .letter {
+    position: absolute;
+    top: 30px;
+    left: 60px;
+    z-index: 1;
+    width: 450px;
+    height: 360px;
+    padding: 22px 34px;
+    border: 4px solid var(--color-plum);
+    border-radius: 8px;
+    background: #fffdf7;
+    color: var(--color-plum);
+    /* Guardada no se ve ni recibe clics o foco (el papel del sobre no la tapa para el puntero). */
+    visibility: hidden;
+    transition:
+      translate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1),
+      visibility 0s 0.5s;
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .letter {
+    visibility: visible;
+    transition:
+      translate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.35s,
+      visibility 0s;
+    translate: 0 -330px;
+  }
+
+  .letter p {
+    margin: 0;
+  }
+
+  .hand {
+    color: var(--color-muted);
+    font-family: var(--font-hand);
+    font-size: 34px;
+    font-weight: 700;
+  }
+
+  .mail {
+    margin-top: 2px;
+    font-family: var(--font-display);
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+
+  .letter svg {
+    display: block;
+    margin: 2px 0 6px;
+  }
+
+  .line {
+    color: var(--color-ink);
+    font-family: var(--font-hand);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .acts {
+    display: flex;
+    margin-top: 16px;
+    gap: 12px;
+  }
+
+  .copied {
+    position: absolute;
+    top: 150px;
+    right: 18px;
+    padding: 4px 14px;
+    border: 5px solid var(--color-hotpink);
+    border-radius: 10px;
+    color: var(--color-hotpink);
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    mix-blend-mode: multiply;
+    opacity: 0;
+    pointer-events: none;
+    rotate: -12deg;
+  }
+
+  .copied:global([data-on]) {
+    animation: stamp 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) forwards;
+  }
+
+  @keyframes stamp {
+    0% {
+      opacity: 0;
+      scale: 2.2;
+    }
+    60% {
+      opacity: 0.95;
+      scale: 0.92;
+    }
+    100% {
+      opacity: 0.9;
+      scale: 1;
+    }
+  }
+
+  .stuck {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flap,
+    .letter,
+    .envelope:is([data-open], :global(html:not(.js)) :target) :is(.flap, .letter) {
+      transition: none;
+    }
+
+    .copied:global([data-on]) {
+      animation: none;
+      opacity: 0.9;
+    }
+  }
+</style>

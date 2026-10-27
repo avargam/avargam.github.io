@@ -32,11 +32,16 @@ export interface ZoomSection extends SectionBase {
   height?: number;
 }
 
-/** El objeto es muy pequeño para un zoom: la escena entra con fundido/tilt sobre el cuarto. */
+/**
+ * El objeto es muy pequeño para un zoom hasta 1:1: la cámara se acerca un poco (`zoom`) y la escena,
+ * vista desde arriba, entra encima del objeto inclinada y se endereza (bajar la mirada a la mesa).
+ */
 export interface TiltSection extends SectionBase {
   transition: 'tilt';
   /** Zona del objeto en el cuarto, en coordenadas del cuarto. */
   object: Rect;
+  /** Escala final de la cámara, centrada en el objeto: lo que aguanta el dibujo del cuarto. */
+  zoom: number;
 }
 
 export type Section = ZoomSection | TiltSection;
@@ -44,7 +49,8 @@ export type Section = ZoomSection | TiltSection;
 /**
  * Secciones en el orden de los chips. Cada una es una ruta (`src/pages/<slug>.astro`) y un objeto del cuarto.
  * Las posiciones vienen de los generadores del prototipo (`gen_k.py`, `gen_l.py`); los sobres de Contacto
- * se movieron a la derecha del monitor (Fase 1) para no taparlo durante el zoom.
+ * se movieron a la derecha del monitor (Fase 1) para no taparlo durante el zoom; en la Fase 6 pasaron a ser
+ * las miniaturas de lo que hay en la mesa.
  */
 export const sections: Section[] = [
   {
@@ -91,12 +97,13 @@ export const sections: Section[] = [
   },
   {
     slug: 'contacto',
-    roomLabel: { x: 1068, y: 651, color: 'var(--color-lilac)', line: [1068, 596, 1068, 632] },
+    roomLabel: { x: 1060, y: 651, color: 'var(--color-lilac)', line: [1060, 596, 1060, 632] },
     label: 'Contacto',
-    description: 'Cómo escribirme.',
+    description: 'Correo, GitHub, LinkedIn y CV.',
     key: '5',
     transition: 'tilt',
-    object: { x: 1032, y: 542, w: 70, h: 54 },
+    object: { x: 1008, y: 550, w: 104, h: 46 },
+    zoom: 3.2,
   },
 ];
 

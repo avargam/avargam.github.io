@@ -12,9 +12,11 @@ interface Props {
   hideTitle?: boolean;
   /** Pista de teclado abajo. Proyectos no la usa: va en el menú Ayuda de su escena. */
   hint?: string;
+  /** Sobre un fondo oscuro (la mesa de Contacto), la pista va clara. */
+  hintTone?: 'dark' | 'light';
 }
 
-const { section, active, hideTitle = false, hint } = Astro.props;
+const { section, active, hideTitle = false, hint, hintTone = 'dark' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const titleId = `titulo-${section.slug}`;
 ---
@@ -57,7 +59,12 @@ const titleId = `titulo-${section.slug}`;
   </div>
   {hint && (
     <p
-      class="shell-enter text-plum absolute top-[978px] left-0 w-full text-center text-[15px] font-semibold [text-shadow:0_0_4px_var(--color-wall),0_0_8px_var(--color-wall),0_0_12px_var(--color-wall)]"
+      class:list={[
+        'shell-enter absolute top-[978px] left-0 w-full text-center text-[15px] font-semibold',
+        hintTone === 'dark'
+          ? 'text-plum [text-shadow:0_0_4px_var(--color-wall),0_0_8px_var(--color-wall),0_0_12px_var(--color-wall)]'
+          : 'text-wall [text-shadow:0_0_4px_var(--color-plum),0_0_8px_var(--color-plum)]',
+      ]}
       style="--i: 3"
     >
       {hint}
