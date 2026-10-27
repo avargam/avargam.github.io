@@ -11,6 +11,8 @@ import CityScene from '../scenes/formacion/CityScene.astro';
 import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
 import CorkScene from '../scenes/experiencia/CorkScene.astro';
 import ExperienciaOverlay from '../scenes/experiencia/ExperienciaOverlay.astro';
+import DesktopScene from '../scenes/proyectos/DesktopScene.astro';
+import ProyectosOverlay from '../scenes/proyectos/ProyectosOverlay.astro';
 import SectionOverlay from './SectionOverlay.astro';
 import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
@@ -66,6 +68,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
                   <CityScene />
                 ) : s.slug === 'experiencia' ? (
                   <CorkScene />
+                ) : s.slug === 'proyectos' ? (
+                  <DesktopScene />
                 ) : (
                   <ScenePlaceholder slug={s.slug} />
                 )}
@@ -128,6 +132,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
           <FormacionOverlay active={initial === 'formacion'} />
         ) : s.slug === 'experiencia' ? (
           <ExperienciaOverlay active={initial === 'experiencia'} />
+        ) : s.slug === 'proyectos' ? (
+          <ProyectosOverlay active={initial === 'proyectos'} />
         ) : (
           <SectionOverlay section={s} active={s.slug === initial}>
             {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
