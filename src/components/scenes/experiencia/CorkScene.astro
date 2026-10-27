@@ -1,0 +1,366 @@
+---
+/**
+ * Escena de Experiencia: el corcho. Es la misma en el cuarto (escala 0.195) y a pantalla
+ * completa. Cada cargo es un post-it; al elegirlo se tiende un hilo rojo hasta los stickers de
+ * las tecnologías que usó y luego llega su postal (`Postcard`). Skills tiende todos los hilos.
+ * La cámara no se acerca a los ítems: todo se lee a escala 1:1.
+ */
+import { experience } from '../../../data/experience';
+import Postcard from './Postcard.astro';
+import Sticker from './Sticker.astro';
+import { decor, experienciaItems, postIts, stickers, THREAD, threads, type Thread } from './board';
+import cork from './art/cork.svg?raw';
+
+const jobIndex = (job: string) => experience.findIndex((j) => j.id === job);
+const threadVars = (t: Thread) =>
+  `--delay:${t.index * THREAD.stagger}ms;--skills-delay:${jobIndex(t.job) * THREAD.skillsJob + t.index * THREAD.skillsStagger}ms`;
+
+/** Cuándo se levanta un sticker al elegir cada cargo: cuando le llega el hilo. */
+const stickerDelays = (id: string) =>
+  threads
+    .filter((t) => t.sticker === id)
+    .map((t) => `--lift-${t.job}:${t.index * THREAD.stagger + THREAD.draw}ms`)
+    .join(';');
+
+const draw = `thread-draw ${THREAD.draw}ms var(--delay) cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+const drawAll = `thread-draw ${THREAD.skillsDraw}ms var(--skills-delay) cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+const tackIn = (delay: string) => `tack-in 0.35s ${delay} cubic-bezier(0.3, 1.6, 0.5, 1) both`;
+
+/** Estado de cada cargo: su hilo, sus chinches, su post-it y sus stickers. */
+const jobCss = experience
+  .map(({ id }) => {
+    const on = `[data-selected="${id}"]`;
+    return `${on} [data-thread][data-job="${id}"] path { animation: ${draw}; }
+${on} [data-tack][data-job="${id}"] { opacity: 1; animation: ${tackIn(`calc(var(--delay) + ${THREAD.draw}ms)`)}; }
+${on} [data-origin][data-job="${id}"] { opacity: 1; animation: ${tackIn('0ms')}; }
+${on} [data-postit="${id}"] { translate: 0 -4px; scale: 1.03; }
+${on} [data-sticker][data-jobs~="${id}"] { translate: 0 -6px; scale: 1.08; transition-delay: var(--lift-${id}); }
+${on} [data-sticker][data-jobs]:not([data-jobs~="${id}"]) { opacity: 0.55; }`;
+  })
+  .join('\n');
+
+/** Skills: todos los hilos; con el puntero sobre un sticker, quedan solo los suyos. */
+const skillsCss = [
+  `[data-selected="skills"] [data-thread] path { animation: ${drawAll}; }
+[data-selected="skills"] [data-tack] { opacity: 1; animation: ${tackIn(`calc(var(--skills-delay) + ${THREAD.skillsDraw}ms)`)}; }
+[data-selected="skills"] [data-origin] { opacity: 1; animation: ${tackIn('calc(var(--skills-delay) - 1ms)')}; }`,
+  ...stickers
+    .filter((s) => !s.title)
+    .map((s) => {
+      const hover = `[data-selected="skills"]:has([data-sticker="${s.id}"]:hover)`;
+      const users = s.jobs.map((j) => `[data-job="${j}"]`).join(', ');
+      return `${hover} :is([data-thread], [data-tack]):not([data-to="${s.id}"]),
+${hover} [data-origin]:not(${users}) { opacity: 0.12; }`;
+    }),
+].join('\n');
+
+/** Hover/foco de un botón: la nota (o los stickers) se levanta. */
+const hoverCss = experienciaItems
+  .map(({ id }) => {
+    const hover = `[data-items]:has([data-item-hit="${id}"]:is(:hover, :focus-visible))`;
+    return id === 'skills'
+      ? `${hover} [data-sticker]:not(.is-title) { translate: 0 -3px; }`
+      : `${hover} [data-postit="${id}"] { translate: 0 -5px; scale: 1.02; }`;
+  })
+  .join('\n');
+
+/** Sin JS, un chip (#ítem) muestra el hilo y la postal ya puestos, sin animación. */
+const noJsCss = experienciaItems
+  .map(({ id }) => {
+    const target = `html:not(.js) [data-items]:has(#${id}:target)`;
+    const only = id === 'skills' ? '' : `[data-job="${id}"]`;
+    return `${target} [data-thread]${only} path { stroke-dashoffset: 0; }
+${target} :is([data-tack], [data-origin])${only} { opacity: 1; }
+html:not(.js) #${id}:target { display: block; }`;
+  })
+  .join('\n');
+---
+
+<div class="cork absolute inset-0" data-items>
+  <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
+    <g set:html={cork} />
+  </svg>
+
+  <!-- Hilos: por debajo de las notas y los stickers, como si pasaran por detrás. -->
+  <svg
+    class="threads pointer-events-none absolute inset-0 h-full w-full"
+    viewBox="0 0 1600 1000"
+    aria-hidden="true"
+  >
+    {threads.map((t) => (
+      <g data-thread data-job={t.job} data-to={t.sticker} style={threadVars(t)}>
+        <path class="thread-shadow" d={t.d} transform="translate(3 4)" pathLength="1" />
+        <path class="thread" d={t.d} pathLength="1" />
+      </g>
+    ))}
+  </svg>
+
+  {postIts.map(({ job, rect, color, rotate }) => (
+    <div
+      class="postit absolute"
+      style={`left:${rect.x}px;top:${rect.y}px;width:${rect.w}px;height:${rect.h}px;rotate:${rotate}deg;background:${color}`}
+      data-postit={job.id}
+      aria-hidden="true"
+    >
+      <p class="postit-period">{job.postIt.period}</p>
+      <p class="postit-role">
+        {job.postIt.lines[0]}
+        <br />
+        {job.postIt.lines[1]}
+      </p>
+      <p class="postit-sub">{job.postIt.sub}</p>
+      <svg class="absolute right-0 bottom-0" width="54" height="54" viewBox="0 0 54 54">
+        <path d="M54 0 Q14 10 0 54 L54 54 Z" fill="#fff" opacity=".55" />
+        <path d="M54 0 Q14 10 0 54" fill="none" stroke="#000" opacity=".12" stroke-width="2" />
+      </svg>
+    </div>
+  ))}
+
+  <div aria-hidden="true">
+    {stickers.map((s) => (
+      <Sticker sticker={s} delays={stickerDelays(s.id)} />
+    ))}
+    {decor.map((d) => (
+      <svg
+        class="decor absolute overflow-visible"
+        style={`left:${d.x - 40}px;top:${d.y - 40}px;rotate:${d.rotate}deg`}
+        width="80"
+        height="80"
+        viewBox="-40 -40 80 80"
+      >
+        {[
+          { dy: 6, fill: '#2A1B6B', line: '#2A1B6B', opacity: 0.16 },
+          { dy: 0, fill: '', line: '#FFFFFF', opacity: 1 },
+        ].map(({ dy, fill, line, opacity }) => (
+          <g
+            transform={`translate(0 ${dy})`}
+            opacity={opacity}
+            stroke={line}
+            stroke-width="8"
+            stroke-linejoin="round"
+          >
+            {d.kind === 'star' && (
+              <polygon
+                points="0,-30 9,-10 31,-8 14,7 19,29 0,18 -19,29 -14,7 -31,-8 -9,-10"
+                fill={fill || '#FFE86B'}
+              />
+            )}
+            {d.kind === 'heart' && (
+              <path
+                d="M0 26 C-34 4 -30 -24 -12 -24 C-4 -24 0 -16 0 -12 C0 -16 4 -24 12 -24 C30 -24 34 4 0 26 Z"
+                fill={fill || '#FF6FA3'}
+              />
+            )}
+            {d.kind === 'code' && <circle r="30" fill={fill || '#C6B8FF'} />}
+            {d.kind === 'smiley' && <circle r="30" fill={fill || '#FFE86B'} />}
+          </g>
+        ))}
+        {d.kind === 'code' && (
+          <path
+            d="M-12 -10 -22 0 -12 10 M12 -10 22 0 12 10 M4 -14 -4 14"
+            fill="none"
+            stroke="#5A2F6B"
+            stroke-width="4.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        )}
+        {d.kind === 'smiley' && (
+          <g fill="#5A2F6B">
+            <ellipse cx="-10" cy="-7" rx="4" ry="6" />
+            <ellipse cx="10" cy="-7" rx="4" ry="6" />
+            <path
+              d="M-15 7 Q0 22 15 7"
+              fill="none"
+              stroke="#5A2F6B"
+              stroke-width="4.5"
+              stroke-linecap="round"
+            />
+          </g>
+        )}
+        {d.kind === 'heart' && (
+          <path
+            d="M-14 -12 Q-20 -6 -16 2"
+            fill="none"
+            stroke="#fff"
+            stroke-width="4"
+            stroke-linecap="round"
+            opacity=".6"
+          />
+        )}
+      </svg>
+    ))}
+  </div>
+
+  <!-- Chinches: en cada post-it (origen del hilo) y donde el hilo llega a un sticker. -->
+  <svg
+    class="tacks pointer-events-none absolute inset-0 h-full w-full"
+    viewBox="0 0 1600 1000"
+    aria-hidden="true"
+  >
+    {postIts.map(({ job, tack }) => (
+      <g
+        class="tack"
+        data-origin
+        data-job={job.id}
+        style={`--skills-delay:${jobIndex(job.id) * THREAD.skillsJob}ms`}
+      >
+        <circle cx={tack.x + 2} cy={tack.y + 4} r="7" fill="#2B2D42" opacity=".25" />
+        <circle cx={tack.x} cy={tack.y} r="7" fill="#D7263D" stroke="#5A2F6B" stroke-width="2.5" />
+        <circle cx={tack.x - 2} cy={tack.y - 2} r="2" fill="#fff" opacity=".8" />
+      </g>
+    ))}
+    {threads.map((t) => (
+      <g class="tack" data-tack data-job={t.job} data-to={t.sticker} style={threadVars(t)}>
+        <circle cx={t.end.x + 2} cy={t.end.y + 4} r="7" fill="#2B2D42" opacity=".25" />
+        <circle
+          cx={t.end.x}
+          cy={t.end.y}
+          r="7"
+          fill="#FF4FA3"
+          stroke="#5A2F6B"
+          stroke-width="2.5"
+        />
+        <circle cx={t.end.x - 2} cy={t.end.y - 2} r="2" fill="#fff" opacity=".8" />
+      </g>
+    ))}
+  </svg>
+
+  {experience.map((job) => (
+    <Postcard job={job} />
+  ))}
+
+  <!-- Para lectores de pantalla: lo que muestran los hilos. -->
+  <article id="skills" data-item-detail="skills" class="sr-only" aria-labelledby="skills-h">
+    <h2 id="skills-h">Tecnologías por cargo</h2>
+    <ul>
+      {experience.map((job) => (
+        <li>
+          {job.title}, {job.org}: {job.stack.join(', ')}.
+        </li>
+      ))}
+    </ul>
+  </article>
+
+  {experienciaItems.map((item) => (
+    <button
+      type="button"
+      class="cork-hit absolute"
+      style={`left:${item.hit.x}px;top:${item.hit.y}px;width:${item.hit.w}px;height:${item.hit.h}px`}
+      data-item-hit={item.id}
+      aria-label={item.name}
+      aria-controls={item.id}
+      aria-pressed="false"
+    />
+  ))}
+</div>
+
+<style is:inline set:html={jobCss} />
+<style is:inline set:html={skillsCss} />
+<style is:inline set:html={hoverCss} />
+<style is:inline set:html={noJsCss} />
+
+<style>
+  .postit {
+    padding: 0 22px;
+    border-radius: 3px;
+    box-shadow:
+      inset 0 34px 0 rgb(0 0 0 / 0.07),
+      inset 0 -46px 0 rgb(0 0 0 / 0.05),
+      0 8px 16px rgb(42 27 107 / 0.22);
+    font-family: var(--font-hand);
+    font-weight: 700;
+    transition:
+      translate 0.3s cubic-bezier(0.3, 1.4, 0.5, 1),
+      scale 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .postit-period {
+    margin-top: 47px;
+    color: var(--color-plum);
+    font-size: 22px;
+    line-height: 26px;
+  }
+
+  .postit-role {
+    margin-top: 12px;
+    color: var(--color-ink);
+    font-size: 38px;
+    line-height: 40px;
+  }
+
+  .postit-sub {
+    margin-top: 12px;
+    color: var(--color-plum);
+    font-size: 26px;
+    line-height: 30px;
+  }
+
+  .thread,
+  .thread-shadow {
+    fill: none;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-linecap: round;
+    stroke-width: 3.2;
+  }
+
+  .thread {
+    stroke: #d7263d;
+  }
+
+  .thread-shadow {
+    opacity: 0.22;
+    stroke: #2a1b6b;
+  }
+
+  .tack,
+  [data-thread] {
+    transition: opacity 0.3s;
+  }
+
+  .tack {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+  }
+
+  @keyframes thread-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes tack-in {
+    from {
+      opacity: 0;
+      transform: translateY(-14px) scale(1.8);
+    }
+  }
+
+  .cork-hit {
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .cork-hit:focus-visible {
+    outline: none;
+  }
+
+  .cork-hit[aria-pressed='true'] {
+    cursor: default;
+  }
+
+  /* En Skills, el puntero pasa a los stickers (cada uno resalta sus hilos). */
+  [data-selected='skills'] [data-item-hit='skills'] {
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cork :global(*) {
+      transition: none !important;
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+    }
+  }
+</style>
