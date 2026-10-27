@@ -1,0 +1,40 @@
+---
+/**
+ * Objeto de Contacto en el cuarto: lo que hay en la mesa, en miniatura y de frente (la carpeta del CV,
+ * el paquete encima, el sobre apoyado y el tarjetero). El viewBox coincide con su `object` en sections.ts.
+ */
+import type { Rect } from '../stage/geometry';
+
+interface Props {
+  rect: Rect;
+}
+
+const { x, y, w, h } = Astro.props.rect;
+---
+
+<svg
+  class="absolute inset-0 h-full w-full overflow-visible"
+  viewBox={`${x} ${y} ${w} ${h}`}
+  aria-hidden="true"
+>
+  <g stroke="var(--color-plum)" stroke-linejoin="round">
+    <rect x="1013" y="585" width="52" height="6" rx="1.5" fill="#f3d37a" stroke-width="2"></rect>
+    <rect x="1017" y="561" width="32" height="25" rx="2" fill="#e7b67a" stroke-width="2.5"></rect>
+    <path d="M1030 562h6v23h-6zM1018 570h30v5h-30z" fill="#f5e6b8" stroke="none"></path>
+    <g transform="rotate(-9 1068 575)">
+      <rect
+        x="1050"
+        y="562"
+        width="36"
+        height="26"
+        rx="2"
+        fill="var(--color-paper)"
+        stroke-width="2.5"
+      ></rect>
+      <path d="M1050 563 1068 577 1086 563" fill="none" stroke-width="2"></path>
+      <circle cx="1068" cy="577" r="3.5" fill="var(--color-hotpink)" stroke-width="1.5"></circle>
+    </g>
+    <rect x="1090" y="574" width="14" height="9" rx="1" fill="#fff" stroke-width="1.5"></rect>
+    <rect x="1087" y="579" width="20" height="11" rx="2" fill="#6c5aa8" stroke-width="2"></rect>
+  </g>
+</svg>

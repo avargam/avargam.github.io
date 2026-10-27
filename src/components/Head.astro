@@ -1,0 +1,40 @@
+---
+import { profile } from '../data/profile';
+import { sectionBySlug } from '../data/sections';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = `${profile.name}: ${profile.tagline}.` } = Astro.props;
+const pageTitle = title ? `${title} · ${profile.shortName}` : profile.name;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname.replace(/(index)?(\.html)?$/, ''), Astro.site);
+/** Imagen para compartir de la ruta (la genera `scripts/og.mjs`); las demás páginas usan la del cuarto. */
+const section = sectionBySlug(canonical.pathname.slice(1));
+const ogImage = new URL(`${base}/og/${section?.slug ?? 'cuarto'}.jpg`, Astro.site);
+const ogAlt = section
+  ? `${section.label}: una escena del cuarto ilustrado de ${profile.name}`
+  : `El cuarto ilustrado de ${profile.name}: cada objeto es una sección del sitio`;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<meta name="theme-color" content="#f9ddf0" />
+<link rel="canonical" href={canonical} />
+<link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_CL" />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={profile.name} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={ogAlt} />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="sitemap" href={`${base}/sitemap.xml`} />

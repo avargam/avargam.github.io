@@ -1,0 +1,437 @@
+---
+/**
+ * Postal de detalle de un cargo. Llega volando al corcho cuando el hilo rojo termina de tenderse
+ * (`data-active`) y se cae al elegir otro (`data-leaving`). Cada cargo tiene su propio diseño:
+ * colores del borde aéreo, papel, estampilla, matasellos e inclinación.
+ */
+import { jobRole, type Job, type JobId } from '../../../data/experience';
+
+interface Props {
+  job: Job;
+}
+
+const { job } = Astro.props;
+
+interface Look {
+  /** Franjas del borde de correo aéreo. */
+  stripes: [string, string];
+  paper: string;
+  stamp: string;
+  icon: 'house' | 'nodes' | 'book' | 'screen';
+  postmark: 'round' | 'box';
+  pin: string;
+  rotate: number;
+}
+
+const looks: Record<JobId, Look> = {
+  sdi: {
+    stripes: ['#FF6FA3', '#7B6CF6'],
+    paper: '#FFFDF7',
+    stamp: '#FFD1E6',
+    icon: 'house',
+    postmark: 'round',
+    pin: '#FF6FA3',
+    rotate: 0.5,
+  },
+  cenia: {
+    stripes: ['#4FD1B5', '#2A1B6B'],
+    paper: '#F5FBFF',
+    stamp: '#CFF5EA',
+    icon: 'nodes',
+    postmark: 'box',
+    pin: '#8ADBC8',
+    rotate: -0.9,
+  },
+  asistente: {
+    stripes: ['#FFCF3A', '#FF4FA3'],
+    paper: '#FFF8EA',
+    stamp: '#FFF1B8',
+    icon: 'book',
+    postmark: 'round',
+    pin: '#FFE86B',
+    rotate: 1.1,
+  },
+  cetiuc: {
+    stripes: ['#6FC3E8', '#FF9E7A'],
+    paper: '#FFFDF7',
+    stamp: '#D8F0FA',
+    icon: 'screen',
+    postmark: 'box',
+    pin: '#9ED8F0',
+    rotate: -0.4,
+  },
+};
+
+const look = looks[job.id];
+const { postcard } = job;
+const tagColors = [
+  'var(--color-mint)',
+  'var(--color-lilac)',
+  'var(--color-sun)',
+  'var(--color-peach)',
+];
+const words = job.summary.split(' ');
+const vars = `--stripe-a:${look.stripes[0]};--stripe-b:${look.stripes[1]};--paper:${look.paper};--stamp:${look.stamp};--tilt:${look.rotate}deg`;
+---
+
+<article
+  id={job.id}
+  data-item-detail={job.id}
+  class="postcard"
+  style={vars}
+  aria-labelledby={`${job.id}-h`}
+>
+  <div class="card">
+    <div class="msg">
+      <p class="from">{postcard.from}</p>
+      <p class="write">
+        {words.map((word, i) => (
+          <span style={`--w:${i}`}>{word} </span>
+        ))}
+      </p>
+      <ul class="tags" aria-label="Destacado">
+        {postcard.tags.map((tag, i) => (
+          <li style={`background:${tagColors[i % 4]}`}>{tag}</li>
+        ))}
+      </ul>
+    </div>
+    <span class="divider" aria-hidden="true"></span>
+
+    <svg class="postmark" viewBox="0 0 330 110" aria-hidden="true">
+      <g fill="none" stroke="#2B2D42" stroke-width="3">
+        {look.postmark === 'round' ? (
+          <>
+            {[40, 60, 80].map((y) => (
+              <path d={`M0 ${y} q16 -10 32 0 t32 0 t32 0 t32 0 t32 0 t10 0`} />
+            ))}
+            <g transform="rotate(-12 250 55)">
+              <circle cx="250" cy="55" r="50" />
+              <circle cx="250" cy="55" r="42" stroke-width="1.5" />
+            </g>
+          </>
+        ) : (
+          <>
+            {[30, 46, 62, 78].map((y) => (
+              <path d={`M0 ${y} H150`} stroke-dasharray="14 8" />
+            ))}
+            <g transform="rotate(8 250 55)">
+              <rect x="180" y="16" width="140" height="78" rx="10" />
+              <rect x="187" y="23" width="126" height="64" rx="6" stroke-width="1.5" />
+            </g>
+          </>
+        )}
+      </g>
+      <g
+        transform={look.postmark === 'round' ? 'rotate(-12 250 55)' : 'rotate(8 250 55)'}
+        fill="#2B2D42"
+        font-family="DM Sans Variable, sans-serif"
+        font-weight="800"
+        font-size="13"
+        text-anchor="middle"
+      >
+        <text x="250" y="51">
+          SANTIAGO
+        </text>
+        <text x="250" y="69">
+          {postcard.postmark}
+        </text>
+      </g>
+    </svg>
+
+    <div class="stamp" aria-hidden="true">
+      <svg width="44" height="40" viewBox="0 0 44 40">
+        <g fill="#C6B8FF" stroke="#5A2F6B" stroke-width="3" stroke-linejoin="round">
+          {look.icon === 'house' && (
+            <>
+              <polygon points="2,20 22,4 42,20" />
+              <rect x="6" y="20" width="32" height="18" />
+            </>
+          )}
+          {look.icon === 'nodes' && (
+            <>
+              <path d="M10 30 22 10 34 28 10 30" fill="none" />
+              <circle cx="22" cy="10" r="6" />
+              <circle cx="10" cy="30" r="6" />
+              <circle cx="34" cy="28" r="6" />
+            </>
+          )}
+          {look.icon === 'book' && (
+            <>
+              <path d="M22 10 Q12 4 3 8 V34 Q12 30 22 36 Z" />
+              <path d="M22 10 Q32 4 41 8 V34 Q32 30 22 36 Z" />
+            </>
+          )}
+          {look.icon === 'screen' && (
+            <>
+              <rect x="3" y="4" width="38" height="26" rx="3" />
+              <path d="M15 37 H29 M22 30 V37" fill="none" />
+              <path d="M16 13 l-5 4 5 4 M28 13 l5 4 -5 4" fill="none" stroke-width="2.5" />
+            </>
+          )}
+        </g>
+      </svg>
+      {postcard.stamp}
+    </div>
+
+    <div class="addr">
+      <h2 id={`${job.id}-h`}>{jobRole(job)}</h2>
+      <p>{postcard.mode}</p>
+      <p>{postcard.place}</p>
+      <p>{job.period.replace(/(\w+) (\d{4}) – (\w+) \2/, '$1 – $3 $2')}</p>
+      <p class="city">Santiago, Chile</p>
+    </div>
+  </div>
+  <span class="pin" style={`background:${look.pin}`} aria-hidden="true"></span>
+</article>
+
+<style>
+  .postcard {
+    position: absolute;
+    top: 80px;
+    left: 640px;
+    display: none;
+    width: 850px;
+    height: 570px;
+  }
+
+  .postcard:is([data-active], [data-leaving]) {
+    display: block;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: 6px 8px 0 var(--color-plum);
+    rotate: var(--tilt);
+  }
+
+  /* Borde de correo aéreo: franjas diagonales de dos colores con papel entre medio. */
+  .card::before {
+    position: absolute;
+    inset: 7px;
+    border: 12px solid transparent;
+    border-radius: 6px;
+    border-image: repeating-linear-gradient(
+        45deg,
+        var(--stripe-a) 0 18px,
+        transparent 18px 36px,
+        var(--stripe-b) 36px 54px,
+        transparent 54px 72px
+      )
+      12;
+    content: '';
+  }
+
+  .msg {
+    position: absolute;
+    top: 36px;
+    bottom: 36px;
+    left: 36px;
+    width: 380px;
+  }
+
+  .from {
+    margin-bottom: 18px;
+    /* El violeta de la paleta no alcanza 4.5:1 sobre el papel con texto de 13 px. */
+    color: #6253e0;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .write {
+    color: var(--color-ink);
+    font-family: var(--font-hand);
+    font-size: 27px;
+    font-weight: 700;
+    line-height: 33px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin-top: 22px;
+  }
+
+  .tags li {
+    padding: 6px 15px;
+    border-radius: 999px;
+    color: var(--color-ink);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .divider {
+    position: absolute;
+    top: 36px;
+    bottom: 36px;
+    left: 428px;
+    width: 3px;
+    background: var(--color-plum);
+    opacity: 0.45;
+  }
+
+  .postmark {
+    position: absolute;
+    top: 24px;
+    right: 120px;
+    width: 330px;
+    height: 110px;
+    opacity: 0.7;
+  }
+
+  .stamp {
+    position: absolute;
+    top: 26px;
+    right: 38px;
+    display: grid;
+    width: 96px;
+    height: 104px;
+    padding-top: 50px;
+    border: 7px dashed var(--paper);
+    background: var(--stamp);
+    color: var(--color-plum);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 800;
+    outline: 3px solid var(--color-plum);
+    place-items: center;
+    white-space: nowrap;
+  }
+
+  .stamp svg {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    translate: -50% 0;
+  }
+
+  .addr {
+    position: absolute;
+    top: 230px;
+    right: 40px;
+    left: 460px;
+  }
+
+  .addr > * {
+    padding: 14px 0 6px;
+    border-bottom: 2px solid rgb(43 45 66 / 0.35);
+    color: var(--color-ink);
+    font-family: var(--font-hand);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .addr h2 {
+    color: var(--color-plum);
+    font-family: var(--font-display);
+    font-size: 27px;
+    font-weight: 800;
+  }
+
+  .addr .city {
+    padding-top: 34px;
+    border: 0;
+    color: var(--color-muted);
+    font-size: 28px;
+  }
+
+  .pin {
+    position: absolute;
+    top: 3px;
+    left: 416px;
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--color-plum);
+    border-radius: 50%;
+    box-shadow: 3px 5px 0 rgb(43 45 66 / 0.25);
+  }
+
+  /* Llegada: entra volando desde arriba a la derecha y la chinche se clava al aterrizar.
+     Todas las animaciones parten desde (from) y terminan en el estado base. */
+  .postcard[data-active] .card {
+    animation: postcard-arrive 0.85s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+
+  .postcard[data-active] .pin {
+    animation: postcard-pin 0.3s 0.7s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+
+  .postcard[data-active] .write span {
+    animation: postcard-write 0.25s calc(0.5s + var(--w) * 25ms) both;
+  }
+
+  .postcard[data-active] .postmark {
+    animation: postcard-ink 0.5s 0.9s both;
+  }
+
+  @keyframes postcard-arrive {
+    from {
+      translate: 760px -260px;
+      rotate: 16deg;
+      scale: 1.06;
+    }
+
+    70% {
+      translate: 0 6px;
+      rotate: calc(var(--tilt) - 1deg);
+    }
+  }
+
+  @keyframes postcard-pin {
+    from {
+      opacity: 0;
+      translate: 0 -24px;
+      scale: 1.6;
+    }
+  }
+
+  @keyframes postcard-write {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes postcard-ink {
+    from {
+      opacity: 0;
+      rotate: -20deg;
+      scale: 1.4;
+    }
+  }
+
+  /* Salida: sin chinche, se cae hacia abajo. */
+  .postcard[data-leaving] {
+    animation: postcard-leave 0.55s cubic-bezier(0.5, 0, 0.8, 0.4) forwards;
+    pointer-events: none;
+  }
+
+  .postcard[data-leaving] .pin {
+    display: none;
+  }
+
+  @keyframes postcard-leave {
+    to {
+      translate: 260px 760px;
+      rotate: 28deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .postcard,
+    .postcard * {
+      animation: none !important;
+    }
+
+    .postcard[data-leaving] {
+      display: none;
+    }
+  }
+</style>

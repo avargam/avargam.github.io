@@ -1,0 +1,196 @@
+---
+/**
+ * El cuarto: navegación del sitio. Todas las rutas lo renderizan; `initial` indica qué sección
+ * viene abierta (deep link).
+ */
+import { getSection, sections, type SectionSlug } from '../../data/sections';
+import World from '../stage/World.astro';
+import SectionChips from '../ui/SectionChips.astro';
+import CityScene from '../scenes/formacion/CityScene.astro';
+import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
+import CorkScene from '../scenes/experiencia/CorkScene.astro';
+import ExperienciaOverlay from '../scenes/experiencia/ExperienciaOverlay.astro';
+import DesktopScene from '../scenes/proyectos/DesktopScene.astro';
+import ProyectosOverlay from '../scenes/proyectos/ProyectosOverlay.astro';
+import ShelfScene from '../scenes/fuera-del-codigo/ShelfScene.astro';
+import FueraOverlay from '../scenes/fuera-del-codigo/FueraOverlay.astro';
+import ContactoOverlay from '../scenes/contacto/ContactoOverlay.astro';
+import RoomBack from './RoomBack.astro';
+import NamePlate from './NamePlate.astro';
+import RoomLabel from './RoomLabel.astro';
+import ContactMinis from './ContactMinis.astro';
+import { objectRect, rectStyle, sceneInObject } from '../stage/geometry';
+
+interface Props {
+  initial?: SectionSlug;
+}
+
+const { initial } = Astro.props;
+const open = initial ? getSection(initial) : undefined;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/** Margen del contorno punteado de hover alrededor del objeto. */
+const OUTLINE = 14;
+
+/**
+ * Objeto, etiqueta y chip de una sección se resaltan juntos cuando cualquiera de los tres
+ * tiene hover o foco, o cuando un primer toque lo eligió (`data-armed`, en pantallas táctiles).
+ * Una regla por sección; solo CSS.
+ */
+const highlightCss = sections
+  .map(({ slug }) => {
+    // En pantallas táctiles el :hover queda pegado donde estuvo el dedo: allí resalta solo el toque.
+    const active = `:is(html:not(.touch) [data-room-root]:has([data-hotspot="${slug}"]:hover, [data-hotspot="${slug}"]:focus-visible, [data-label="${slug}"] a:hover, [data-room-ui] [data-chip="${slug}"]:hover, [data-room-ui] [data-chip="${slug}"]:focus-visible), [data-room-root][data-armed="${slug}"])`;
+    return `${active} [data-object="${slug}"] .room-outline { opacity: 1; }
+${active} [data-label="${slug}"] .room-label-pill { background: var(--color-hotpink); }
+${active} [data-room-ui] [data-chip="${slug}"] { background: var(--color-plum); color: var(--color-wall); }
+${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-pink); }`;
+  })
+  .join('\n');
+---
+
+<main data-room-root>
+  <World initial={open}>
+    <div data-room-only inert={!!open}>
+      <RoomBack />
+    </div>
+
+    {sections.map((s) => {
+      const r = objectRect(s);
+      return (
+        <div class="absolute" style={rectStyle(r)} data-object={s.slug}>
+          {s.transition === 'zoom' ? (
+            <div class="absolute inset-0 overflow-clip rounded">
+              <div
+                class="absolute top-0 left-0 w-[1600px] origin-top-left"
+                style={`height: ${s.height ?? 1000}px; transform: ${sceneInObject(s)}`}
+                data-scene={s.slug}
+                inert={s.slug !== initial}
+              >
+                {s.slug === 'formacion' ? (
+                  <CityScene />
+                ) : s.slug === 'experiencia' ? (
+                  <CorkScene />
+                ) : s.slug === 'proyectos' ? (
+                  <DesktopScene />
+                ) : (
+                  <ShelfScene />
+                )}
+              </div>
+            </div>
+          ) : (
+            <ContactMinis rect={r} />
+          )}
+          <svg
+            class="room-outline pointer-events-none absolute overflow-visible"
+            style={`left:${-OUTLINE}px;top:${-OUTLINE}px;width:${r.w + 2 * OUTLINE}px;height:${r.h + 2 * OUTLINE}px`}
+            aria-hidden="true"
+          >
+            <rect
+              x="3"
+              y="3"
+              width={r.w + 2 * OUTLINE - 6}
+              height={r.h + 2 * OUTLINE - 6}
+              rx={Math.min(22, (r.h + 2 * OUTLINE) / 2 - 3)}
+              fill="none"
+              stroke="#FF4FA3"
+              stroke-width="6"
+              stroke-dasharray="14 10"
+            />
+          </svg>
+          <a
+            href={`${base}/${s.slug}`}
+            data-section={s.slug}
+            data-hotspot={s.slug}
+            data-room-only
+            inert={!!open}
+            aria-label={s.label}
+            class="room-hotspot absolute inset-0 rounded"
+          />
+        </div>
+      );
+    })}
+
+    <NamePlate />
+    {sections.map((s) => (
+      <RoomLabel section={s} hidden={!!open} />
+    ))}
+
+    <div slot="overlay" class="contents">
+      <div
+        data-room-ui
+        data-room-only
+        data-screen="bottom"
+        hidden={!!open}
+        inert={!!open}
+        class="room-ui absolute inset-x-0 top-[930px] flex flex-col items-center gap-[6px]"
+      >
+        <SectionChips label="Secciones del cuarto" />
+        <p class="text-wall text-[15px] font-bold">
+          <span data-hint="keys">
+            Haz clic en un objeto · o usa Tab y las flechas · Enter para entrar
+          </span>
+          <span data-hint="touch" data-room-hint>
+            Desliza para recorrer · toca un objeto
+          </span>
+        </p>
+      </div>
+
+      {sections.map((s) =>
+        s.slug === 'formacion' ? (
+          <FormacionOverlay active={initial === 'formacion'} />
+        ) : s.slug === 'experiencia' ? (
+          <ExperienciaOverlay active={initial === 'experiencia'} />
+        ) : s.slug === 'proyectos' ? (
+          <ProyectosOverlay active={initial === 'proyectos'} />
+        ) : s.slug === 'fuera-del-codigo' ? (
+          <FueraOverlay active={initial === 'fuera-del-codigo'} />
+        ) : (
+          <ContactoOverlay active={initial === 'contacto'} />
+        ),
+      )}
+
+      <p data-announcer class="sr-only" aria-live="polite"></p>
+    </div>
+  </World>
+</main>
+
+<style is:inline set:html={highlightCss} />
+
+<script>
+  import { initRouter } from '../stage/router';
+
+  initRouter();
+</script>
+
+<style>
+  .room-outline {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .room-hotspot:focus-visible {
+    outline: none;
+  }
+
+  .room-hotspot[inert] {
+    pointer-events: none;
+  }
+
+  /* En el teléfono, la pista va arriba de los chips, con sombra para leerse sobre el cuarto. */
+  :global(html.touch) .room-ui {
+    flex-direction: column-reverse;
+  }
+
+  :global(html.touch) .room-ui > p {
+    text-shadow:
+      0 0 4px var(--color-plum),
+      0 0 8px var(--color-plum);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-outline {
+      transition: none;
+    }
+  }
+</style>

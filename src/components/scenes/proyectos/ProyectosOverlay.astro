@@ -1,0 +1,35 @@
+---
+/**
+ * Capa HTML de Proyectos (escala 1:1 sobre la escena): solo Volver y el título para lectores de
+ * pantalla. Los chips son la barra de tareas y la pista va en el menú Ayuda, los dos en la escena.
+ */
+import { getSection } from '../../../data/sections';
+import SectionShell from '../../ui/SectionShell.astro';
+
+interface Props {
+  active: boolean;
+}
+
+const { active } = Astro.props;
+---
+
+<SectionShell section={getSection('proyectos')} active={active} hideTitle />
+
+<script>
+  import { createItemNav } from '../../stage/itemNav';
+  import { panToSceneRect, registerSection } from '../../stage/router';
+  import { WINDOW, proyectosItem, proyectosItems } from './desk';
+
+  const nav = createItemNav({
+    slug: 'proyectos',
+    ids: proyectosItems.map((i) => i.id),
+    describe: (id) => proyectosItem(id)?.name ?? '',
+    // La ventana se abre en cuanto se elige; en el teléfono, la cámara centra su mitad del texto.
+    focus(id, instant) {
+      const text = { ...WINDOW, x: WINDOW.x + WINDOW.w / 2, w: WINDOW.w / 2 };
+      if (id) void panToSceneRect('proyectos', text, instant);
+      return Promise.resolve(true);
+    },
+  });
+  if (nav) registerSection('proyectos', nav);
+</script>

@@ -1,0 +1,29 @@
+---
+import { sections, type SectionSlug } from '../../data/sections';
+import Chip from './Chip.astro';
+
+interface Props {
+  current?: SectionSlug;
+  label: string;
+}
+
+const { current, label } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<nav aria-label={label}>
+  <ul class="flex gap-3">
+    {sections.map((s) => (
+      <li>
+        <Chip
+          number={s.key}
+          label={s.label}
+          href={`${base}/${s.slug}`}
+          current={s.slug === current ? 'page' : undefined}
+          data-section={s.slug}
+          data-chip={s.slug}
+        />
+      </li>
+    ))}
+  </ul>
+</nav>

@@ -1,0 +1,377 @@
+---
+/**
+ * Escena de Proyectos: la pantalla del monitor, un escritorio vaporwave. Es la misma en el cuarto
+ * (escala 0.195) y a pantalla completa. Cada proyecto es una carpeta; al elegirlo, su ventana
+ * crece desde la carpeta (`ProjectWindow`) y la anterior se minimiza a su pestaña. La barra de
+ * tareas son los chips de ítems. La cámara no se acerca a los ítems.
+ */
+import ProjectWindow from './ProjectWindow.astro';
+import { proyectosItems } from './desk';
+import desktop from './art/desktop.svg?raw';
+
+const rect = (r: { x: number; y: number; w: number; h: number }) =>
+  `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`;
+
+/** La pestaña parpadea cuando su ventana se minimiza hacia ella. */
+const tabCss = proyectosItems
+  .map(
+    ({ id }) =>
+      `[data-items]:has(#${id}[data-leaving]) [data-item-chip="${id}"] { animation: tab-flash 0.5s; }`,
+  )
+  .join('\n');
+
+/** Sin JS, una pestaña (#ítem) abre la ventana, sin animación. */
+const noJsCss = proyectosItems
+  .map(
+    ({ id }) => `html:not(.js) #${id}:target { display: block; }
+html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { background: var(--color-wall); color: var(--color-plum); border-color: var(--color-pink); }`,
+  )
+  .join('\n');
+---
+
+<div class="desktop absolute inset-0" data-items>
+  <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
+    <g class="wallpaper" set:html={desktop} />
+  </svg>
+
+  <div class="menubar">
+    <span class="font-display text-[18px] font-extrabold" aria-hidden="true">
+      ◆ avargam
+    </span>
+    <span class="font-bold" aria-hidden="true">
+      Proyectos
+    </span>
+    <span aria-hidden="true">Ver</span>
+    <details class="help">
+      <summary>Ayuda</summary>
+      <dl class="help-list">
+        <div>
+          <dt>Abrir un proyecto</dt>
+          <dd>
+            <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>
+          </dd>
+        </div>
+        <div>
+          <dt>Recorrer</dt>
+          <dd>
+            <kbd>←</kbd> <kbd>→</kbd>
+          </dd>
+        </div>
+        <div>
+          <dt>Minimizar · volver al cuarto</dt>
+          <dd>
+            <kbd>Esc</kbd>
+          </dd>
+        </div>
+      </dl>
+    </details>
+  </div>
+
+  {proyectosItems.map(({ id, name, project, folder }) => (
+    <button
+      type="button"
+      class="folder absolute"
+      style={rect(folder)}
+      data-item-hit={id}
+      aria-label={name}
+      aria-controls={id}
+      aria-pressed="false"
+    >
+      <svg width="76" height="62" viewBox="0 0 76 62" aria-hidden="true">
+        <path
+          d="M4 4 h24 l8 10 h36 v44 h-68 Z"
+          fill={project.color}
+          stroke="#5A2F6B"
+          stroke-width="4"
+          stroke-linejoin="round"
+        />
+        <path d="M4 22 h68" stroke="#5A2F6B" stroke-width="3" opacity=".4" />
+      </svg>
+      <span class="folder-name" aria-hidden="true">
+        {project.folder.map((line, i) => (
+          <>
+            {i > 0 && <br />}
+            {line}
+          </>
+        ))}
+      </span>
+    </button>
+  ))}
+
+  {proyectosItems.map((item, i) => (
+    <ProjectWindow item={item} index={i} total={proyectosItems.length} />
+  ))}
+
+  <div class="taskbar" aria-hidden="true">
+    <span class="start">◆</span>
+  </div>
+  <nav class="contents" aria-label="Proyectos">
+    {proyectosItems.map(({ id, chip, tab }, i) => (
+      <a href={`#${id}`} class="tab absolute" style={rect(tab)} data-item-chip={id}>
+        <span class="tab-number" aria-hidden="true">
+          {i + 1}
+        </span>
+        {chip}
+      </a>
+    ))}
+  </nav>
+</div>
+
+<style is:inline set:html={tabCss} />
+<style is:inline set:html={noJsCss} />
+
+<style>
+  /*
+   * Ambiente (solo con el cuarto en reposo, ver `--ambient-state` en World.astro): las líneas horizontales
+   * de la grilla avanzan cada una hasta la siguiente (el ciclo se repite sin salto) y las franjas
+   * del sol bajan.
+   */
+  .wallpaper :global(line[x1='56']),
+  .wallpaper :global(rect[x='600'][width='400']) {
+    animation: grid-run 2.6s linear infinite;
+    animation-play-state: var(--ambient-state, paused);
+  }
+
+  .wallpaper :global(line[y1='664']) {
+    --dy: 12px;
+  }
+  .wallpaper :global(line[y1='676']) {
+    --dy: 21px;
+  }
+  .wallpaper :global(line[y1='697']) {
+    --dy: 29px;
+  }
+  .wallpaper :global(line[y1='726']) {
+    --dy: 37px;
+  }
+  .wallpaper :global(line[y1='763']) {
+    --dy: 45px;
+  }
+  .wallpaper :global(line[y1='808']) {
+    --dy: 54px;
+  }
+  .wallpaper :global(line[y1='862']) {
+    --dy: 62px;
+  }
+  .wallpaper :global(line[y1='924']) {
+    --dy: 70px;
+  }
+
+  .wallpaper :global(rect[x='600'][width='400']) {
+    --dy: 26px;
+    animation-name: stripe-down;
+    animation-duration: 5.2s;
+  }
+
+  @keyframes grid-run {
+    to {
+      transform: translateY(var(--dy));
+    }
+  }
+
+  @keyframes stripe-down {
+    0% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.95;
+    }
+    to {
+      transform: translateY(var(--dy));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wallpaper :global(:is(line, rect)) {
+      animation: none;
+    }
+  }
+
+  .menubar {
+    position: absolute;
+    top: 50px;
+    left: 56px;
+    display: flex;
+    width: 1488px;
+    height: 38px;
+    align-items: center;
+    gap: 32px;
+    padding-left: 244px;
+    background: rgb(249 221 240 / 0.92);
+    color: var(--color-plum);
+    font-size: 17px;
+  }
+
+  .help {
+    position: relative;
+  }
+
+  .help summary {
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .help summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .help[open] summary {
+    background: var(--color-plum);
+    color: var(--color-wall);
+  }
+
+  .help-list {
+    position: absolute;
+    top: 34px;
+    left: 0;
+    width: 380px;
+    padding: 10px;
+    border: 3px solid var(--color-plum);
+    border-radius: 10px;
+    background: var(--color-wall);
+    box-shadow: 5px 6px 0 var(--color-plum);
+    color: var(--color-ink);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .help[open] .help-list {
+    animation: help-drop 0.18s ease-out;
+  }
+
+  .help-list > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 8px;
+  }
+
+  kbd {
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: var(--color-lilac);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  @keyframes help-drop {
+    from {
+      opacity: 0;
+      translate: 0 -6px;
+    }
+  }
+
+  .folder {
+    display: grid;
+    align-content: start;
+    justify-items: center;
+    gap: 6px;
+    padding-top: 18px;
+    border: 4px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .folder:hover,
+  .folder:focus-visible {
+    background: rgb(90 47 107 / 0.25);
+    outline: none;
+  }
+
+  .folder[aria-pressed='true'] {
+    border: 4px dashed var(--color-pink);
+    background: rgb(90 47 107 / 0.5);
+  }
+
+  .folder svg {
+    transition: translate 0.2s;
+  }
+
+  .folder:hover svg {
+    translate: 0 -3px;
+  }
+
+  .folder-name {
+    color: var(--color-wall);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 18px;
+    paint-order: stroke;
+    -webkit-text-stroke: 4px var(--color-plum);
+  }
+
+  .taskbar {
+    position: absolute;
+    top: 876px;
+    left: 56px;
+    width: 1488px;
+    height: 48px;
+    background: var(--color-plum);
+  }
+
+  .start {
+    position: absolute;
+    top: 8px;
+    left: 24px;
+    display: grid;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-pink);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 800;
+    place-items: center;
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    background: var(--color-desk);
+    color: var(--color-wall);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .tab:hover {
+    background: var(--color-cabinet);
+  }
+
+  .tab[aria-current] {
+    border-color: var(--color-pink);
+    background: var(--color-wall);
+    color: var(--color-plum);
+  }
+
+  .tab-number {
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  @keyframes tab-flash {
+    40% {
+      background: var(--color-pink);
+      color: var(--color-ink);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desktop :global(*) {
+      transition: none !important;
+    }
+
+    .help[open] .help-list {
+      animation: none;
+    }
+  }
+</style>

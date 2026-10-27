@@ -1,0 +1,50 @@
+[
+  {
+    "id": "agnes",
+    "artist": "Agnes",
+    "track": "Here Comes the Night",
+    "album": "Magic Still Exists",
+    "year": 2021,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/d8/6e/eb/d86eeb46-1314-bf66-a4b1-349fa739ffd8/mzaf_16550368168113708328.plus.aac.p.m4a"
+  },
+  {
+    "id": "miley",
+    "artist": "Miley Cyrus",
+    "track": "Pretend You're God",
+    "album": "Something Beautiful",
+    "year": 2025,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/05/17/53/0517536d-6f4e-7868-6fdd-73133381d636/mzaf_14855413110704317136.plus.aac.p.m4a"
+  },
+  {
+    "id": "rebecca",
+    "artist": "Rebecca Black",
+    "track": "Hot Wet Delirious",
+    "album": "Age of the Exhibitionist",
+    "year": 2026,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/71/95/c8/7195c82f-a555-7e6b-4cd0-e5fcaff64eab/mzaf_14392431822155492440.plus.aac.p.m4a"
+  },
+  {
+    "id": "poppy",
+    "artist": "Poppy",
+    "track": "Bite Your Teeth",
+    "album": "I Disagree",
+    "year": 2020,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/93/f0/7e/93f07e7d-e765-1bce-9e05-9c2c9615fd8b/mzaf_10205788598379536416.plus.aac.p.m4a"
+  },
+  {
+    "id": "stevie",
+    "artist": "Stevie Nicks",
+    "track": "Edge of Seventeen",
+    "album": "Bella Donna",
+    "year": 1981,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f9/99/8f/f9998f04-27d9-e39a-9da0-1a72f4a75123/mzaf_6169499042802004851.plus.aac.p.m4a"
+  },
+  {
+    "id": "austra",
+    "artist": "Austra",
+    "track": "Beat and the Pulse",
+    "album": "Feel It Break",
+    "year": 2011,
+    "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/01/60/4b/01604b04-601e-87ad-a8a6-bea055d5552c/mzaf_15236963188823805408.plus.aac.p.m4a"
+  }
+]
