@@ -1,0 +1,67 @@
+---
+/**
+ * Chip numerado (secciones en el cuarto, ítems dentro de una sección). El estado activo sale de
+ * `aria-current`, así el JS solo cambia ese atributo.
+ */
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'a'> {
+  number: string;
+  label: string;
+  href: string;
+  current?: 'page' | 'true';
+}
+
+const { number, label, href, current, ...attrs } = Astro.props;
+---
+
+<a href={href} aria-current={current} class="chip" {...attrs}>
+  <span class="chip-number" aria-hidden="true">
+    {number}
+  </span>
+  {label}
+</a>
+
+<style>
+  .chip {
+    display: flex;
+    height: 42px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px 0 8px;
+    border: 3px solid var(--color-plum);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-plum);
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .chip:hover {
+    background: var(--color-sun);
+    color: var(--color-plum);
+  }
+
+  .chip[aria-current] {
+    background: var(--color-plum);
+    color: var(--color-wall);
+  }
+
+  .chip-number {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--color-lilac);
+    color: var(--color-ink);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .chip[aria-current] .chip-number {
+    background: var(--color-pink);
+  }
+</style>

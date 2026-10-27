@@ -33,7 +33,8 @@ const { initial } = Astro.props;
   .stage-viewport {
     position: fixed;
     inset: 0;
-    overflow: hidden;
+    /* clip (no hidden): un #hash en la URL no puede desplazar el escenario. */
+    overflow: clip;
   }
 
   .stage-fit {
@@ -42,17 +43,18 @@ const { initial } = Astro.props;
     left: 50%;
     width: 1600px;
     height: 1000px;
-    overflow: hidden;
+    overflow: clip;
     transform: translate(-50%, -50%) scale(var(--fit, 1));
   }
 
+  /*
+   * Sin will-change a propósito: con él, Chrome rasteriza la escena a la escala inicial del zoom
+   * (0.28) y la estira, y se ve pixelada a mitad de camino. Sin él, la animación WAAPI igual va
+   * por GPU y se rasteriza a la escala máxima de la animación.
+   */
   .stage-camera {
     position: absolute;
     inset: 0;
     transform-origin: 0 0;
-  }
-
-  .stage-camera.is-moving {
-    will-change: transform;
   }
 </style>

@@ -16,7 +16,7 @@ import {
   stopAll,
   tween,
 } from './camera';
-import { cameraFor } from './geometry';
+import { cameraFor, cameraForSceneRect, type Rect } from './geometry';
 
 type Target = SectionSlug | null;
 type HistoryMode = 'push' | 'replace' | 'none';
@@ -28,8 +28,48 @@ interface HistoryState {
 }
 
 /**
- * Cómo pasar de una sección a otra (chips o teclas 1–5): `cut` funde directo; `via-room` sale
- * al cuarto y vuelve a entrar.
+ * Comportamiento propio de una sección abierta (ítems, teclado). Se registra con
+ * `registerSection` desde el script de la sección.
+ */
+export interface SectionController {
+  /** Después del zoom de entrada (o del fundido): aplica la selección inicial. */
+  enter(): void;
+  /** Antes del zoom de salida: quita la selección para que la escena vuelva al reposo. */
+  leave(): void;
+  /** Teclas dentro de la sección (← →, dígitos…). Devuelve `true` si la consumió. */
+  onKey(event: KeyboardEvent): boolean;
+}
+
+const controllers = new Map<SectionSlug, SectionController>();
+
+export function registerSection(slug: SectionSlug, controller: SectionController): void {
+  controllers.set(slug, controller);
+}
+
+let stageCamera: HTMLElement | null = null;
+
+/**
+ * Mueve la cámara dentro de una sección abierta: a una zona de su escena (un ítem) o, con
+ * `null`, de vuelta al encuadre de la sección. Devuelve `false` si otra animación la interrumpió.
+ */
+export function focusSceneRect(
+  slug: SectionSlug,
+  rect: Rect | null,
+  instant = false,
+): Promise<boolean> {
+  const section = sectionBySlug(slug);
+  // El script de una sección puede ejecutarse antes que initRouter (deep link con #ítem).
+  stageCamera ??= document.querySelector<HTMLElement>('[data-camera]');
+  if (!stageCamera || section?.transition !== 'zoom') return Promise.resolve(false);
+  const camera = rect ? cameraForSceneRect(section, rect) : cameraFor(section);
+  const duration = instant || prefersReducedMotion() ? 0 : DURATION.item;
+  return moveCamera(stageCamera, camera, duration);
+}
+
+/**
+ * Cómo pasar de una sección a otra con un enlace directo entre secciones: `cut` funde directo;
+ * `via-room` sale al cuarto y vuelve a entrar. (El teclado no cambia de sección dentro de una:
+ * los dígitos eligen ítems.)
  */
 const SWITCH_MODE = 'cut' as 'cut' | 'via-room';
 
@@ -60,6 +100,7 @@ export function initRouter(): void {
   const dom = queryStage();
   if (!dom) return;
   const { root, stage, camera, announcer } = dom;
+  stageCamera = camera;
 
   const all = (selector: string) => [...root.querySelectorAll<HTMLElement>(selector)];
   /** Etiquetas, chips y pista: se desvanecen antes del zoom. */
@@ -72,6 +113,8 @@ export function initRouter(): void {
   );
 
   let current: Target = targetFromPath(location.pathname);
+  /** La sección terminó de entrar: recién ahí recibe el teclado (si no, un ítem cortaría el zoom de entrada). */
+  let settled = true;
   let generation = 0;
   history.replaceState({ section: current, fromRoom: false } satisfies HistoryState, '');
 
@@ -100,6 +143,7 @@ export function initRouter(): void {
     const id = ++generation;
     const alive = () => id === generation;
     current = target;
+    settled = false;
 
     stopAll();
     updateHistory(target, mode, from);
@@ -110,6 +154,7 @@ export function initRouter(): void {
     const others = overlays.filter((el) => el !== overlay && !el.hidden);
     const reduced = prefersReducedMotion();
     const isSwitch = from !== null && target !== null;
+    if (from !== null) controllers.get(from)?.leave();
 
     if (reduced || (isSwitch && SWITCH_MODE === 'cut')) {
       // Fundido: oscurece el escenario, cambia todo de golpe y vuelve a mostrarlo.
@@ -120,6 +165,7 @@ export function initRouter(): void {
         el.hidden = target !== null;
         el.style.opacity = '1';
       }
+      if (target !== null) controllers.get(target)?.enter();
       if (overlay) {
         overlay.hidden = false;
         overlay.style.opacity = '1';
@@ -141,6 +187,7 @@ export function initRouter(): void {
           !alive()
         )
           return;
+        controllers.get(target)?.enter();
         if (overlay && (!(await fadeIn(overlay, DURATION.overlayIn)) || !alive())) return;
       } else {
         // Salir: overlay fuera → zoom inverso → etiquetas.
@@ -152,6 +199,7 @@ export function initRouter(): void {
       }
     }
 
+    settled = true;
     if (target !== null) {
       overlay?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
       announce(sectionBySlug(target)?.label ?? '');
@@ -214,7 +262,12 @@ export function initRouter(): void {
     const el = event.target as HTMLElement;
     if (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
 
-    const byKey = sections.find((s) => s.key === event.key);
+    if (current !== null && settled && controllers.get(current)?.onKey(event)) {
+      event.preventDefault();
+      return;
+    }
+
+    const byKey = current === null ? sections.find((s) => s.key === event.key) : undefined;
     if (byKey) {
       event.preventDefault();
       navigate(byKey.slug);

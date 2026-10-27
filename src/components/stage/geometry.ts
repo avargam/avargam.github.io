@@ -56,6 +56,17 @@ export function cameraCovering(r: Rect): Camera {
   return { k, x: STAGE_W / 2 - k * (r.x + r.w / 2), y: STAGE_H / 2 - k * (r.y + r.h / 2) };
 }
 
+/** Cámara que encuadra una zona de la escena (en coordenadas de la escena), p. ej. un ítem. */
+export function cameraForSceneRect(section: ZoomSection, r: Rect): Camera {
+  const { placement: p } = section;
+  return cameraCovering({
+    x: p.x + r.x * p.scale,
+    y: p.y + r.y * p.scale,
+    w: r.w * p.scale,
+    h: r.h * p.scale,
+  });
+}
+
 /** Cámara final de una sección. Las de tipo `tilt` no mueven la cámara: su escena se superpone. */
 export const cameraFor = (section: Section | undefined): Camera =>
   section?.transition === 'zoom' ? cameraCovering(objectRect(section)) : ROOM_CAMERA;

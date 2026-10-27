@@ -1,0 +1,59 @@
+---
+/**
+ * Capa HTML de Formación (escala 1:1 sobre la escena): Volver, chips de ítems y pista. El detalle
+ * de cada ítem no vive aquí sino en la ciudad (`CityDetails`), y la cámara se acerca a él.
+ */
+import { getSection } from '../../../data/sections';
+import SectionShell from '../../ui/SectionShell.astro';
+import ItemChips from '../../ui/ItemChips.astro';
+import { formacionItems } from './items';
+
+interface Props {
+  active: boolean;
+}
+
+const { active } = Astro.props;
+---
+
+<SectionShell
+  section={getSection('formacion')}
+  active={active}
+  hideTitle
+  hint="Elige un edificio · ← → recorrer la ciudad · Esc alejarse"
+>
+  <ItemChips slot="chips" items={formacionItems} label="Formación" />
+</SectionShell>
+
+<script>
+  import { createItemNav } from '../../stage/itemNav';
+  import { focusSceneRect, registerSection } from '../../stage/router';
+  import { prefersReducedMotion } from '../../stage/camera';
+  import { formacionItems, formacionItem } from './items';
+
+  /** Las ventanas apagadas del edificio elegido se encienden en cascada, de abajo hacia arriba. */
+  function lightUp(id: string | null) {
+    const scene = document.querySelector('[data-scene="formacion"]');
+    for (const el of scene?.querySelectorAll('.win-on') ?? []) el.classList.remove('win-on');
+    if (!id || !scene) return;
+    const unlit = [
+      ...scene.querySelectorAll<SVGRectElement>(`[data-building="${id}"] rect[fill="#4B3A8F"]`),
+    ].sort((a, b) => b.y.baseVal.value - a.y.baseVal.value);
+    const reduced = prefersReducedMotion();
+    unlit.forEach((rect, i) => {
+      if (i % 5 === 4) return; // algunas quedan apagadas, para que no parezca un patrón
+      rect.style.animationDelay = reduced ? '0ms' : `${i * 25 + (i % 3) * 30}ms`;
+      rect.classList.add('win-on');
+    });
+  }
+
+  const nav = createItemNav({
+    slug: 'formacion',
+    ids: formacionItems.map((i) => i.id),
+    describe: (id) => formacionItem(id)?.name ?? '',
+    focus(id, instant) {
+      lightUp(id);
+      return focusSceneRect('formacion', id ? (formacionItem(id)?.frame ?? null) : null, instant);
+    },
+  });
+  if (nav) registerSection('formacion', nav);
+</script>

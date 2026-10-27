@@ -1,0 +1,262 @@
+---
+/**
+ * Escena de Formación: la ciudad al atardecer vista por la ventana. Es la misma en el cuarto
+ * (escala 0.28) y a pantalla completa. Cada ítem es un edificio con un botón encima; al elegirlo
+ * la cámara se acerca a su fachada y aparece su detalle (`CityDetails`).
+ */
+import { getSection, type ZoomSection } from '../../../data/sections';
+import { cameraForSceneRect, cameraTransform } from '../../stage/geometry';
+import CityDetails from './CityDetails.astro';
+import { formacionItems, type FormacionItemId } from './items';
+import frame from './art/frame.svg?raw';
+import sky from './art/sky.svg?raw';
+import idiomas from './art/idiomas.svg?raw';
+import major from './art/major.svg?raw';
+import titulo from './art/titulo.svg?raw';
+import minor from './art/minor.svg?raw';
+import sill from './art/sill.svg?raw';
+
+const art: Record<FormacionItemId, string> = { idiomas, major, titulo, minor };
+/** Orden de dibujo (de atrás hacia adelante), como en el prototipo. */
+const drawOrder: FormacionItemId[] = ['idiomas', 'major', 'titulo', 'minor'];
+const section = getSection('formacion') as ZoomSection;
+
+/** Hover/foco del botón de un edificio: borde menta y píldora con su nombre. */
+const hoverCss = formacionItems
+  .map(({ id }) => {
+    const hover = `[data-items]:has([data-item-hit="${id}"]:is(:hover, :focus-visible))`;
+    return `${hover} [data-building="${id}"] .shape { stroke: #8ADBC8; }
+${hover} [data-hover-label="${id}"] { opacity: 1; }`;
+  })
+  .join('\n');
+
+/** Sin JS, un chip (#ítem) acerca la cámara con CSS y muestra el detalle sin animación. */
+const noJsCss = formacionItems
+  .map(
+    ({ id, frame }) =>
+      `html:not(.js) [data-camera]:has(#${id}:target) { transform: ${cameraTransform(cameraForSceneRect(section, frame))} !important; }
+html:not(.js) #${id}:target { display: block; }`,
+  )
+  .join('\n');
+---
+
+<div class="city absolute inset-0" data-items>
+  <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
+    <defs>
+      <clipPath id="formacion-glass">
+        <rect x="96" y="66" width="1408" height="848" rx="6"></rect>
+      </clipPath>
+    </defs>
+    <g set:html={frame} />
+    <g clip-path="url(#formacion-glass)">
+      <g set:html={sky} />
+      {drawOrder.map((id) => (
+        <g data-building={id} set:html={art[id]} />
+      ))}
+    </g>
+    <g set:html={sill} />
+  </svg>
+
+  <!-- Textos de la escena (HTML, en coordenadas de la escena) -->
+  <div aria-hidden="true">
+    <span class="city-pill bg-lilac top-[850px] left-[505px] h-[32px] w-[110px]">Major</span>
+    <span class="city-pill bg-mint top-[578px] left-[1160px] h-[28px] w-[90px] text-[16px]">
+      Minor
+    </span>
+    <div class="led idle-screen">
+      <span class="idle-alt px on-y">IDIOMAS</span>
+      <span class="idle-alt px on-m">ES · EN</span>
+    </div>
+    {formacionItems.map((item) => (
+      <span
+        class="city-pill hover-label bg-sun border-plum -translate-x-1/2 border-3 px-5 whitespace-nowrap"
+        style={`left:${item.hoverLabel.x}px;top:${item.hoverLabel.y}px`}
+        data-hover-label={item.id}
+      >
+        {item.name.split(':')[0]}
+      </span>
+    ))}
+  </div>
+
+  <CityDetails />
+
+  <!-- Botones de los edificios -->
+  {formacionItems.map((item) => (
+    <button
+      type="button"
+      class="city-hit absolute"
+      style={`left:${item.hit.x}px;top:${item.hit.y}px;width:${item.hit.w}px;height:${item.hit.h}px`}
+      data-item-hit={item.id}
+      aria-label={item.name}
+      aria-controls={item.id}
+      aria-pressed="false"
+    />
+  ))}
+</div>
+
+<style is:inline set:html={hoverCss} />
+<style is:inline set:html={noJsCss} />
+
+<style>
+  .city-pill {
+    position: absolute;
+    display: grid;
+    height: 34px;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--color-ink);
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .hover-label {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Al acercarse a un edificio, las píldoras de hover sobran. */
+  [data-items][data-selected] .hover-label {
+    display: none;
+  }
+
+  .city :global(.shape) {
+    transition: stroke 0.15s ease;
+  }
+
+  .city-hit {
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .city-hit:focus-visible {
+    outline: none;
+  }
+
+  .city-hit[aria-pressed='true'] {
+    cursor: default;
+  }
+
+  /* Pantalla publicitaria de Idiomas en reposo: alterna dos textos tenues. */
+  .idle-screen {
+    position: absolute;
+    top: 598px;
+    left: 206px;
+    width: 218px;
+    height: 118px;
+    transition: opacity 0.25s;
+  }
+
+  .idle-alt {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    opacity: 0;
+    animation: idle-alt 6s infinite;
+  }
+
+  .idle-alt + .idle-alt {
+    animation-delay: 3s;
+  }
+
+  @keyframes idle-alt {
+    0%,
+    45% {
+      opacity: 0.55;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  [data-selected='idiomas'] .idle-screen {
+    opacity: 0;
+  }
+
+  .city :global(.cone) {
+    opacity: 0.3;
+    transition: opacity 0.6s;
+  }
+
+  [data-selected='idiomas'] :global(.cone) {
+    opacity: 0.85;
+  }
+
+  /* Ventanas que se encienden en cascada al elegir un edificio (las marca el script). */
+  .city :global(.win-on) {
+    animation: win-on 0.5s ease-out both;
+  }
+
+  @keyframes win-on {
+    0% {
+      fill: #4b3a8f;
+    }
+    40% {
+      fill: #fff6b0;
+    }
+    100% {
+      fill: #ffe86b;
+    }
+  }
+
+  /* Pantallas LED: puntos nítidos sobre fondo oscuro (también la usa CityDetails). */
+  .city :global(.led) {
+    overflow: hidden;
+    border: 2px solid #050310;
+    background: #0b0720;
+  }
+
+  .city :global(.led)::after {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 50%, rgb(11 7 32 / 0.9) 58%) 0 0 / 1.8px 1.8px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .city :global(.px) {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .city :global(.on-p) {
+    color: #ffc2da;
+    text-shadow:
+      0 0 2px #ff4fa3,
+      0 0 5px #ff4fa3;
+  }
+
+  .city :global(.on-m) {
+    color: #cffff3;
+    text-shadow:
+      0 0 2px #4fd1b5,
+      0 0 5px #4fd1b5;
+  }
+
+  .city :global(.on-y) {
+    color: #fff4b8;
+    text-shadow:
+      0 0 2px #ffcf3a,
+      0 0 5px #ffcf3a;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hover-label,
+    .idle-screen,
+    .idle-alt,
+    .city :global(.shape),
+    .city :global(.cone),
+    .city :global(.win-on) {
+      transition: none;
+      animation: none;
+    }
+
+    .idle-alt:first-child {
+      opacity: 0.55;
+    }
+  }
+</style>

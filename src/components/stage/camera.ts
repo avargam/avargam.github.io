@@ -18,58 +18,65 @@ export const DURATION = {
   overlayOut: 150,
   cut: 150,
   labelsIn: 200,
+  /** Viaje de la cámara entre ítems dentro de una sección. */
+  item: 900,
 } as const;
 
 const running = new Set<Animation>();
+/** Animación en curso por elemento: una nueva sobre el mismo elemento reemplaza a la anterior. */
+const current = new WeakMap<HTMLElement, Animation>();
 
-/** Lleva `el` hasta `to` y deja el valor final escrito en su estilo. Devuelve `false` si fue interrumpida. */
+/** Deja la animación en su valor actual y la cancela. */
+function freeze(animation: Animation): void {
+  try {
+    animation.commitStyles();
+  } catch {
+    // el elemento quedó oculto; no hay valor que conservar
+  }
+  animation.cancel();
+  running.delete(animation);
+}
+
+/**
+ * Lleva `el` hasta `to` y deja el valor final escrito en su estilo. Interrumpe la animación
+ * anterior del mismo elemento. Devuelve `false` si esta a su vez fue interrumpida.
+ */
 export async function tween(
   el: HTMLElement,
   to: Keyframe,
   duration: number,
   easing = EASE_FADE,
 ): Promise<boolean> {
+  const previous = current.get(el);
+  if (previous) freeze(previous);
   if (duration <= 0) {
     Object.assign(el.style, to);
     return true;
   }
   const animation = el.animate([to], { duration, easing, fill: 'forwards' });
   running.add(animation);
+  current.set(el, animation);
   try {
     await animation.finished;
     animation.commitStyles();
     animation.cancel();
     return true;
   } catch {
-    // cancelada por stopAll()
+    // cancelada por stopAll() o por otra animación del mismo elemento
     return false;
   } finally {
     running.delete(animation);
+    if (current.get(el) === animation) current.delete(el);
   }
 }
 
 /** Congela todas las animaciones en su valor actual y las cancela. */
 export function stopAll(): void {
-  for (const animation of running) {
-    try {
-      animation.commitStyles();
-    } catch {
-      // el elemento quedó oculto; no hay valor que conservar
-    }
-    animation.cancel();
-  }
-  running.clear();
+  for (const animation of [...running]) freeze(animation);
 }
 
-export async function moveCamera(
-  el: HTMLElement,
-  camera: Camera,
-  duration: number,
-): Promise<boolean> {
-  el.classList.add('is-moving');
-  const done = await tween(el, { transform: cameraTransform(camera) }, duration, EASE_CAMERA);
-  el.classList.remove('is-moving');
-  return done;
+export function moveCamera(el: HTMLElement, camera: Camera, duration: number): Promise<boolean> {
+  return tween(el, { transform: cameraTransform(camera) }, duration, EASE_CAMERA);
 }
 
 export async function fadeIn(el: HTMLElement, duration: number): Promise<boolean> {
