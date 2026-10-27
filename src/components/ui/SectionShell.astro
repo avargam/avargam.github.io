@@ -10,7 +10,8 @@ interface Props {
   active: boolean;
   /** El diseño de algunas escenas no muestra el título: queda solo para lectores de pantalla. */
   hideTitle?: boolean;
-  hint: string;
+  /** Pista de teclado abajo. Proyectos no la usa: va en el menú Ayuda de su escena. */
+  hint?: string;
 }
 
 const { section, active, hideTitle = false, hint } = Astro.props;
@@ -54,12 +55,14 @@ const titleId = `titulo-${section.slug}`;
   >
     <slot name="chips" />
   </div>
-  <p
-    class="shell-enter text-plum absolute top-[978px] left-0 w-full text-center text-[15px] font-semibold [text-shadow:0_0_4px_var(--color-wall),0_0_8px_var(--color-wall),0_0_12px_var(--color-wall)]"
-    style="--i: 3"
-  >
-    {hint}
-  </p>
+  {hint && (
+    <p
+      class="shell-enter text-plum absolute top-[978px] left-0 w-full text-center text-[15px] font-semibold [text-shadow:0_0_4px_var(--color-wall),0_0_8px_var(--color-wall),0_0_12px_var(--color-wall)]"
+      style="--i: 3"
+    >
+      {hint}
+    </p>
+  )}
 </section>
 
 <style>
