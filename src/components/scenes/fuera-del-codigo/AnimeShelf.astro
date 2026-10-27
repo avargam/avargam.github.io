@@ -1,0 +1,225 @@
+---
+/**
+ * Repisa de Anime, manga y cómics: un lomo por título. Al elegirlo, el libro sale volando desde
+ * su lomo y se abre: a la izquierda un motivo de la serie, a la derecha su descripción.
+ */
+import { anime } from '../../../data/personal';
+import { ANIME } from './shelf';
+import art from './art/anime.svg?raw';
+
+const emblems = import.meta.glob<string>('./art/anime/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const emblemOf = (id: string) => emblems[`./art/anime/${id.replace(/^anime-/, '')}.svg`] ?? '';
+const spineX = (k: number) => ANIME.x + k * (ANIME.w + ANIME.gap);
+/** Centro de la tapa del libro cerrado (mitad derecha): desde ahí se mide el vuelo. */
+const cover = { x: ANIME.book.x + 480, y: ANIME.book.y + 140 };
+---
+
+<div
+  id="anime"
+  class="topic anime pointer-events-none absolute inset-0"
+  data-item-detail="anime"
+  data-sub-topic="anime"
+>
+  <svg
+    class="absolute inset-0"
+    width="1600"
+    height="1612"
+    viewBox="0 0 1600 1612"
+    aria-hidden="true"
+  >
+    <g set:html={art} />
+  </svg>
+
+  {anime.map((a, k) => (
+    <a
+      href={`#${a.id}`}
+      class="sub-object spine"
+      style={`left:${spineX(k)}px;top:${ANIME.base - a.height}px;width:${ANIME.w}px;height:${a.height}px;--c:${a.color};--t:${a.textColor ?? 'var(--color-ink)'};--k:${k}`}
+      data-sub={a.id}
+      aria-controls={a.id}
+    >
+      <span>{a.title}</span>
+      <i aria-hidden="true">{k + 1}</i>
+    </a>
+  ))}
+  <span class="pick" aria-hidden="true">
+    elige un tomo ↓
+  </span>
+
+  {anime.map((a, k) => (
+    <article
+      id={a.id}
+      class="sub-detail fly book"
+      style={`left:${ANIME.book.x}px;top:${ANIME.book.y}px;--fx:${spineX(k) + ANIME.w / 2 - cover.x}px;--fy:${ANIME.base - a.height / 2 - cover.y}px;--c:${a.color};--t:${a.textColor ?? 'var(--color-ink)'}`}
+      data-sub-detail={a.id}
+      aria-label={a.title}
+    >
+      <div class="page">
+        <span class="kick reveal" style="--k:0">
+          TOMO {k + 1} DE {anime.length}
+        </span>
+        <h3 class="reveal" style="--k:1">
+          {a.title}
+        </h3>
+        <p class="reveal" style="--k:2">
+          {a.description}
+        </p>
+      </div>
+      <div class="leaf" aria-hidden="true">
+        <div class="face front">{a.title}</div>
+        <div class="face inside">
+          <svg viewBox="0 0 280 220" preserveAspectRatio="xMidYMid slice">
+            <g set:html={emblemOf(a.id)} />
+          </svg>
+        </div>
+      </div>
+      <a href="#anime" class="close-x" data-sub-close aria-label={`Cerrar ${a.title}`}>
+        ✕
+      </a>
+    </article>
+  ))}
+</div>
+
+<style>
+  .anime[data-active] :global(.chibi) {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: wave 1s 0.6s ease-in-out 3;
+  }
+
+  @keyframes wave {
+    25% {
+      transform: rotate(-6deg);
+    }
+    75% {
+      transform: rotate(6deg);
+    }
+  }
+
+  .spine[aria-current] {
+    translate: 0 -48px;
+  }
+
+  .pick {
+    position: absolute;
+    top: 506px;
+    left: 330px;
+    color: var(--color-plum);
+    font-family: var(--font-hand);
+    font-size: 30px;
+    opacity: 0;
+    rotate: -4deg;
+    transition: opacity 0.3s;
+  }
+
+  .anime[data-active]:not([data-open]) .pick {
+    opacity: 1;
+    transition-delay: 0.9s;
+  }
+
+  .book {
+    width: 640px;
+    height: 280px;
+    perspective: 1600px;
+  }
+
+  .page,
+  .face {
+    position: absolute;
+    top: 0;
+    width: 320px;
+    height: 280px;
+    border: 4px solid var(--color-plum);
+    background: #fffdf7;
+  }
+
+  .page {
+    left: 320px;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 26px 18px 24px;
+    border-left-width: 2px;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.3);
+  }
+
+  .page h3 {
+    margin: 6px 0 10px;
+    font-size: 27px;
+  }
+
+  .page p {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: 14.5px;
+    font-weight: 500;
+    line-height: 1.42;
+  }
+
+  /* La tapa gira sobre el lomo; su reverso es la página de la ilustración. En reposo, abierta. */
+  .leaf {
+    position: absolute;
+    top: 0;
+    left: 320px;
+    width: 320px;
+    height: 280px;
+    transform: rotateY(-180deg);
+    transform-origin: 0 50%;
+    transform-style: preserve-3d;
+  }
+
+  .book[data-open] .leaf {
+    animation: flip 0.6s 0.45s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  }
+
+  @keyframes flip {
+    from {
+      transform: rotateY(0);
+    }
+  }
+
+  .face {
+    left: 0;
+    backface-visibility: hidden;
+  }
+
+  .front {
+    display: grid;
+    padding: 20px;
+    place-items: center;
+    border-radius: 0 10px 10px 0;
+    background: var(--c);
+    color: var(--t);
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .inside {
+    padding: 14px;
+    border-right-width: 2px;
+    border-radius: 10px 0 0 10px;
+    transform: rotateY(180deg);
+  }
+
+  .inside svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #1a1423;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anime[data-active] :global(.chibi),
+    .book[data-open] .leaf {
+      animation: none;
+    }
+  }
+</style>
