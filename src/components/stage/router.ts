@@ -11,12 +11,16 @@ import {
   DURATION,
   fadeIn,
   fadeOut,
+  hideTilted,
   moveCamera,
   prefersReducedMotion,
+  showFlat,
   stopAll,
+  tiltIn,
+  tiltOut,
   tween,
 } from './camera';
-import { cameraFor, cameraForSceneRect, type Rect } from './geometry';
+import { cameraFor, cameraForSceneRect, ROOM_CAMERA, type Rect } from './geometry';
 
 type Target = SectionSlug | null;
 type HistoryMode = 'push' | 'replace' | 'none';
@@ -108,6 +112,9 @@ export function initRouter(): void {
   const overlays = all('[data-overlay]');
   const scenes = all('[data-scene]');
   const roomOnly = all('[data-room-only]');
+  /** Escenas de las secciones `tilt`: van sobre la cámara, a 1:1, y entran inclinadas. */
+  const tiltScenes = all('[data-tilt-scene]');
+  const tiltScene = (target: Target) => tiltScenes.find((el) => el.dataset.tiltScene === target);
   const hotspots = sections.map((s) =>
     root.querySelector<HTMLElement>(`[data-hotspot="${s.slug}"]`),
   );
@@ -154,12 +161,18 @@ export function initRouter(): void {
     const others = overlays.filter((el) => el !== overlay && !el.hidden);
     const reduced = prefersReducedMotion();
     const isSwitch = from !== null && target !== null;
+    const scene = tiltScene(target);
+    const fromScene = tiltScene(from);
     if (from !== null) controllers.get(from)?.leave();
 
     if (reduced || (isSwitch && SWITCH_MODE === 'cut')) {
       // Fundido: oscurece el escenario, cambia todo de golpe y vuelve a mostrarlo.
       if (!(await tween(stage, { opacity: '0' }, DURATION.cut)) || !alive()) return;
       for (const el of others) el.hidden = true;
+      for (const el of tiltScenes) {
+        if (el === scene) showFlat(el);
+        else hideTilted(el);
+      }
       await moveCamera(camera, cameraFor(target ? sectionBySlug(target) : undefined), 0);
       for (const el of roomUi) {
         el.hidden = target !== null;
@@ -182,18 +195,31 @@ export function initRouter(): void {
         if (!alive()) return;
         if (isSwitch && !(await moveCamera(camera, cameraFor(undefined), DURATION.camera))) return;
         if (!alive()) return;
-        if (
-          !(await moveCamera(camera, cameraFor(sectionBySlug(target)), DURATION.camera)) ||
-          !alive()
-        )
-          return;
+        const entered = scene
+          ? // La cámara se acerca al objeto y la escena se endereza encima antes de que llegue.
+            (
+              await Promise.all([
+                moveCamera(camera, cameraFor(sectionBySlug(target)), DURATION.tiltCamera),
+                tiltIn(scene, DURATION.tiltSceneIn, DURATION.tiltSceneDelay),
+              ])
+            ).every(Boolean)
+          : await moveCamera(camera, cameraFor(sectionBySlug(target)), DURATION.camera);
+        if (!entered || !alive()) return;
         controllers.get(target)?.enter();
         if (overlay && (!(await fadeIn(overlay, DURATION.overlayIn)) || !alive())) return;
       } else {
         // Salir: overlay fuera → zoom inverso → etiquetas.
         await Promise.all(others.map((el) => fadeOut(el, DURATION.overlayOut)));
         if (!alive()) return;
-        if (!(await moveCamera(camera, cameraFor(undefined), DURATION.camera)) || !alive()) return;
+        const left = fromScene
+          ? (
+              await Promise.all([
+                tiltOut(fromScene, DURATION.tiltSceneOut),
+                moveCamera(camera, ROOM_CAMERA, DURATION.tiltCamera, DURATION.tiltCameraDelay),
+              ])
+            ).every(Boolean)
+          : await moveCamera(camera, ROOM_CAMERA, DURATION.camera);
+        if (!left || !alive()) return;
         const shown = await Promise.all(roomUi.map((el) => fadeIn(el, DURATION.labelsIn)));
         if (shown.includes(false) || !alive()) return;
       }
