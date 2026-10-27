@@ -1,12 +1,11 @@
 ---
 /**
  * El cuarto: navegación del sitio. Todas las rutas lo renderizan; `initial` indica qué sección
- * viene abierta (deep link). Las escenas aún no portadas son imágenes provisionales.
+ * viene abierta (deep link).
  */
 import { getSection, sections, type SectionSlug } from '../../data/sections';
 import World from '../stage/World.astro';
 import SectionChips from '../ui/SectionChips.astro';
-import ScenePlaceholder from '../scenes/ScenePlaceholder.astro';
 import CityScene from '../scenes/formacion/CityScene.astro';
 import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
 import CorkScene from '../scenes/experiencia/CorkScene.astro';
@@ -15,11 +14,11 @@ import DesktopScene from '../scenes/proyectos/DesktopScene.astro';
 import ProyectosOverlay from '../scenes/proyectos/ProyectosOverlay.astro';
 import ShelfScene from '../scenes/fuera-del-codigo/ShelfScene.astro';
 import FueraOverlay from '../scenes/fuera-del-codigo/FueraOverlay.astro';
-import SectionOverlay from './SectionOverlay.astro';
+import ContactoOverlay from '../scenes/contacto/ContactoOverlay.astro';
 import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
 import RoomLabel from './RoomLabel.astro';
-import ContactEnvelopes from './ContactEnvelopes.astro';
+import ContactMinis from './ContactMinis.astro';
 import { objectRect, rectStyle, sceneInObject } from '../stage/geometry';
 
 interface Props {
@@ -72,15 +71,13 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
                   <CorkScene />
                 ) : s.slug === 'proyectos' ? (
                   <DesktopScene />
-                ) : s.slug === 'fuera-del-codigo' ? (
-                  <ShelfScene />
                 ) : (
-                  <ScenePlaceholder slug={s.slug} />
+                  <ShelfScene />
                 )}
               </div>
             </div>
           ) : (
-            <ContactEnvelopes rect={r} />
+            <ContactMinis rect={r} />
           )}
           <svg
             class="room-outline pointer-events-none absolute overflow-visible"
@@ -141,9 +138,7 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
         ) : s.slug === 'fuera-del-codigo' ? (
           <FueraOverlay active={initial === 'fuera-del-codigo'} />
         ) : (
-          <SectionOverlay section={s} active={s.slug === initial}>
-            {s.transition === 'tilt' && <ScenePlaceholder slug={s.slug} />}
-          </SectionOverlay>
+          <ContactoOverlay active={initial === 'contacto'} />
         ),
       )}
 

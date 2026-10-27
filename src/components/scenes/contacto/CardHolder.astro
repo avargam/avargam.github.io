@@ -1,0 +1,234 @@
+---
+/**
+ * LinkedIn: un tarjetero con una tarjeta que asoma ("Mi perfil de LinkedIn"). Al abrirlo, la tarjeta
+ * sale, cae al lado y se da vuelta: en el reverso está el enlace. Es un objeto aparte en la mesa
+ * (se arrastra y se da vuelta con un clic); Esc o cerrar la devuelve al tarjetero.
+ */
+import { profile } from '../../../data/profile';
+import { contact } from '../../../data/contact';
+import { CARD_OUT, HOME, cardInHolder, spotStyle } from './desk';
+
+interface Props {
+  z: number;
+}
+
+const item = contact('linkedin')!;
+const { z } = Astro.props;
+---
+
+<div
+  id="linkedin"
+  class="desk-obj holder"
+  style={spotStyle(HOME.linkedin, z)}
+  data-desk-obj="linkedin"
+>
+  <a
+    href="#linkedin"
+    class="desk-hit"
+    data-desk-hit="linkedin"
+    aria-expanded="false"
+    aria-label={item.name}
+  ></a>
+  <div class="pocket rear" aria-hidden="true"></div>
+  <div class="pocket" aria-hidden="true">
+    LINKEDIN
+  </div>
+</div>
+
+<!-- Sin JS, #linkedin deja la tarjeta fuera y dada vuelta (por eso va justo después del tarjetero). -->
+<div
+  class="desk-obj card"
+  style={`${spotStyle(cardInHolder(HOME.linkedin), z - 1)};--out-x:${CARD_OUT.x}px;--out-y:${CARD_OUT.y}px;--out-r:${CARD_OUT.r}deg`}
+  data-desk-card
+  data-in-holder
+>
+  <div class="flip">
+    <div class="side front" aria-hidden="true">
+      <span class="badge">
+        <i>in</i>Mi perfil de LinkedIn
+      </span>
+      <b>
+        {profile.name.split(' ').slice(0, 2).join(' ')}
+        <br />
+        {profile.name.split(' ').slice(2).join(' ')}
+      </b>
+      <small>{profile.role}</small>
+    </div>
+    <div class="side back">
+      <p class="kick">LINKEDIN</p>
+      <p class="title">Conectemos en LinkedIn</p>
+      <a class="desk-btn pink" href={item.href} target="_blank" rel="noopener">
+        Ver mi perfil ↗
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .holder {
+    width: 300px;
+    height: 310px;
+  }
+
+  .holder .desk-hit {
+    top: 140px;
+  }
+
+  .pocket {
+    position: absolute;
+    top: 180px;
+    left: 0;
+    z-index: 2;
+    display: grid;
+    width: 300px;
+    height: 130px;
+    border: 5px solid var(--color-plum);
+    border-radius: 14px;
+    background: #6c5aa8;
+    box-shadow: var(--sh, 8px 10px 0) var(--shadow);
+    color: var(--color-wall);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    place-items: center;
+    transition: box-shadow 0.15s;
+  }
+
+  .pocket.rear {
+    top: 140px;
+    z-index: 0;
+    height: 120px;
+    box-shadow: none;
+  }
+
+  .card {
+    width: 280px;
+    height: 170px;
+    perspective: 1200px;
+  }
+
+  .card:global([data-in-holder]) {
+    transition:
+      translate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1),
+      rotate 0.5s;
+  }
+
+  .flip {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card:global([data-flipped]) .flip {
+    transform: rotateY(180deg);
+  }
+
+  .side {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    padding: 14px 20px 0 34px;
+    border: 4px solid var(--color-plum);
+    border-radius: 10px;
+    background: #fff;
+    backface-visibility: hidden;
+    box-shadow: var(--sh, 6px 8px 0) var(--shadow);
+    color: var(--color-plum);
+  }
+
+  .side::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 14px;
+    background: var(--color-lilac);
+    content: '';
+  }
+
+  .front b {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .front small {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-muted);
+    font-size: 14px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 999px;
+    background: var(--color-lilac);
+    color: var(--color-ink);
+    font-size: 14px;
+    font-weight: 800;
+    gap: 8px;
+  }
+
+  .badge i {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--color-plum);
+    color: #fff;
+    font-size: 13px;
+    font-style: normal;
+    place-items: center;
+  }
+
+  .back {
+    padding-top: 16px;
+    background: var(--color-lilac);
+    transform: rotateY(180deg);
+  }
+
+  .back::before {
+    background: var(--color-plum);
+  }
+
+  .kick {
+    margin: 0 0 6px;
+    color: var(--color-violet);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+  }
+
+  .title {
+    margin: 0 0 16px;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  /* Sin JS: el ancla #linkedin saca la tarjeta y la da vuelta. */
+  :global(html:not(.js)) .holder:target + .card {
+    translate: var(--out-x) var(--out-y);
+    rotate: var(--out-r);
+    z-index: 50 !important;
+  }
+
+  :global(html:not(.js)) .holder:target + .card .flip {
+    transform: rotateY(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card:global([data-in-holder]),
+    .flip {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,553 @@
+---
+/**
+ * Escena de Contacto: la mesa del escritorio vista desde arriba, con un objeto por canal (sobre,
+ * paquete, tarjetero, carpeta) y cosas sueltas (lápiz, estampillas, stickers). Todo se arrastra;
+ * un clic abre el objeto (`deskClient.ts`). Va sobre la cámara a 1:1 y entra inclinada (router).
+ *
+ * Cada objeto es un `.desk-obj` posicionado con --x, --y y --r. Su `.desk-hit` (un ancla #id, al
+ * fondo) recibe el puntero y el teclado: el dibujo encima no captura clics, salvo enlaces y botones.
+ */
+import Envelope from './Envelope.astro';
+import Parcel from './Parcel.astro';
+import CardHolder from './CardHolder.astro';
+import CvFolder from './CvFolder.astro';
+import { HOME, LOOT, STICKERS, spotStyle } from './desk';
+
+const loot = LOOT.map((l) => ({ ...l, x: HOME.github.x + l.dx, y: HOME.github.y + l.dy }));
+---
+
+<div class="desk absolute inset-0" data-desk>
+  <svg
+    class="absolute inset-0"
+    width="1600"
+    height="1000"
+    viewBox="0 0 1600 1000"
+    aria-hidden="true"
+  >
+    <g fill="none" stroke="var(--color-desk)">
+      <path d="M0 200H1600M0 480H1600M0 760H1600" stroke-width="3"></path>
+      <path
+        d="M120 100q40-6 90 0t90 0M980 330q40-6 90 0t90 0M300 620q40-6 90 0t90 0M1260 880q40-6 90 0t90 0M700 940q40-6 90 0t90 0"
+        stroke-width="2"
+        opacity=".7"
+      ></path>
+    </g>
+  </svg>
+
+  <div class="desk-obj pencil" style={spotStyle(HOME.lapiz, 1)} aria-hidden="true">
+    <svg width="380" height="30" viewBox="0 0 380 30">
+      <rect
+        x="2"
+        y="3"
+        width="320"
+        height="24"
+        rx="6"
+        fill="var(--color-sun)"
+        stroke="var(--color-plum)"
+        stroke-width="4"
+      ></rect>
+      <polygon
+        points="322,3 372,15 322,27"
+        fill="#ffe0cc"
+        stroke="var(--color-plum)"
+        stroke-width="4"
+        stroke-linejoin="round"
+      ></polygon>
+      <rect
+        x="2"
+        y="3"
+        width="40"
+        height="24"
+        rx="6"
+        fill="var(--color-pink)"
+        stroke="var(--color-plum)"
+        stroke-width="4"
+      ></rect>
+    </svg>
+  </div>
+
+  <Parcel z={2} />
+  <CvFolder z={3} />
+  <Envelope z={4} />
+  <CardHolder z={6} />
+
+  {STICKERS.map((s, i) => (
+    <div
+      class:list={['desk-obj sticker', s.kind]}
+      style={spotStyle(s, 10 + i)}
+      data-desk-sticker
+      aria-hidden="true"
+    >
+      {s.kind === 'stamp' ? (
+        <svg width="60" height="70" viewBox="0 0 60 70">
+          <rect
+            x="3"
+            y="3"
+            width="54"
+            height="64"
+            fill={s.color}
+            stroke="#fff"
+            stroke-width="6"
+            stroke-dasharray="6 5"
+          ></rect>
+          <circle cx="30" cy="35" r="14" fill="#fff" opacity=".6"></circle>
+        </svg>
+      ) : s.art === 'star' ? (
+        <svg width="78" height="78" viewBox="0 0 78 78">
+          <path
+            d="M39 5l10 21 23 3-17 16 4 23-20-11-20 11 4-23-17-16 23-3z"
+            fill="#fff"
+            stroke="#fff"
+            stroke-width="12"
+            stroke-linejoin="round"
+          ></path>
+          <path
+            d="M39 5l10 21 23 3-17 16 4 23-20-11-20 11 4-23-17-16 23-3z"
+            fill="var(--color-sun)"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+            stroke-linejoin="round"
+          ></path>
+          <circle cx="33" cy="38" r="2.6" fill="var(--color-plum)"></circle>
+          <circle cx="45" cy="38" r="2.6" fill="var(--color-plum)"></circle>
+          <path
+            d="M34 45q5 4 10 0"
+            fill="none"
+            stroke="var(--color-plum)"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          ></path>
+        </svg>
+      ) : (
+        <svg width="78" height="78" viewBox="0 0 78 78">
+          <path
+            d="M14 30l-2-22 18 12q9-3 18 0l18-12-2 22q8 10 4 24-8 18-29 18T10 54q-4-14 4-24z"
+            fill="#fff"
+            stroke="#fff"
+            stroke-width="12"
+            stroke-linejoin="round"
+          ></path>
+          <path
+            d="M14 30l-2-22 18 12q9-3 18 0l18-12-2 22q8 10 4 24-8 18-29 18T10 54q-4-14 4-24z"
+            fill="var(--color-peach)"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+            stroke-linejoin="round"
+          ></path>
+          <path
+            d="M26 44q4-4 8 0M44 44q4-4 8 0"
+            fill="none"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+            stroke-linecap="round"
+          ></path>
+          <path
+            d="M36 52l3 3 3-3"
+            fill="none"
+            stroke="var(--color-plum)"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          ></path>
+        </svg>
+      )}
+    </div>
+  ))}
+
+  <!-- Lo que trae el paquete: no se ve hasta abrirlo. -->
+  {loot.map((l, i) => (
+    <div
+      class:list={['desk-obj loot', l.id]}
+      style={spotStyle(l, 20 + i)}
+      data-loot={l.id}
+      data-dx={l.dx}
+      data-dy={l.dy}
+      aria-hidden="true"
+    >
+      {l.id === 'pato' ? (
+        <>
+          <svg width="120" height="110" viewBox="0 0 120 110">
+            <ellipse
+              cx="58"
+              cy="76"
+              rx="50"
+              ry="30"
+              fill="var(--color-sun)"
+              stroke="var(--color-plum)"
+              stroke-width="4"
+            ></ellipse>
+            <path
+              d="M16 70q-10-18 6-22"
+              fill="var(--color-sun)"
+              stroke="var(--color-plum)"
+              stroke-width="4"
+              stroke-linejoin="round"
+            ></path>
+            <circle
+              cx="78"
+              cy="40"
+              r="26"
+              fill="var(--color-sun)"
+              stroke="var(--color-plum)"
+              stroke-width="4"
+            ></circle>
+            <path
+              d="M100 42q18-2 16 8-8 8-18 2z"
+              fill="var(--color-peach)"
+              stroke="var(--color-plum)"
+              stroke-width="4"
+              stroke-linejoin="round"
+            ></path>
+            <circle cx="84" cy="34" r="4.5" fill="var(--color-plum)"></circle>
+            <circle cx="85.5" cy="32.5" r="1.5" fill="#fff"></circle>
+            <path
+              d="M40 72q14 12 30 0"
+              fill="none"
+              stroke="var(--color-plum)"
+              stroke-width="3.5"
+              stroke-linecap="round"
+            ></path>
+          </svg>
+          <span class="quack">¡Cuac!</span>
+        </>
+      ) : l.id === 'tecla' ? (
+        <svg width="86" height="86" viewBox="0 0 86 86">
+          <rect
+            x="3"
+            y="3"
+            width="80"
+            height="80"
+            rx="14"
+            fill="var(--color-lilac)"
+            stroke="var(--color-plum)"
+            stroke-width="4"
+          ></rect>
+          <rect
+            x="13"
+            y="9"
+            width="60"
+            height="58"
+            rx="10"
+            fill="#e4dcff"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+          ></rect>
+          <text x="43" y="46" text-anchor="middle" class="key">
+            Ctrl
+          </text>
+        </svg>
+      ) : (
+        <svg width="92" height="96" viewBox="0 0 92 96">
+          <path
+            d="M4 8q0-4 4-4h66l14 14v70q0 4-4 4H8q-4 0-4-4z"
+            fill="var(--color-pink)"
+            stroke="var(--color-plum)"
+            stroke-width="4"
+            stroke-linejoin="round"
+          ></path>
+          <rect
+            x="22"
+            y="4"
+            width="44"
+            height="28"
+            fill="var(--color-wall)"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+          ></rect>
+          <rect x="50" y="9" width="9" height="18" fill="var(--color-plum)"></rect>
+          <rect
+            x="14"
+            y="48"
+            width="64"
+            height="40"
+            rx="3"
+            fill="#fffdf7"
+            stroke="var(--color-plum)"
+            stroke-width="3"
+          ></rect>
+          <path
+            d="M22 60h46M22 70h36"
+            stroke="var(--color-lilac)"
+            stroke-width="3"
+            stroke-linecap="round"
+          ></path>
+        </svg>
+      )}
+    </div>
+  ))}
+
+  <button type="button" class="tidy" data-desk-tidy>
+    ↺ Ordenar la mesa
+  </button>
+</div>
+
+<style>
+  .desk {
+    --shadow: rgb(42 20 60 / 0.32);
+    overflow: clip;
+    background: #8e55a3;
+  }
+
+  /* ---------- objetos (comunes) ---------- */
+  .desk :global(.desk-obj) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: grab;
+    rotate: var(--r);
+    touch-action: none;
+    transition: scale 0.15s;
+    translate: var(--x) var(--y);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* El dibujo no captura el puntero: lo recibe el ancla del fondo, o el objeto entero si no tiene.
+     Con :where(), un objeto puede devolverle el puntero a una parte (la pestaña de la carpeta). */
+  .desk :global(:where(.desk-obj:has(.desk-hit) > :not(.desk-hit))) {
+    pointer-events: none;
+  }
+
+  .desk :global(.desk-obj :is(a, button):not(.desk-hit)) {
+    pointer-events: auto;
+  }
+
+  /* Estampillas y stickers pegados al sobre: se pueden volver a despegar. */
+  .desk :global([data-stuck] > .desk-obj) {
+    pointer-events: auto;
+  }
+
+  .desk :global(.desk-hit) {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    cursor: inherit;
+  }
+
+  .desk :global(.desk-hit:focus-visible) {
+    outline: 4px dashed var(--color-sun);
+    outline-offset: 8px;
+  }
+
+  /* Levantado al arrastrar: un poco más grande y con la sombra más lejos. */
+  .desk :global(.desk-obj[data-lifted]) {
+    --sh: 18px 24px 0;
+    cursor: grabbing;
+    scale: 1.04;
+  }
+
+  .desk :global(.desk-obj[data-settle]) {
+    transition:
+      translate 0.55s cubic-bezier(0.3, 1.2, 0.5, 1),
+      rotate 0.55s,
+      scale 0.15s;
+  }
+
+  .desk :global(.desk-obj[data-drop]) {
+    animation: drop 0.25s ease-out;
+  }
+
+  @keyframes drop {
+    0% {
+      scale: 1.04;
+    }
+    60% {
+      scale: 0.985;
+    }
+  }
+
+  .desk :global(.desk-obj svg) {
+    display: block;
+  }
+
+  .desk :global(.desk-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 3px solid var(--color-plum);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 4px 0 var(--color-plum);
+    color: var(--color-plum);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  /* Tinta sobre rosa, como en Proyectos: el blanco no llega al contraste mínimo. */
+  .desk :global(.desk-btn.pink) {
+    background: var(--color-pink);
+    color: var(--color-ink);
+  }
+
+  .desk :global(.desk-btn:is(:hover, :focus-visible)) {
+    background: var(--color-sun);
+    color: var(--color-plum);
+    outline: none;
+  }
+
+  .desk :global(.desk-btn:active) {
+    box-shadow: 0 2px 0 var(--color-plum);
+    translate: 0 2px;
+  }
+
+  .stamp {
+    width: 60px;
+    height: 70px;
+  }
+
+  .sticker:not(.stamp) {
+    width: 78px;
+    height: 78px;
+  }
+
+  .desk :global([data-desk-sticker][data-stuck]) {
+    animation: stick 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  @keyframes stick {
+    0% {
+      scale: 1.3;
+    }
+  }
+
+  /* ---------- lo que trae el paquete ---------- */
+  .loot {
+    display: none;
+  }
+
+  .loot:global([data-out]) {
+    display: block;
+  }
+
+  /* Salta desde el paquete (--fx, --fy) hasta su lugar. */
+  .loot:global([data-jump]) {
+    animation: jump 0.8s cubic-bezier(0.3, 0, 0.5, 1);
+  }
+
+  @keyframes jump {
+    0% {
+      scale: 0.3;
+      translate: var(--fx) var(--fy);
+    }
+    55% {
+      scale: 1.15;
+      translate: calc((var(--fx) + var(--x)) / 2) calc(min(var(--fy), var(--y)) - 160px);
+    }
+  }
+
+  .loot:global([data-store]) {
+    scale: 0.3;
+    transition:
+      translate 0.35s cubic-bezier(0.5, 0, 0.8, 0.5),
+      scale 0.35s cubic-bezier(0.5, 0, 0.8, 0.5);
+  }
+
+  .pato {
+    width: 120px;
+    height: 110px;
+  }
+
+  .pato:global([data-quack]) svg {
+    animation: squish 0.35s;
+  }
+
+  @keyframes squish {
+    30% {
+      scale: 1.12 0.9;
+    }
+    60% {
+      scale: 0.95 1.08;
+    }
+  }
+
+  .quack {
+    position: absolute;
+    top: -46px;
+    left: 92px;
+    padding: 6px 14px;
+    border: 3px solid var(--color-plum);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--color-plum);
+    font-size: 18px;
+    font-weight: 800;
+    opacity: 0;
+    rotate: calc(var(--r) * -1);
+    transition:
+      opacity 0.2s,
+      translate 0.2s;
+    translate: 0 6px;
+    white-space: nowrap;
+  }
+
+  .pato:global([data-quack]) .quack {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .tecla {
+    width: 86px;
+    height: 86px;
+  }
+
+  .key {
+    fill: var(--color-plum);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  .disquete {
+    width: 92px;
+    height: 96px;
+  }
+
+  .pencil {
+    width: 380px;
+    height: 30px;
+  }
+
+  /* ---------- Ordenar ---------- */
+  .tidy {
+    position: absolute;
+    top: 60px;
+    right: 40px;
+    padding: 10px 20px;
+    border: 3px solid var(--color-plum);
+    border-radius: 999px;
+    background: var(--color-wall);
+    box-shadow: 0 4px 0 var(--color-plum);
+    color: var(--color-plum);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .tidy:is(:hover, :focus-visible) {
+    background: var(--color-sun);
+    outline: none;
+  }
+
+  /* Sin JS no se puede arrastrar: no hay nada que ordenar. */
+  :global(html:not(.js)) .tidy {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desk :global(.desk-obj),
+    .desk :global(.desk-obj[data-settle]),
+    .loot:global([data-store]),
+    .quack {
+      transition: none;
+    }
+
+    .desk :global(.desk-obj[data-drop]),
+    .desk :global([data-desk-sticker][data-stuck]),
+    .loot:global([data-jump]),
+    .pato:global([data-quack]) svg {
+      animation: none;
+    }
+  }
+</style>
