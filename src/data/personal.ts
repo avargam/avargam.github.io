@@ -111,8 +111,11 @@ export const anime: Manga[] = [
 export interface Film extends Favorite {
   year: number;
   director: string;
-  /** Dos clips cortos de la película (`public/clips/…`). Mientras falten, se muestran escenas de relleno. */
-  clips: string[];
+  /**
+   * Clip de 8 s con dos escenas del trailer oficial (`public/clips/…`, 640×360, sin audio); dura
+   * lo mismo que una vuelta de la barra de progreso. Sin clip, se muestran escenas de relleno.
+   */
+  clip?: string;
   /** Colores de las escenas de relleno. */
   scenes: [string, string];
 }
@@ -124,7 +127,7 @@ export const films: Film[] = [
     year: 2019,
     director: 'Bong Joon-ho',
     color: '#2B2D42',
-    clips: [],
+    clip: '/clips/parasite.mp4',
     scenes: ['#3E5C4A', '#C9A36B'],
   },
   {
@@ -133,7 +136,7 @@ export const films: Film[] = [
     year: 2025,
     director: 'Adrian Chiarella',
     color: '#3B2A80',
-    clips: [],
+    clip: '/clips/leviticus.mp4',
     scenes: ['#2A1B6B', '#B23A5A'],
   },
   {
@@ -142,7 +145,7 @@ export const films: Film[] = [
     year: 2024,
     director: 'Coralie Fargeat',
     color: '#FF4FA3',
-    clips: [],
+    clip: '/clips/substance.mp4',
     scenes: ['#FF4FA3', '#FFE86B'],
   },
   {
@@ -151,7 +154,7 @@ export const films: Film[] = [
     year: 2009,
     director: 'Henry Selick',
     color: '#2A1B6B',
-    clips: [],
+    clip: '/clips/coraline.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
   },
   {
@@ -161,7 +164,7 @@ export const films: Film[] = [
     director: 'Hayao Miyazaki',
     color: '#8ADBC8',
     textColor: '#2B2D42',
-    clips: [],
+    clip: '/clips/chihiro.mp4',
     scenes: ['#3E9C7E', '#FF9E7A'],
   },
   {
@@ -170,7 +173,7 @@ export const films: Film[] = [
     year: 2010,
     director: 'Darren Aronofsky',
     color: '#1B1245',
-    clips: [],
+    clip: '/clips/cisne.mp4',
     scenes: ['#1B1245', '#8A8AA0'],
   },
 ];
