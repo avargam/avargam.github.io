@@ -73,6 +73,7 @@ html:not(.js) #${id}:target { display: block; }`,
       {drawOrder.map((id) => (
         <g data-building={id} set:html={art[id]} />
       ))}
+      <rect class="veil" x="96" y="66" width="1408" height="848"></rect>
     </g>
     <image href={windowFront.src} width="1600" height="1000" />
   </svg>
@@ -196,6 +197,27 @@ html:not(.js) #${id}:target { display: block; }`,
     color: var(--color-ink);
     font-size: 17px;
     font-weight: 700;
+  }
+
+  /*
+   * En el cuarto, la ciudad tras las cortinas se ve apagada bajo un velo gris; al entrar recupera
+   * el color. Sigue a `data-destination` (no a `data-view`): el velo se va al empezar el zoom de
+   * entrada y vuelve al empezar el de salida. Al cargar el cuarto ya viene puesto, sin animación.
+   * Es un velo y no un filtro de saturación: el filtro se recalcula en cada cuadro del zoom.
+   */
+  .veil {
+    fill: #2b2833;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+  }
+
+  :global([data-destination='room']) .veil {
+    opacity: 0.3;
+  }
+
+  :global([data-destination='room']) .idle-screen {
+    opacity: 0.7;
   }
 
   .hover-label {
@@ -328,6 +350,7 @@ html:not(.js) #${id}:target { display: block; }`,
     .hover-label,
     .idle-screen,
     .idle-alt,
+    .veil,
     .city :global(.shape),
     .city :global(.win-on) {
       transition: none;
