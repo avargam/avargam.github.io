@@ -143,12 +143,12 @@ export const stickers: PlacedSticker[] = skills.flatMap((group, i) => {
   return [title, ...items];
 });
 
-/** Stickers decorativos (sin contenido): centro, rotación y figura. */
+/** Stickers decorativos (sin contenido): centro, rotación y dibujo (`art/stickers/<kind>.png`, 240×240; se muestra a 96×96). */
 export const decor = [
-  { kind: 'star', x: 1070, y: 860, rotate: 12 },
-  { kind: 'heart', x: 548, y: 864, rotate: -10 },
-  { kind: 'code', x: 700, y: 858, rotate: 8 },
-  { kind: 'smiley', x: 1210, y: 380, rotate: -6 },
+  { kind: 'cloud', x: 1070, y: 860, rotate: 12 },
+  { kind: 'yarn', x: 548, y: 864, rotate: -10 },
+  { kind: 'plant', x: 700, y: 858, rotate: 8 },
+  { kind: 'mug', x: 1210, y: 380, rotate: -6 },
 ] as const;
 
 /* ---------- Hilos ---------- */

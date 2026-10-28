@@ -34,6 +34,7 @@ const { active } = Astro.props;
   import { panToSceneRect, registerSection } from '../../stage/router';
   import { prefersReducedMotion } from '../../stage/camera';
   import { POSTCARD_TEXT, experienciaItem, experienciaItems, threadTime } from './board';
+  import { initCorkStickers } from './corkStickers';
   import type { JobId } from '../../../data/experience';
 
   const nav = createItemNav({
@@ -57,6 +58,7 @@ const { active } = Astro.props;
     },
   });
   if (nav) registerSection('experiencia', nav);
+  initCorkStickers();
 </script>
 
 <style>

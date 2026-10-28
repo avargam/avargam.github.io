@@ -1,6 +1,6 @@
 ---
 /**
- * Escena de Experiencia: el corcho. Es la misma en el cuarto (escala 0.195) y a pantalla
+ * Escena de Experiencia: el corcho. Es la misma en el cuarto (escala 0.19) y a pantalla
  * completa. Cada cargo es un post-it; al elegirlo se tiende un hilo rojo hasta los stickers de
  * las tecnologías que usó y luego llega su postal (`Postcard`). Skills tiende todos los hilos.
  * La cámara no se acerca a los ítems: todo se lee a escala 1:1.
@@ -9,7 +9,17 @@ import { experience } from '../../../data/experience';
 import Postcard from './Postcard.astro';
 import Sticker from './Sticker.astro';
 import { decor, experienciaItems, postIts, stickers, THREAD, threads, type Thread } from './board';
-import cork from './art/cork.svg?raw';
+import { getImage, Image } from 'astro:assets';
+import corkImage from './art/cork.png';
+import cloud from './art/stickers/cloud.png';
+import yarn from './art/stickers/yarn.png';
+import plant from './art/stickers/plant.png';
+import mug from './art/stickers/mug.png';
+
+const decorArt = { cloud, yarn, plant, mug };
+
+/** Marco y corcho (1600×1000 a 2×): el marco va de (20, 20) a (1580, 980), el corcho de (55, 55) a (1545, 945). */
+const cork = await getImage({ src: corkImage, format: 'webp', quality: 90 });
 
 const jobIndex = (job: string) => experience.findIndex((j) => j.id === job);
 const threadVars = (t: Thread) =>
@@ -78,7 +88,7 @@ html:not(.js) #${id}:target { display: block; }`;
 
 <div class="cork absolute inset-0" data-items>
   <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1600 1000" aria-hidden="true">
-    <g set:html={cork} />
+    <image href={cork.src} width="1600" height="1000" />
   </svg>
 
   <!-- Hilos: por debajo de las notas y los stickers, como si pasaran por detrás. -->
@@ -109,86 +119,26 @@ html:not(.js) #${id}:target { display: block; }`;
         {job.postIt.lines[1]}
       </p>
       <p class="postit-sub">{job.postIt.sub}</p>
-      <svg class="absolute right-0 bottom-0" width="54" height="54" viewBox="0 0 54 54">
-        <path d="M54 0 Q14 10 0 54 L54 54 Z" fill="#fff" opacity=".55" />
-        <path d="M54 0 Q14 10 0 54" fill="none" stroke="#000" opacity=".12" stroke-width="2" />
-      </svg>
     </div>
   ))}
 
-  <div aria-hidden="true">
+  <div aria-hidden="true" data-sticker-board>
     {stickers.map((s) => (
       <Sticker sticker={s} delays={stickerDelays(s.id)} />
     ))}
     {decor.map((d) => (
-      <svg
-        class="decor absolute overflow-visible"
-        style={`left:${d.x - 40}px;top:${d.y - 40}px;rotate:${d.rotate}deg`}
-        width="80"
-        height="80"
-        viewBox="-40 -40 80 80"
-      >
-        {[
-          { dy: 6, fill: '#2A1B6B', line: '#2A1B6B', opacity: 0.16 },
-          { dy: 0, fill: '', line: '#FFFFFF', opacity: 1 },
-        ].map(({ dy, fill, line, opacity }) => (
-          <g
-            transform={`translate(0 ${dy})`}
-            opacity={opacity}
-            stroke={line}
-            stroke-width="8"
-            stroke-linejoin="round"
-          >
-            {d.kind === 'star' && (
-              <polygon
-                points="0,-30 9,-10 31,-8 14,7 19,29 0,18 -19,29 -14,7 -31,-8 -9,-10"
-                fill={fill || '#FFE86B'}
-              />
-            )}
-            {d.kind === 'heart' && (
-              <path
-                d="M0 26 C-34 4 -30 -24 -12 -24 C-4 -24 0 -16 0 -12 C0 -16 4 -24 12 -24 C30 -24 34 4 0 26 Z"
-                fill={fill || '#FF6FA3'}
-              />
-            )}
-            {d.kind === 'code' && <circle r="30" fill={fill || '#C6B8FF'} />}
-            {d.kind === 'smiley' && <circle r="30" fill={fill || '#FFE86B'} />}
-          </g>
-        ))}
-        {d.kind === 'code' && (
-          <path
-            d="M-12 -10 -22 0 -12 10 M12 -10 22 0 12 10 M4 -14 -4 14"
-            fill="none"
-            stroke="#5A2F6B"
-            stroke-width="4.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        )}
-        {d.kind === 'smiley' && (
-          <g fill="#5A2F6B">
-            <ellipse cx="-10" cy="-7" rx="4" ry="6" />
-            <ellipse cx="10" cy="-7" rx="4" ry="6" />
-            <path
-              d="M-15 7 Q0 22 15 7"
-              fill="none"
-              stroke="#5A2F6B"
-              stroke-width="4.5"
-              stroke-linecap="round"
-            />
-          </g>
-        )}
-        {d.kind === 'heart' && (
-          <path
-            d="M-14 -12 Q-20 -6 -16 2"
-            fill="none"
-            stroke="#fff"
-            stroke-width="4"
-            stroke-linecap="round"
-            opacity=".6"
-          />
-        )}
-      </svg>
+      <Image
+        class="decor absolute"
+        src={decorArt[d.kind]}
+        alt=""
+        draggable="false"
+        data-cork-sticker
+        data-draggable
+        width={96}
+        height={96}
+        densities={[1, 2]}
+        style={`left:${d.x - 48}px;top:${d.y - 48}px;rotate:${d.rotate}deg`}
+      />
     ))}
   </div>
 
@@ -381,6 +331,48 @@ html:not(.js) #${id}:target { display: block; }`;
   /* En Skills, el puntero pasa a los stickers (cada uno resalta sus hilos). */
   [data-selected='skills'] [data-item-hit='skills'] {
     pointer-events: none;
+  }
+
+  /*
+   * Stickers decorativos: se arrastran por el corcho y se pegan a la postal abierta
+   * (`corkStickers.ts`). Van sobre las zonas clicables (los de abajo caen en la de Skills) y bajo
+   * la postal; el que se arrastra, sobre todo.
+   */
+  .cork :global([data-cork-sticker]) {
+    z-index: 2;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    transition: scale 0.15s ease;
+  }
+
+  .cork :global([data-cork-sticker][data-lifted]) {
+    z-index: 5;
+    cursor: grabbing;
+    scale: 1.12;
+  }
+
+  .cork :global([data-cork-sticker][data-drop]) {
+    animation: cork-drop 0.25s ease-out;
+  }
+
+  .cork :global([data-cork-sticker][data-stuck]) {
+    animation: cork-stick 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  @keyframes cork-drop {
+    0% {
+      scale: 1.12;
+    }
+    60% {
+      scale: 0.96;
+    }
+  }
+
+  @keyframes cork-stick {
+    0% {
+      scale: 1.3;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

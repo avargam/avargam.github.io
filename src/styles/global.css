@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/bricolage-grotesque';
 @import '@fontsource-variable/dm-sans';
-@import '@fontsource/caveat/700.css';
+@import '@fontsource/patrick-hand';
 
 /*
  * Tokens de la paleta "A4b vaporwave" con cortinas y estantería de "A4a".
@@ -10,7 +10,7 @@
 @theme {
   --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-hand: 'Caveat', cursive;
+  --font-hand: 'Patrick Hand', cursive;
 
   /* Superficies (cuarto) */
   --color-wall: #f9ddf0;
@@ -47,6 +47,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* La manuscrita (Patrick Hand) tiene un solo peso: sin negrita inventada por el navegador. */
+    font-synthesis-weight: none;
   }
 
   body {
