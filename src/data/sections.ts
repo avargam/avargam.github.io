@@ -72,8 +72,9 @@ export const sections: Section[] = [
     key: '2',
     transition: 'zoom',
     touchStart: 'left',
-    placement: { x: 524.15, y: 105.32, scale: 0.195 },
-    crop: { x: 30, y: 24, w: 1540, h: 951 },
+    // El recorte es el marco del corcho; el objeto queda en (530, 110) del cuarto, 300 de ancho.
+    placement: { x: 526.15, y: 106.15, scale: 0.1923 },
+    crop: { x: 20, y: 20, w: 1560, h: 960 },
   },
   {
     slug: 'proyectos',

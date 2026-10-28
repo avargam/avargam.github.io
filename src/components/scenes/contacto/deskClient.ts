@@ -18,6 +18,7 @@ import {
   readView,
   type Camera,
 } from '../../stage/geometry';
+import { restartAttr, trackDrag } from '../../stage/drag';
 import { trackPan, stopPan, type PanTarget } from '../../stage/pan';
 import { isTouch, type SectionController } from '../../stage/router';
 import { contact, contacts, type ContactId } from '../../../data/contact';
@@ -26,8 +27,6 @@ import { SIZE, cardInHolder, type Spot } from './desk';
 
 const IDS = contacts.map((c) => c.id);
 const isId = (id: string): id is ContactId => (IDS as string[]).includes(id);
-/** Movimiento mínimo (en unidades del escenario) para que un clic pase a ser arrastre. */
-const DRAG_THRESHOLD = 5;
 
 export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionController {
   const announcer = document.querySelector<HTMLElement>('[data-announcer]');
@@ -36,11 +35,6 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
   };
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, prefersReducedMotion() ? 0 : ms));
-  const restart = (el: HTMLElement, attr: string) => {
-    el.removeAttribute(attr);
-    void el.offsetWidth;
-    el.setAttribute(attr, '');
-  };
 
   const query = <T extends HTMLElement = HTMLElement>(selector: string) =>
     root.querySelector<T>(selector) as T;
@@ -145,7 +139,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
   async function openParcel() {
     if (!broken) {
       broken = true;
-      restart(parcel, 'data-shake');
+      restartAttr(parcel, 'data-shake');
       await wait(320);
       parcel.removeAttribute('data-shake');
     }
@@ -168,7 +162,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
       r: homes.get(el)!.r,
     });
     el.setAttribute('data-out', '');
-    restart(el, 'data-jump');
+    restartAttr(el, 'data-jump');
     front(el);
     await wait(800);
     el.removeAttribute('data-jump');
@@ -199,7 +193,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
   let quackTimer = 0;
   function quack() {
     if (!pato) return;
-    restart(pato, 'data-quack');
+    restartAttr(pato, 'data-quack');
     clearTimeout(quackTimer);
     quackTimer = window.setTimeout(() => pato.removeAttribute('data-quack'), 1200);
   }
@@ -242,7 +236,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     }
     try {
       await navigator.clipboard.writeText(profile.email);
-      restart(stamp, 'data-on');
+      restartAttr(stamp, 'data-on');
       announce(`Correo copiado: ${profile.email}`);
     } catch {
       announce(`No se pudo copiar. El correo es ${profile.email}`);
@@ -261,7 +255,7 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     stuck.append(el);
     place(el, { x: cx - hw, y: cy - hh, r: p.r - e.r });
     el.style.zIndex = '1';
-    restart(el, 'data-stuck');
+    restartAttr(el, 'data-stuck');
   }
 
   function unstick(el: HTMLElement) {
@@ -331,16 +325,6 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
   }
 
   /* ---------- arrastrar y soltar ---------- */
-  let drag: {
-    el: HTMLElement;
-    id: number;
-    sx: number;
-    sy: number;
-    ox: number;
-    oy: number;
-    k: number;
-    moved: boolean;
-  } | null = null;
   /** Un clic de puntero ya se manejó en `pointerup`: el `click` que le sigue se ignora. */
   let pointerClick = false;
 
@@ -353,65 +337,39 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
       if (isTouch()) trackPan(event, root, deskPan, readView().s);
       return;
     }
-    event.preventDefault();
-    el.setPointerCapture(event.pointerId);
     if (el.parentElement === stuck) unstick(el);
     const { x, y } = pos.get(el)!;
-    const k = root.getBoundingClientRect().width / 1600;
-    drag = {
-      el,
-      id: event.pointerId,
-      sx: event.clientX,
-      sy: event.clientY,
-      ox: x,
-      oy: y,
-      k,
-      moved: false,
-    };
-  });
-
-  root.addEventListener('pointermove', (event) => {
-    if (!drag || event.pointerId !== drag.id) return;
-    const dx = (event.clientX - drag.sx) / drag.k;
-    const dy = (event.clientY - drag.sy) / drag.k;
-    const { el } = drag;
-    if (!drag.moved) {
-      if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-      drag.moved = true;
-      el.setAttribute('data-lifted', '');
-      if (el === card) card.removeAttribute('data-in-holder');
-      front(el);
-    }
-    // Siempre queda a la vista al menos el 40 % del objeto.
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    place(el, {
-      x: Math.min(1600 - w * 0.4, Math.max(-w * 0.6, drag.ox + dx)),
-      y: Math.min(1000 - h * 0.4, Math.max(-h * 0.6, drag.oy + dy)),
+    trackDrag(event, el, root, {
+      start() {
+        if (el === card) card.removeAttribute('data-in-holder');
+        front(el);
+      },
+      move(dx, dy) {
+        // Siempre queda a la vista al menos el 40 % del objeto.
+        const w = el.offsetWidth;
+        const h = el.offsetHeight;
+        place(el, {
+          x: Math.min(1600 - w * 0.4, Math.max(-w * 0.6, x + dx)),
+          y: Math.min(1000 - h * 0.4, Math.max(-h * 0.6, y + dy)),
+        });
+        if (el === holder && cardHome()) followHolder();
+        if (loot.includes(el)) parcel.toggleAttribute('data-target', overParcel(el));
+      },
+      end(moved) {
+        if (!moved) {
+          pointerClick = true;
+          setTimeout(() => (pointerClick = false));
+          return activate(el);
+        }
+        restartAttr(el, 'data-drop');
+        if (el.hasAttribute('data-desk-sticker')) stickIfOnEnvelope(el);
+        if (loot.includes(el)) {
+          parcel.removeAttribute('data-target');
+          if (overParcel(el)) void storeLoot(el);
+        }
+      },
     });
-    if (el === holder && cardHome()) followHolder();
-    if (loot.includes(el)) parcel.toggleAttribute('data-target', overParcel(el));
   });
-
-  function endDrag(event: PointerEvent) {
-    if (!drag || event.pointerId !== drag.id) return;
-    const { el, moved } = drag;
-    drag = null;
-    el.removeAttribute('data-lifted');
-    if (!moved) {
-      pointerClick = true;
-      setTimeout(() => (pointerClick = false));
-      return activate(el);
-    }
-    restart(el, 'data-drop');
-    if (el.hasAttribute('data-desk-sticker')) stickIfOnEnvelope(el);
-    if (loot.includes(el)) {
-      parcel.removeAttribute('data-target');
-      if (overParcel(el)) void storeLoot(el);
-    }
-  }
-  root.addEventListener('pointerup', endDrag);
-  root.addEventListener('pointercancel', endDrag);
 
   /* ---------- clics y teclado ---------- */
   root.addEventListener('click', (event) => {

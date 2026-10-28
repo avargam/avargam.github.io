@@ -365,8 +365,8 @@ export function initRouter(): void {
 
   root.addEventListener('pointerdown', (event) => {
     if (!isTouch() || !settled || event.button !== 0 || !panBounds(current)) return;
-    // La UI de pantalla (chips con su propio scroll) y la mesa de Contacto manejan su arrastre.
-    if ((event.target as Element).closest('[data-screen], [data-desk]')) return;
+    // La UI de pantalla (chips con su propio scroll), la mesa de Contacto y lo arrastrable manejan su arrastre.
+    if ((event.target as Element).closest('[data-screen], [data-desk], [data-draggable]')) return;
     stopAll();
     trackPan(event, root, cameraPan, readView().s);
   });
