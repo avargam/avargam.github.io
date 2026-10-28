@@ -79,8 +79,10 @@ export function createItemNav({ slug, ids, describe, focus }: Options): ItemNav 
       else el.removeAttribute('aria-current');
     }
     // La capa que estaba activa queda con `data-leaving` hasta que termina su animación de salida
-    // (si la sección define una; si no, el atributo no tiene efecto).
-    for (const el of details.values()) {
+    // (si la sección define una; si no, el atributo no tiene efecto). Volver a elegir el ítem
+    // abierto no la toca: no sale para volver a entrar.
+    for (const [key, el] of details) {
+      if (key === id && el.hasAttribute('data-active')) continue;
       el.toggleAttribute('data-leaving', el.hasAttribute('data-active'));
       el.removeAttribute('data-active');
     }
