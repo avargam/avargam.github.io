@@ -204,6 +204,9 @@ export function initRouter(): void {
     const alive = () => id === generation;
     current = target;
     settled = false;
+    // A diferencia de `data-view`, cambia al empezar el viaje: lo que reacciona a él (el velo de la
+    // ventana) se anima junto con la cámara.
+    root.dataset.destination = target ?? 'room';
     disarm();
     // Las animaciones ambientales del cuarto se pausan durante el zoom y dentro de las secciones.
     delete root.dataset.view;

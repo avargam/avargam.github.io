@@ -49,7 +49,8 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
   .join('\n');
 ---
 
-<main data-room-root>
+<!-- data-destination: adónde va (o está) la cámara; el router lo cambia al empezar cada viaje. -->
+<main data-room-root data-destination={initial ?? 'room'}>
   <World initial={open}>
     <div data-room-only inert={!!open}>
       <RoomBack />
