@@ -73,7 +73,7 @@ El texto vive en `src/data/`, tipado; las escenas lo leen al hacer el build.
 Casos especiales:
 
 - **Música** (`music.json`): un disco por artista. La portada es `src/assets/music/<id>.jpg` (o `.png`, `.webp`) y `audio` es una URL o una ruta de `public/`. `node scripts/fetch-music.mjs` completa desde iTunes la portada y el audio que falten.
-- **Clips de Cine**: `films[].clips` en `personal.ts`, con archivos en `public/clips/`. Mientras no haya clips, la pantalla muestra escenas de relleno.
+- **Clips de Cine y videojuegos**: `clip` de cada película (`films`) o videojuego (`games`) en `personal.ts`, con el archivo en `public/clips/`: un clip de exactamente 8 s (en Cine, una vuelta de la barra de progreso) con dos escenas de un trailer oficial, unidas en un solo archivo para que no haya saltos al cambiar de escena; 640×360 en H.264 y sin audio. Sin clip, la pantalla muestra escenas de relleno.
 - **CV**: se reemplaza `public/cv/AlonsoVargas_CV.pdf` (el sitio es público: sin teléfono ni dirección).
 - **Imágenes para compartir**: si cambia el dibujo de una escena, con el sitio corriendo, `node scripts/og.mjs` vuelve a generar `public/og/*.jpg`. Usa Playwright: una vez, `npx playwright install chromium`, o `CHROME_PATH=/ruta/a/chrome`.
 

@@ -2,7 +2,7 @@
 /**
  * Repisa de Cine: al llegar, baja el telón y se enciende el proyector. Al elegir una caja, su disco
  * entra al proyector y, tras una cuenta regresiva, la pantalla muestra dos escenas de la película
- * (clips de `public/` o, mientras falten, escenas de relleno) y aparece la entrada.
+ * (un clip de 8 s de `public/` o, mientras falte, escenas de relleno) y aparece la entrada.
  */
 import { films } from '../../../data/personal';
 import { CINE } from './shelf';
@@ -63,26 +63,25 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
           aria-hidden="true"
         />
         <article id={f.id} class="sub-detail film" data-sub-detail={f.id} aria-label={f.title}>
-          <div class="film-screen" style={screenStyle}>
+          <div class="film-screen" style={screenStyle} data-sub-focus>
             <div class="count" aria-hidden="true">
               {['3', '2', '1'].map((n, i) => (
                 <span style={`--i:${i}`}>{n}</span>
               ))}
             </div>
-            <div class="video">
-              {f.scenes.map((color, i) =>
-                f.clips[i] ? (
-                  <video
-                    class="scene"
-                    style={`--i:${i}`}
-                    src={`${base}${f.clips[i]}`}
-                    muted
-                    loop
-                    playsinline
-                    preload="none"
-                    aria-hidden="true"
-                  />
-                ) : (
+            <div class="video" data-clip-start>
+              {f.clip ? (
+                <video
+                  class="scene"
+                  src={`${base}${f.clip}`}
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  aria-hidden="true"
+                />
+              ) : (
+                f.scenes.map((color, i) => (
                   <div
                     class="scene scene-placeholder"
                     style={`--i:${i};--a:${color};--b:${f.scenes[1 - i]}`}
@@ -91,7 +90,7 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
                     <b>ESCENA {i + 1}</b>
                     <small>placeholder · clip de {f.title}</small>
                   </div>
-                ),
+                ))
               )}
               <i class="progress" aria-hidden="true" />
             </div>
@@ -346,7 +345,8 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     opacity: 0;
   }
 
-  .film[data-open] .scene {
+  /* El clip trae sus dos escenas; las de relleno se turnan cada 4 s. */
+  .film[data-open] .scene-placeholder {
     animation: scene-cycle 8s calc(2.6s + var(--i) * 4s) infinite;
   }
 

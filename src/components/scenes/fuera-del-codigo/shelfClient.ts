@@ -42,6 +42,34 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   const topicEl = (topic: string) => root.querySelector<HTMLElement>(`[data-sub-topic="${topic}"]`);
   const idsOf = (topic: string) => [...objects.keys()].filter((id) => topicOf(id) === topic);
 
+  // Los clips (Cine, Juegos) se reproducen cuando su pantalla aparece: la animación de entrada del
+  // elemento `[data-clip-start]` (la pantalla del cine, el video de la consola) marca el inicio. En
+  // Cine, así el clip parte junto con la barra de progreso, que da una vuelta cada 8 s.
+  root.addEventListener('animationstart', (event) => {
+    const start = event.target as Element;
+    if (!start.matches('[data-clip-start]')) return;
+    const video = start instanceof HTMLVideoElement ? start : start.querySelector('video');
+    void video?.play().catch(() => {});
+  });
+
+  /**
+   * Zona de un detalle a encuadrar, en coordenadas de la escena: `[data-sub-focus]` si el detalle
+   * la marca (la pantalla de Cine, cuyo detalle cubre toda la repisa), si no el detalle entero.
+   * Suma los offsets hasta la repisa, porque un detalle puede vivir dentro de otro objeto (Música,
+   * en la pantalla del equipo).
+   */
+  function sceneRect(detail: HTMLElement) {
+    const el = detail.querySelector<HTMLElement>('[data-sub-focus]') ?? detail;
+    const topic = detail.closest('[data-sub-topic]');
+    let x = 0;
+    let y = 0;
+    for (let n: Element | null = el; n instanceof HTMLElement && n !== topic; n = n.offsetParent) {
+      x += n.offsetLeft;
+      y += n.offsetTop;
+    }
+    return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+  }
+
   let open: string | null = null;
   let token = 0;
   const music = initMusic();
@@ -59,11 +87,17 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     objects.get(id)?.setAttribute('aria-current', 'true');
     void detail.offsetWidth;
     detail.setAttribute('data-open', '');
-    for (const video of detail.querySelectorAll('video')) void video.play().catch(() => {});
+    // Durante la cuenta regresiva, el clip carga y vuelve al inicio sin verse; sin animaciones no
+    // hay cuenta regresiva y se reproduce de inmediato.
+    for (const video of detail.querySelectorAll('video')) {
+      video.preload = 'auto';
+      video.currentTime = 0;
+      if (prefersReducedMotion()) void video.play().catch(() => {});
+    }
     if (topic === 'musica') music.play(id);
     // En el teléfono, el detalle (libro, consola, pantalla) puede quedar fuera de la franja visible.
-    const { offsetLeft: x, offsetTop: y, offsetWidth: w, offsetHeight: h } = detail;
-    if (w && h) void panToSceneRect('fuera-del-codigo', { x, y, w, h });
+    const rect = sceneRect(detail);
+    if (rect.w && rect.h) void panToSceneRect('fuera-del-codigo', rect);
     setHash(id);
     if (announcer) announcer.textContent = detail.getAttribute('aria-label') ?? '';
   }

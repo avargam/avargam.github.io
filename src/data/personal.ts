@@ -111,8 +111,11 @@ export const anime: Manga[] = [
 export interface Film extends Favorite {
   year: number;
   director: string;
-  /** Dos clips cortos de la película (`public/clips/…`). Mientras falten, se muestran escenas de relleno. */
-  clips: string[];
+  /**
+   * Clip de 8 s con dos escenas del trailer oficial (`public/clips/…`, 640×360, sin audio); dura
+   * lo mismo que una vuelta de la barra de progreso. Sin clip, se muestran escenas de relleno.
+   */
+  clip?: string;
   /** Colores de las escenas de relleno. */
   scenes: [string, string];
 }
@@ -124,7 +127,7 @@ export const films: Film[] = [
     year: 2019,
     director: 'Bong Joon-ho',
     color: '#2B2D42',
-    clips: [],
+    clip: '/clips/parasite.mp4',
     scenes: ['#3E5C4A', '#C9A36B'],
   },
   {
@@ -133,7 +136,7 @@ export const films: Film[] = [
     year: 2025,
     director: 'Adrian Chiarella',
     color: '#3B2A80',
-    clips: [],
+    clip: '/clips/leviticus.mp4',
     scenes: ['#2A1B6B', '#B23A5A'],
   },
   {
@@ -142,7 +145,7 @@ export const films: Film[] = [
     year: 2024,
     director: 'Coralie Fargeat',
     color: '#FF4FA3',
-    clips: [],
+    clip: '/clips/substance.mp4',
     scenes: ['#FF4FA3', '#FFE86B'],
   },
   {
@@ -151,7 +154,7 @@ export const films: Film[] = [
     year: 2009,
     director: 'Henry Selick',
     color: '#2A1B6B',
-    clips: [],
+    clip: '/clips/coraline.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
   },
   {
@@ -161,7 +164,7 @@ export const films: Film[] = [
     director: 'Hayao Miyazaki',
     color: '#8ADBC8',
     textColor: '#2B2D42',
-    clips: [],
+    clip: '/clips/chihiro.mp4',
     scenes: ['#3E9C7E', '#FF9E7A'],
   },
   {
@@ -170,7 +173,7 @@ export const films: Film[] = [
     year: 2010,
     director: 'Darren Aronofsky',
     color: '#1B1245',
-    clips: [],
+    clip: '/clips/cisne.mp4',
     scenes: ['#1B1245', '#8A8AA0'],
   },
 ];
@@ -188,11 +191,17 @@ export interface BoardGame extends GameBase {
   art: 'dnd' | 'tren' | 'munchkin' | 'exit';
 }
 
-/** Videojuego: un cartucho sobre la pila. Por ahora, la consola muestra escenas de relleno. */
+/** Videojuego: un cartucho sobre la pila; al elegirlo, la consola muestra su clip. */
 export interface VideoGame extends GameBase {
   kind: 'video';
   /** Etiqueta del cartucho, en dos líneas. */
   label: [string, string];
+  /**
+   * Clip de 8 s con dos escenas de un trailer oficial (`public/clips/…`, 640×360, sin audio). Sin
+   * clip, la consola muestra escenas de relleno.
+   */
+  clip?: string;
+  /** Colores de las escenas de relleno. */
   scenes: [string, string];
 }
 
@@ -263,6 +272,7 @@ export const games: Game[] = [
     title: 'Animal Crossing',
     label: ['ANIMAL', 'CROSSING'],
     color: '#8ADBC8',
+    clip: '/clips/animal-crossing.mp4',
     scenes: ['#3E9C7E', '#FFE86B'],
     genre: 'Simulación de vida',
     facts: [['Plataforma', 'Nintendo · serie']],
@@ -270,12 +280,13 @@ export const games: Game[] = [
   {
     id: 'juegos-isaac',
     kind: 'video',
-    title: 'The Binding of Isaac',
-    label: ['BINDING', 'OF ISAAC'],
+    title: 'The Binding of Isaac: Rebirth',
+    label: ['ISAAC', 'REBIRTH'],
     color: '#FF9E7A',
+    clip: '/clips/isaac.mp4',
     scenes: ['#5A2F6B', '#B23A5A'],
     genre: 'Roguelike',
-    facts: [['Plataforma', 'PC · 2011']],
+    facts: [['Plataforma', 'PC · 2014']],
   },
   {
     id: 'juegos-galaxy',
@@ -283,6 +294,7 @@ export const games: Game[] = [
     title: 'Super Mario Galaxy',
     label: ['MARIO', 'GALAXY'],
     color: '#7B6CF6',
+    clip: '/clips/galaxy.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
     genre: 'Plataformas 3D',
     facts: [['Plataforma', 'Wii · 2007']],
@@ -293,6 +305,7 @@ export const games: Game[] = [
     title: 'Pokémon XD: Gale of Darkness',
     label: ['POKÉMON', 'XD'],
     color: '#C6B8FF',
+    clip: '/clips/xd.mp4',
     scenes: ['#3B2A80', '#FF6FA3'],
     genre: 'RPG de captura',
     facts: [['Plataforma', 'GameCube · 2005']],
