@@ -3,11 +3,12 @@
  * Detalle de cada edificio, como parte de la ciudad (coordenadas de la escena). Cada capa es un
  * `[data-item-detail]` que se muestra al llegar la cámara (`data-active`) y anima su entrada:
  * - Título: inscripción en el friso y pendón entre columnas.
- * - Major: letrero vertical "SOFTWARE" y globo aerostático con un lienzo.
+ * - Major: letrero vertical "SOFTWARE" y un zepelín con un lienzo, que entra y sale volando.
  * - Minor: el cartel de la azotea se vuelve un panel de datos.
  * - Idiomas: la pantalla publicitaria se enciende.
  * Diseño en `prototype/detalle-v2/`.
  */
+import zeppelin from './art/zeppelin.svg?raw';
 import {
   degree,
   degreeNote,
@@ -18,7 +19,6 @@ import {
 } from '../../../data/education';
 
 const progress = degreeProgress();
-const stripes = ['#FF6FA3', '#FFE86B', '#8ADBC8', '#C6B8FF', '#FF9E7A', '#FF6FA3', '#FFE86B'];
 const sparks = [
   { d: 'M0 8 L10 6 L20 7 L30 3 L40 4 L54 1', color: '#8ADBC8' },
   { d: 'M0 9 L12 5 L22 6 L34 2 L54 3', color: '#FF6FA3' },
@@ -68,56 +68,7 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     </svg>
     <div class="balloon">
       <div class="balloon-float">
-        <svg width="280" height="226" viewBox="0 0 280 226" aria-hidden="true">
-          <defs>
-            <clipPath id="formacion-balloon">
-              <path d="M140 4C70 4 34 52 34 104c0 46 40 74 70 96h72c30-22 70-50 70-96C246 52 210 4 140 4Z"></path>
-            </clipPath>
-          </defs>
-          <g clip-path="url(#formacion-balloon)">
-            {stripes.map((c, i) => (
-              <rect x={34 + i * 30} y="0" width="30" height="210" fill={c} />
-            ))}
-            <rect x="0" y="92" width="280" height="30" fill="#5A2F6B"></rect>
-            <text
-              x="140"
-              y="113"
-              text-anchor="middle"
-              font-family="Bricolage Grotesque Variable, sans-serif"
-              font-weight="800"
-              font-size="16"
-              letter-spacing="1.5"
-              fill="#F9DDF0"
-            >
-              MAJOR · SOFTWARE
-            </text>
-            <path
-              d="M60 30q80-30 150 10"
-              stroke="#fff"
-              stroke-width="8"
-              fill="none"
-              opacity=".35"
-            ></path>
-          </g>
-          <path
-            d="M140 4C70 4 34 52 34 104c0 46 40 74 70 96h72c30-22 70-50 70-96C246 52 210 4 140 4Z"
-            fill="none"
-            stroke="#5A2F6B"
-            stroke-width="4"
-          ></path>
-          <path d="M106 200 118 214M174 200 162 214" stroke="#5A2F6B" stroke-width="2.5"></path>
-          <path class="flame" d="M140 196c-6-8 0-14 0-20 4 6 8 12 0 20Z" fill="#FFB347"></path>
-          <rect
-            x="116"
-            y="212"
-            width="48"
-            height="14"
-            rx="3"
-            fill="#7D4690"
-            stroke="#5A2F6B"
-            stroke-width="2.5"
-          ></rect>
-        </svg>
+        <div class="zeppelin" aria-hidden="true" set:html={zeppelin} />
         <div class="balloon-tag">
           <h2 id="major-h">
             {major.kind} en {major.name}
@@ -216,6 +167,20 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     display: block;
   }
 
+  /* El zepelín sale volando al cerrar Major o elegir otro edificio (`data-leaving`, ver itemNav). */
+  @media (prefers-reduced-motion: no-preference) {
+    #major[data-leaving] {
+      display: block;
+      animation: city-hold 1.6s;
+    }
+  }
+
+  @keyframes city-hold {
+    to {
+      opacity: 1;
+    }
+  }
+
   /* ---------- Título ---------- */
   .frieze {
     position: absolute;
@@ -241,29 +206,19 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
   .pendon {
     position: absolute;
     top: 716px;
-    left: 822px;
-    width: 116px;
-    height: 150px;
+    left: 795px;
+    width: 170px;
+    height: 164px;
     transform-origin: 50% 0;
     animation:
-      unroll 0.7s 0.4s cubic-bezier(0.3, 1.3, 0.5, 1) both,
+      city-unroll 0.7s 0.4s cubic-bezier(0.3, 1.3, 0.5, 1) both,
       sway 4s 1.2s ease-in-out infinite;
-  }
-
-  /* Sombra: una copia desplazada de la tela (sin filtro, que se recalcularía en cada vaivén). */
-  .pendon::before {
-    position: absolute;
-    inset: 0;
-    background: rgb(0 0 0 / 0.25);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 90%, 0 100%);
-    content: '';
-    translate: 1.5px 2px;
   }
 
   .pendon-cloth {
     position: absolute;
     inset: 0;
-    padding: 12px 9px 0;
+    padding: 14px 12px 0;
     background: var(--color-pink);
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 90%, 0 100%);
     color: var(--color-ink);
@@ -271,24 +226,25 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
   }
 
   .pendon-org-short {
-    font: 800 11px/1 var(--font-display);
+    font: 800 15px/1 var(--font-display);
   }
 
   .pendon-org {
-    margin-top: 5px;
-    font-size: 6.2px;
+    margin-top: 6px;
+    font-size: 8.4px;
     font-weight: 700;
     line-height: 1.25;
+    text-wrap: balance;
   }
 
   .pendon-dates {
-    margin-top: 9px;
-    font: 800 8.5px var(--font-display);
+    margin-top: 10px;
+    font: 800 11.5px var(--font-display);
   }
 
   .pendon-bar {
-    height: 5px;
-    margin: 5px 4px 0;
+    height: 6px;
+    margin: 6px 6px 0;
     overflow: hidden;
     border-radius: 3px;
     background: #ffd3e6;
@@ -303,8 +259,9 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
   }
 
   .pendon-note {
-    margin-top: 4px;
-    font-size: 5.6px;
+    margin-top: 5px;
+    font-size: 7.6px;
+    text-wrap: balance;
     font-weight: 700;
   }
 
@@ -330,7 +287,6 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     align-items: center;
     justify-content: space-between;
     padding: 8px 0;
-    border: 3px solid #0e0828;
     border-radius: 6px;
     background: #1b1245;
     color: #ffd3e6;
@@ -372,39 +328,44 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     left: 0;
     width: 280px;
     transform: translate(650px, 176px);
-    animation: drift 2.6s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+    animation: city-sail-in 2.6s cubic-bezier(0.2, 0.7, 0.25, 1) both;
   }
 
-  @keyframes drift {
+  /* Mira a la izquierda: entra desde la derecha de la ciudad y sale por la izquierda. */
+  @keyframes city-sail-in {
     from {
-      transform: translate(1250px, -420px) rotate(6deg);
+      transform: translate(1700px, 140px);
     }
   }
 
-  .balloon-float {
-    animation: float 4.5s 2.6s ease-in-out infinite;
+  [data-leaving] .balloon {
+    animation: city-sail-out 1.6s cubic-bezier(0.5, 0, 0.75, 0.6) forwards;
   }
 
-  @keyframes float {
-    50% {
-      transform: translateY(-7px) rotate(-1.2deg);
-    }
-  }
-
-  .balloon svg {
-    overflow: visible;
-  }
-
-  .flame {
-    transform-box: fill-box;
-    transform-origin: 50% 100%;
-    animation: flame 0.35s ease-in-out infinite alternate;
-  }
-
-  @keyframes flame {
+  @keyframes city-sail-out {
     to {
-      transform: scaleY(0.6) scaleX(0.85);
+      transform: translate(-480px, 150px);
     }
+  }
+
+  /* Mientras se va, el letrero ya no está. */
+  [data-leaving] :is(.blade, .blade-brackets) {
+    display: none;
+  }
+
+  /* En reposo, un vaivén suave: sube y baja, sin girar. */
+  .balloon-float {
+    animation: city-float 5s 2.6s ease-in-out infinite;
+  }
+
+  @keyframes city-float {
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .zeppelin :global(svg) {
+    display: block;
   }
 
   .balloon-tag {
@@ -413,15 +374,11 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     left: -10px;
     width: 300px;
     padding: 9px 12px 10px;
-    border: 2px solid var(--color-plum);
     border-radius: 3px;
     background: var(--color-paper);
-    box-shadow: 1.5px 2px 0 rgb(0 0 0 / 0.25);
     color: var(--color-ink);
     transform-origin: 50% 0;
-    animation:
-      unroll 0.7s 2.5s cubic-bezier(0.3, 1.3, 0.5, 1) both,
-      sway 4s 3.2s ease-in-out infinite;
+    animation: city-unroll 0.7s 2.5s cubic-bezier(0.3, 1.3, 0.5, 1) both;
   }
 
   .balloon-tag h2 {
@@ -532,7 +489,7 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     left: 206px;
     width: 218px;
     height: 118px;
-    animation: power-on 0.6s both;
+    animation: city-power-on 0.6s both;
   }
 
   .led-static {
@@ -622,7 +579,7 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
   }
 
   /* ---------- Comunes ---------- */
-  @keyframes unroll {
+  @keyframes city-unroll {
     from {
       transform: scaleY(0);
     }
@@ -652,7 +609,7 @@ const cert = en.cert ? `${en.cert.name} ${en.cert.score}/${en.cert.max} · ${en.
     }
   }
 
-  @keyframes power-on {
+  @keyframes city-power-on {
     0% {
       clip-path: inset(50% 0 50% 0);
       filter: brightness(3);

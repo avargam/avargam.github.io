@@ -8,24 +8,37 @@ import { getSection, type ZoomSection } from '../../../data/sections';
 import { cameraForSceneRect, cameraTransform } from '../../stage/geometry';
 import CityDetails from './CityDetails.astro';
 import { formacionItems, type FormacionItemId } from './items';
-import frame from './art/frame.svg?raw';
+import { getImage } from 'astro:assets';
+import skyImage from './art/sky.png';
+import windowImage from './art/window.png';
 import sky from './art/sky.svg?raw';
 import idiomas from './art/idiomas.svg?raw';
 import major from './art/major.svg?raw';
 import titulo from './art/titulo.svg?raw';
 import minor from './art/minor.svg?raw';
-import sill from './art/sill.svg?raw';
 
 const art: Record<FormacionItemId, string> = { idiomas, major, titulo, minor };
 /** Orden de dibujo (de atrás hacia adelante), como en el prototipo. */
 const drawOrder: FormacionItemId[] = ['idiomas', 'major', 'titulo', 'minor'];
 const section = getSection('formacion') as ZoomSection;
+/** Degradado del atardecer (1408×848 a 2×); encima van las estrellas y las siluetas de `sky.svg`. */
+const skyGradient = await getImage({ src: skyImage, format: 'webp', quality: 90 });
+/** Cortinas, barras y alféizar (1600×1000 a 2×): van delante de la ciudad, porque entran al vidrio. */
+const windowFront = await getImage({ src: windowImage, format: 'webp', quality: 90 });
 
-/** Hover/foco del botón de un edificio: borde menta y píldora con su nombre. */
+/** Color de la fachada con hover: un tono más claro que el suyo (los edificios no llevan borde). */
+const hoverFill: Record<FormacionItemId, string> = {
+  idiomas: '#45358F',
+  major: '#45358F',
+  minor: '#45358F',
+  titulo: '#D8CEFF',
+};
+
+/** Hover/foco del botón de un edificio: la fachada se aclara y aparece la píldora con su nombre. */
 const hoverCss = formacionItems
   .map(({ id }) => {
     const hover = `[data-items]:has([data-item-hit="${id}"]:is(:hover, :focus-visible))`;
-    return `${hover} [data-building="${id}"] .shape { stroke: #8ADBC8; }
+    return `${hover} [data-building="${id}"] .shape { fill: ${hoverFill[id]}; }
 ${hover} [data-hover-label="${id}"] { opacity: 1; }`;
   })
   .join('\n');
@@ -47,22 +60,25 @@ html:not(.js) #${id}:target { display: block; }`,
         <rect x="96" y="66" width="1408" height="848" rx="6"></rect>
       </clipPath>
     </defs>
-    <g set:html={frame} />
     <g clip-path="url(#formacion-glass)">
+      <image
+        href={skyGradient.src}
+        x="96"
+        y="66"
+        width="1408"
+        height="848"
+        preserveAspectRatio="none"
+      />
       <g class="sky" set:html={sky} />
       {drawOrder.map((id) => (
         <g data-building={id} set:html={art[id]} />
       ))}
     </g>
-    <g set:html={sill} />
+    <image href={windowFront.src} width="1600" height="1000" />
   </svg>
 
   <!-- Textos de la escena (HTML, en coordenadas de la escena) -->
   <div aria-hidden="true">
-    <span class="city-pill bg-lilac top-[850px] left-[505px] h-[32px] w-[110px]">Major</span>
-    <span class="city-pill bg-mint top-[578px] left-[1160px] h-[28px] w-[90px] text-[16px]">
-      Minor
-    </span>
     <div class="led idle-screen">
       <span class="idle-alt px on-y">IDIOMAS</span>
       <span class="idle-alt px on-m">ES · EN</span>
@@ -103,22 +119,29 @@ html:not(.js) #${id}:target { display: block; }`,
    * titilan y algunas ventanas encendidas se apagan un rato (partes del SVG insertado: usan la
    * variable `--ambient-state`).
    */
-  .sky :global(circle:nth-child(3n)),
+  .sky :global(.star:nth-child(2n)),
   [data-building] :global(rect[fill='#FFE86B']:nth-of-type(9n + 4)) {
     animation: var(--ambient) infinite;
     animation-play-state: var(--ambient-state, paused);
   }
 
-  .sky :global(circle:nth-child(3n)) {
-    --ambient: twinkle 2.8s ease-in-out;
+  /* La mitad de las estrellas titila: se apaga y vuelve con un destello (crece un instante). */
+  .sky :global(.star:nth-child(2n)) {
+    --ambient: twinkle 2.6s ease-in-out;
+    transform-box: fill-box;
+    transform-origin: center;
   }
 
-  .sky :global(circle:nth-child(6n)) {
-    animation-delay: -1.4s;
+  .sky :global(.star:nth-child(4n)) {
+    animation-delay: -1.3s;
   }
 
-  .sky :global(circle:nth-child(9n)) {
-    animation-duration: 4.1s;
+  .sky :global(.star:nth-child(6n)) {
+    animation-duration: 3.7s;
+  }
+
+  .sky :global(.star:nth-child(10n)) {
+    animation-delay: -2.2s;
   }
 
   [data-building] :global(rect[fill='#FFE86B']:nth-of-type(9n + 4)) {
@@ -135,8 +158,16 @@ html:not(.js) #${id}:target { display: block; }`,
   }
 
   @keyframes twinkle {
-    50% {
-      opacity: 0.25;
+    35% {
+      opacity: 0.1;
+      transform: scale(0.6);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(2);
+    }
+    75% {
+      transform: scale(1);
     }
   }
 
@@ -150,7 +181,7 @@ html:not(.js) #${id}:target { display: block; }`,
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .sky :global(circle),
+    .sky :global(.star),
     [data-building] :global(rect) {
       animation: none;
     }
@@ -178,7 +209,7 @@ html:not(.js) #${id}:target { display: block; }`,
   }
 
   .city :global(.shape) {
-    transition: stroke 0.15s ease;
+    transition: fill 0.15s ease;
   }
 
   .city-hit {
@@ -231,15 +262,6 @@ html:not(.js) #${id}:target { display: block; }`,
 
   [data-selected='idiomas'] .idle-screen {
     opacity: 0;
-  }
-
-  .city :global(.cone) {
-    opacity: 0.3;
-    transition: opacity 0.6s;
-  }
-
-  [data-selected='idiomas'] :global(.cone) {
-    opacity: 0.85;
   }
 
   /* Ventanas que se encienden en cascada al elegir un edificio (las marca el script). */
@@ -307,7 +329,6 @@ html:not(.js) #${id}:target { display: block; }`,
     .idle-screen,
     .idle-alt,
     .city :global(.shape),
-    .city :global(.cone),
     .city :global(.win-on) {
       transition: none;
       animation: none;
