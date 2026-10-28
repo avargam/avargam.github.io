@@ -42,14 +42,15 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   const topicEl = (topic: string) => root.querySelector<HTMLElement>(`[data-sub-topic="${topic}"]`);
   const idsOf = (topic: string) => [...objects.keys()].filter((id) => topicOf(id) === topic);
 
-  // El clip de Cine se reproduce cuando la pantalla aparece (al terminar la cuenta regresiva): así
-  // empieza junto con la barra de progreso, que da una vuelta por cada 8 s del clip.
-  for (const screen of root.querySelectorAll<HTMLElement>('.film .video')) {
-    const video = screen.querySelector('video');
-    screen.addEventListener('animationstart', (event) => {
-      if (video && event.target === screen) void video.play().catch(() => {});
-    });
-  }
+  // Los clips (Cine, Juegos) se reproducen cuando su pantalla aparece: la animación de entrada del
+  // elemento `[data-clip-start]` (la pantalla del cine, el video de la consola) marca el inicio. En
+  // Cine, así el clip parte junto con la barra de progreso, que da una vuelta cada 8 s.
+  root.addEventListener('animationstart', (event) => {
+    const start = event.target as Element;
+    if (!start.matches('[data-clip-start]')) return;
+    const video = start instanceof HTMLVideoElement ? start : start.querySelector('video');
+    void video?.play().catch(() => {});
+  });
 
   /**
    * Zona de un detalle a encuadrar, en coordenadas de la escena: `[data-sub-focus]` si el detalle
