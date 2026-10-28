@@ -66,13 +66,13 @@ export const sections: Section[] = [
   },
   {
     slug: 'experiencia',
-    roomLabel: { x: 635, y: 85, color: 'var(--color-sun)', line: [635, 102, 635, 112] },
+    roomLabel: { x: 675, y: 85, color: 'var(--color-sun)', line: [675, 102, 675, 112] },
     label: 'Experiencia',
     description: 'Dónde he trabajado y con qué herramientas.',
     key: '2',
     transition: 'zoom',
     touchStart: 'left',
-    placement: { x: 484.15, y: 105.32, scale: 0.195 },
+    placement: { x: 524.15, y: 105.32, scale: 0.195 },
     crop: { x: 30, y: 24, w: 1540, h: 951 },
   },
   {

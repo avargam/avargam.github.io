@@ -1,12 +1,9 @@
 ---
-/** Placa con el nombre en la pared: es el `h1` del cuarto. */
+/** Nombre y rol: el `h1` del cuarto. No se ve (el cuarto no lleva placa), pero lo leen los lectores de pantalla. */
 import { profile } from '../../data/profile';
 ---
 
-<div
-  class="bg-wall border-plum absolute top-[26px] left-[40px] flex h-[54px] w-[344px] flex-col justify-center rounded-xl border-4 px-4 shadow-[6px_8px_0_var(--color-plum)]"
-  data-room-only
->
-  <h1 class="text-[20px] leading-tight font-extrabold">{profile.name}</h1>
-  <p class="text-muted text-[13px] leading-tight font-semibold">{profile.role}</p>
+<div class="sr-only" data-room-only>
+  <h1>{profile.name}</h1>
+  <p>{profile.role}</p>
 </div>
