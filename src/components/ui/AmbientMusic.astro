@@ -1,0 +1,151 @@
+---
+/**
+ * Música lofi de ambiente y su botón, en la esquina superior derecha. El navegador no deja sonar
+ * nada antes de que la persona interactúe: arranca con la primera interacción (si no la apagó antes,
+ * se recuerda en `localStorage`). Se calla mientras suena otra cosa (el tocadiscos de Música) o la
+ * pestaña está oculta, y vuelve sola después.
+ *
+ * Tema: "Chill lofi inspired", de isaiah658, CC0 (dominio público), en
+ * https://opengameart.org/content/chill-lofi-inspired.
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<button
+  type="button"
+  class="ambient-toggle bg-plum text-wall pointer-events-auto absolute top-[12px] right-[12px] grid size-[44px] place-items-center rounded-full shadow-[0_5px_0_rgb(43_45_66/0.25)]"
+  data-ambient-toggle
+  data-screen="top-right"
+  aria-pressed="true"
+  aria-label="Música de ambiente"
+  title="Música de ambiente"
+>
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor"></path>
+    <g class="on" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M15.5 9.5q1.5 2.5 0 5"></path>
+      <path d="M18 7q3.5 5 0 10"></path>
+    </g>
+    <path
+      class="off"
+      d="M16 9.5l5 5M21 9.5l-5 5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    ></path>
+  </svg>
+</button>
+<audio data-ambient-audio src={`${base}/audio/lofi-ambiente.mp3`} loop preload="none"></audio>
+
+<script>
+  const KEY = 'musica-ambiente';
+  const VOLUME = 0.35;
+  const FADE = 1200;
+
+  const button = document.querySelector<HTMLButtonElement>('[data-ambient-toggle]');
+  const audio = document.querySelector<HTMLAudioElement>('[data-ambient-audio]');
+
+  if (button && audio) {
+    let wanted = true;
+    try {
+      wanted = localStorage.getItem(KEY) !== 'off';
+    } catch {
+      // Sin almacenamiento: queda encendida.
+    }
+    /** Ya hubo una interacción, así que el navegador deja sonar. */
+    let unlocked = false;
+    let frame = 0;
+
+    /** Suena otro medio con sonido (el tocadiscos): la música de ambiente espera. */
+    const othersPlaying = () =>
+      [...document.querySelectorAll<HTMLMediaElement>('audio, video')].some(
+        (m) => m !== audio && !m.paused && !m.muted && m.volume > 0,
+      );
+
+    const fadeTo = (target: number, done?: () => void) => {
+      cancelAnimationFrame(frame);
+      const from = audio.volume;
+      const start = performance.now();
+      const tick = (now: number) => {
+        // El primer cuadro puede traer una marca de tiempo anterior a `start`: sin el tope, el
+        // volumen quedaría negativo, el navegador lo rechaza y la música sigue muda.
+        const t = Math.min(1, Math.max(0, (now - start) / FADE));
+        audio.volume = from + (target - from) * t;
+        if (t < 1) frame = requestAnimationFrame(tick);
+        else done?.();
+      };
+      frame = requestAnimationFrame(tick);
+    };
+
+    const update = () => {
+      button.setAttribute('aria-pressed', String(wanted));
+      const play = wanted && unlocked && !document.hidden && !othersPlaying();
+      if (play) {
+        if (audio.paused) {
+          audio.volume = 0;
+          audio.play().catch(() => {});
+        }
+        fadeTo(VOLUME);
+      } else if (!audio.paused) {
+        fadeTo(0, () => audio.pause());
+      }
+    };
+
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
+      update();
+    };
+    for (const type of ['pointerdown', 'keydown'] as const)
+      addEventListener(type, unlock, { once: true, capture: true });
+
+    button.addEventListener('click', () => {
+      wanted = !wanted;
+      try {
+        localStorage.setItem(KEY, wanted ? 'on' : 'off');
+      } catch {
+        // Sin almacenamiento: vale solo para esta visita.
+      }
+      unlocked = true;
+      update();
+    });
+
+    // Los eventos de los medios no suben por el DOM: se escuchan en la fase de captura.
+    for (const type of ['play', 'pause', 'ended', 'volumechange'])
+      document.addEventListener(type, (e) => e.target !== audio && update(), true);
+    document.addEventListener('visibilitychange', update);
+    update();
+  }
+</script>
+
+<style>
+  .ambient-toggle {
+    transition: background-color 0.15s;
+  }
+
+  .ambient-toggle:hover {
+    background: var(--color-desk);
+  }
+
+  .ambient-toggle:focus-visible {
+    outline: 3px solid var(--color-pink);
+    outline-offset: 3px;
+  }
+
+  .ambient-toggle[aria-pressed='false'] .on,
+  .ambient-toggle[aria-pressed='true'] .off {
+    display: none;
+  }
+
+  /* Sin JS no hay música: el botón no haría nada. */
+  :global(html:not(.js)) .ambient-toggle {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient-toggle {
+      transition: none;
+    }
+  }
+</style>

@@ -52,7 +52,8 @@ export type Section = ZoomSection | TiltSection;
  * Secciones en el orden de los chips. Cada una es una ruta (`src/pages/<slug>.astro`) y un objeto del cuarto.
  * Las posiciones vienen de los generadores del prototipo (`gen_k.py`, `gen_l.py`); los sobres de Contacto
  * se movieron a la derecha del monitor (Fase 1) para no taparlo durante el zoom; en la Fase 6 pasaron a ser
- * las miniaturas de lo que hay en la mesa.
+ * las miniaturas de lo que hay en la mesa. Con los assets del cuarto, el escritorio (con el monitor y lo de
+ * Contacto) bajó 60 px y la estantería creció ×1,2, apoyada 30 px dentro del piso.
  */
 export const sections: Section[] = [
   {
@@ -78,24 +79,24 @@ export const sections: Section[] = [
   },
   {
     slug: 'proyectos',
-    roomLabel: { x: 865, y: 337, color: 'var(--color-peach)', line: [865, 356, 865, 378] },
+    roomLabel: { x: 865, y: 397, color: 'var(--color-peach)', line: [865, 416, 865, 438] },
     label: 'Proyectos',
     description: 'Lo que estoy armando por mi cuenta.',
     key: '3',
     transition: 'zoom',
     touchStart: 'left',
-    placement: { x: 710.15, y: 375.32, scale: 0.195 },
+    placement: { x: 710.15, y: 435.32, scale: 0.195 },
     crop: { x: 30, y: 24, w: 1540, h: 951 },
   },
   {
     slug: 'fuera-del-codigo',
-    roomLabel: { x: 1375, y: 91, color: 'var(--color-mint)', line: [1375, 108, 1375, 148] },
+    roomLabel: { x: 1397, y: 40, color: 'var(--color-mint)', line: [1397, 57, 1397, 92] },
     label: 'Fuera del código',
     description: 'Juegos, anime y cómics, cine y música.',
     key: '4',
     transition: 'zoom',
     touchStart: 'left',
-    placement: { x: 1195.9, y: 127.5, scale: 0.225 },
+    placement: { x: 1181.08, y: 65.6, scale: 0.27 },
     // La estantería completa (4 repisas) se ve en el cuarto; al entrar, la cámara encuadra las dos de arriba.
     crop: { x: 196, y: 100, w: 1208, h: 1512 },
     frame: { x: 196, y: 100, w: 1208, h: 752 },
@@ -103,12 +104,12 @@ export const sections: Section[] = [
   },
   {
     slug: 'contacto',
-    roomLabel: { x: 1060, y: 651, color: 'var(--color-lilac)', line: [1060, 596, 1060, 632] },
+    roomLabel: { x: 1060, y: 711, color: 'var(--color-lilac)', line: [1060, 656, 1060, 692] },
     label: 'Contacto',
     description: 'Correo, GitHub, LinkedIn y CV.',
     key: '5',
     transition: 'tilt',
-    object: { x: 1008, y: 550, w: 104, h: 46 },
+    object: { x: 1008, y: 610, w: 104, h: 46 },
     zoom: 2.6,
   },
 ];

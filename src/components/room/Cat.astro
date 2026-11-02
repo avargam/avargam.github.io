@@ -1,63 +1,121 @@
 ---
-/** Gato tuxedo durmiendo sobre la alfombra: negro, con hocico, pecho y patas blancas. */
+/**
+ * Gato tuxedo echado como pan sobre la alfombra: negro, con una franja blanca que nace en la frente,
+ * baja entre los ojos y se abre en el hocico, pecho y patas blancas, y ojos verde grisáceo a medio cerrar.
+ */
 ---
 
 <g>
+  <ellipse cx="1000" cy="906" rx="92" ry="10" fill="#2A1B6B" opacity=".2" />
   <path
-    d="M1040 868 Q1118 860 1090 836"
+    d="M1062 892Q1040 912 986 908"
     fill="none"
     stroke="#2A2438"
-    stroke-width="12"
+    stroke-width="14"
     stroke-linecap="round"
+    stroke-linejoin="round"
   />
-  <ellipse class="breath" cx="990" cy="856" rx="78" ry="40" fill="#2A2438" />
-  <!-- brillo del lomo -->
-  <path
-    d="M960 830 Q995 818 1030 830"
-    fill="none"
-    stroke="#463D5C"
-    stroke-width="6"
-    stroke-linecap="round"
-  />
-  <ellipse cx="954" cy="878" rx="24" ry="16" fill="#FBF4FF" />
-  <ellipse cx="936" cy="892" rx="13" ry="7" fill="#FBF4FF" />
-  <ellipse cx="962" cy="894" rx="13" ry="7" fill="#FBF4FF" />
-  <circle cx="926" cy="846" r="30" fill="#2A2438" />
-  <path d="M906 826 L910 800 L928 820Z M942 820 L956 798 L960 826Z" fill="#2A2438" />
-  <path d="M911 820 L913 808 L922 818Z M946 818 L953 807 L955 821Z" fill="#FF8DB8" />
-  <!-- antifaz: la mancha blanca baja entre los ojos hasta el hocico -->
-  <path
-    d="M931 828 Q936 840 942 852 Q945 866 928 868 Q911 867 914 854 Q921 842 931 828Z"
-    fill="#FBF4FF"
-  />
-  <path d="M926 853 L934 853 L930 858Z" fill="#FF8DB8" />
-  <path
-    d="M910 844 Q917 850 923 845 M940 845 Q946 850 952 844"
-    fill="none"
-    stroke="#C6B8FF"
-    stroke-width="3"
-    stroke-linecap="round"
-  />
+  <g class="cat-breath">
+    <path
+      d="M928 900C922 860 944 826 996 824C1046 822 1072 852 1070 882C1068 900 1052 906 1026 906H962C942 906 930 906 928 900Z"
+      fill="#2A2438"
+    />
+    <path
+      d="M972 834Q1012 822 1050 842"
+      fill="none"
+      stroke="#463D5C"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity=".9"
+    />
+  </g>
+  <ellipse cx="950" cy="880" rx="22" ry="24" fill="#FBF4FF" />
+  <ellipse cx="938" cy="904" rx="11" ry="5.5" fill="#FBF4FF" />
+  <ellipse cx="962" cy="905" rx="11" ry="5.5" fill="#FBF4FF" />
+  <g class="cat-head">
+    <path d="M920 826L922 800Q924 792 930 798L944 814Z" fill="#2A2438" />
+    <path d="M925 818L926 806Q927 801 930 804L937 813Z" fill="#FF8DB8" />
+    <path d="M954 812L966 794Q971 788 972 796L976 820Z" fill="#2A2438" />
+    <path d="M958 812L965 801Q968 797 969 802L971 815Z" fill="#FF8DB8" />
+    <path
+      d="M914 838C914 816 930 804 948 804C968 804 982 818 982 838C982 858 966 868 948 868C930 868 914 858 914 838Z"
+      fill="#2A2438"
+    />
+    <path
+      d="M948 816Q950 818 951 822L953 830Q956 838 966 843Q978 848 976 858Q972 869 948 869Q924 869 920 858Q918 848 930 843Q940 838 943 830L945 822Q946 818 948 816Z"
+      fill="#FBF4FF"
+    />
+    <ellipse cx="933" cy="834" rx="7.5" ry="6" fill="#B9C79B" />
+    <ellipse cx="963" cy="834" rx="7.5" ry="6" fill="#B9C79B" />
+    <ellipse cx="933" cy="834.5" rx="2" ry="5" fill="#2B2D42" />
+    <ellipse cx="963" cy="834.5" rx="2" ry="5" fill="#2B2D42" />
+    <g class="cat-lid">
+      <path d="M925 832Q933 822 941 832Z" fill="#2A2438" />
+      <path d="M955 832Q963 822 971 832Z" fill="#2A2438" />
+    </g>
+    <path d="M944 848H952L948 853Z" fill="#FF8DB8" />
+    <path
+      d="M948 853V856M948 856Q944 859 941 857M948 856Q952 859 955 857"
+      fill="none"
+      stroke="#B9A8C9"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M926 852L902 847M926 857L903 860M970 852L994 846M970 857L993 860"
+      fill="none"
+      stroke="#FBF4FF"
+      stroke-width="1.3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity=".75"
+    />
+  </g>
 </g>
 
 <style>
-  /* Respira: el lomo sube y baja despacio. */
-  .breath {
-    animation: breath 3.6s ease-in-out infinite;
+  .cat-breath,
+  .cat-lid {
     animation-play-state: var(--ambient-state, paused);
     transform-box: fill-box;
+  }
+
+  /* Respira: el lomo sube y baja despacio. */
+  .cat-breath {
+    animation: cat-breath 3.4s ease-in-out infinite;
     transform-origin: 50% 100%;
   }
 
+  /* Parpadeo lento: los párpados bajan y se quedan un momento. */
+  .cat-lid {
+    animation: cat-blink 6s ease-in-out infinite;
+    transform-origin: 50% 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .breath {
+    .cat-breath,
+    .cat-lid {
       animation: none;
     }
   }
 
-  @keyframes breath {
+  @keyframes cat-breath {
     50% {
-      transform: scale(1.025, 1.07);
+      transform: scale(1.02, 1.06);
+    }
+  }
+
+  @keyframes cat-blink {
+    0%,
+    60%,
+    100% {
+      transform: scaleY(1);
+    }
+    72%,
+    84% {
+      transform: scaleY(2.6);
     }
   }
 </style>

@@ -1,98 +1,278 @@
 ---
 /**
- * Ilustración del cuarto (todo lo que no es un objeto navegable), portada de
- * `prototype/final/L_cuarto_nuevo_plano.svg`. Va debajo de los objetos: nada de aquí puede
- * tapar el rect de un objeto, o aparecería encima de su escena durante el zoom.
+ * Ilustración del cuarto (todo lo que no es un objeto navegable). Va debajo de los objetos: nada de
+ * aquí puede tapar el rect de un objeto, o aparecería encima de su escena durante el zoom. Viene del
+ * prototipo "Cuarto armado": pared con papel mural, piso de tablas con tono, alfombra a rayas,
+ * escritorio con veta, taza de té, flexo menta, la persona al frente del escritorio y el gato.
  */
 import Avatar from './Avatar.astro';
 import Cat from './Cat.astro';
 ---
 
 <svg class="absolute inset-0" viewBox="0 0 1600 1000" aria-hidden="true">
-  <!-- pared y piso -->
-  <rect width="1600" height="1000" fill="#F9DDF0" />
-  <rect y="640" width="1600" height="130" fill="#EDB8DC" />
-  <rect y="640" width="1600" height="10" fill="#D58FC4" />
-  <rect y="760" width="1600" height="240" fill="#B676B0" />
+  <!-- pared con papel mural, zócalo y piso de tablas con tono -->
+  <rect x="0" y="0" width="1600" height="1000" fill="#F9DDF0" />
   <path
-    d="M0 830H1600M0 900H1600M0 965H1600M300 760V830M820 760V830M1280 760V830M120 830V900M560 830V900M1040 830V900M1450 830V900M420 900V965M900 900V965M1360 900V965"
+    d="M28 24l6 6l-6 6l-6-6zM84 24l6 6l-6 6l-6-6zM140 24l6 6l-6 6l-6-6zM196 24l6 6l-6 6l-6-6zM252 24l6 6l-6 6l-6-6zM308 24l6 6l-6 6l-6-6zM364 24l6 6l-6 6l-6-6zM420 24l6 6l-6 6l-6-6zM476 24l6 6l-6 6l-6-6zM532 24l6 6l-6 6l-6-6zM588 24l6 6l-6 6l-6-6zM644 24l6 6l-6 6l-6-6zM700 24l6 6l-6 6l-6-6zM756 24l6 6l-6 6l-6-6zM812 24l6 6l-6 6l-6-6zM868 24l6 6l-6 6l-6-6zM924 24l6 6l-6 6l-6-6zM980 24l6 6l-6 6l-6-6zM1036 24l6 6l-6 6l-6-6zM1092 24l6 6l-6 6l-6-6zM1148 24l6 6l-6 6l-6-6zM1204 24l6 6l-6 6l-6-6zM1260 24l6 6l-6 6l-6-6zM1316 24l6 6l-6 6l-6-6zM1372 24l6 6l-6 6l-6-6zM1428 24l6 6l-6 6l-6-6zM1484 24l6 6l-6 6l-6-6zM1540 24l6 6l-6 6l-6-6zM1596 24l6 6l-6 6l-6-6zM28 80l6 6l-6 6l-6-6zM84 80l6 6l-6 6l-6-6zM140 80l6 6l-6 6l-6-6zM196 80l6 6l-6 6l-6-6zM252 80l6 6l-6 6l-6-6zM308 80l6 6l-6 6l-6-6zM364 80l6 6l-6 6l-6-6zM420 80l6 6l-6 6l-6-6zM476 80l6 6l-6 6l-6-6zM532 80l6 6l-6 6l-6-6zM588 80l6 6l-6 6l-6-6zM644 80l6 6l-6 6l-6-6zM700 80l6 6l-6 6l-6-6zM756 80l6 6l-6 6l-6-6zM812 80l6 6l-6 6l-6-6zM868 80l6 6l-6 6l-6-6zM924 80l6 6l-6 6l-6-6zM980 80l6 6l-6 6l-6-6zM1036 80l6 6l-6 6l-6-6zM1092 80l6 6l-6 6l-6-6zM1148 80l6 6l-6 6l-6-6zM1204 80l6 6l-6 6l-6-6zM1260 80l6 6l-6 6l-6-6zM1316 80l6 6l-6 6l-6-6zM1372 80l6 6l-6 6l-6-6zM1428 80l6 6l-6 6l-6-6zM1484 80l6 6l-6 6l-6-6zM1540 80l6 6l-6 6l-6-6zM1596 80l6 6l-6 6l-6-6zM28 136l6 6l-6 6l-6-6zM84 136l6 6l-6 6l-6-6zM140 136l6 6l-6 6l-6-6zM196 136l6 6l-6 6l-6-6zM252 136l6 6l-6 6l-6-6zM308 136l6 6l-6 6l-6-6zM364 136l6 6l-6 6l-6-6zM420 136l6 6l-6 6l-6-6zM476 136l6 6l-6 6l-6-6zM532 136l6 6l-6 6l-6-6zM588 136l6 6l-6 6l-6-6zM644 136l6 6l-6 6l-6-6zM700 136l6 6l-6 6l-6-6zM756 136l6 6l-6 6l-6-6zM812 136l6 6l-6 6l-6-6zM868 136l6 6l-6 6l-6-6zM924 136l6 6l-6 6l-6-6zM980 136l6 6l-6 6l-6-6zM1036 136l6 6l-6 6l-6-6zM1092 136l6 6l-6 6l-6-6zM1148 136l6 6l-6 6l-6-6zM1204 136l6 6l-6 6l-6-6zM1260 136l6 6l-6 6l-6-6zM1316 136l6 6l-6 6l-6-6zM1372 136l6 6l-6 6l-6-6zM1428 136l6 6l-6 6l-6-6zM1484 136l6 6l-6 6l-6-6zM1540 136l6 6l-6 6l-6-6zM1596 136l6 6l-6 6l-6-6zM28 192l6 6l-6 6l-6-6zM84 192l6 6l-6 6l-6-6zM140 192l6 6l-6 6l-6-6zM196 192l6 6l-6 6l-6-6zM252 192l6 6l-6 6l-6-6zM308 192l6 6l-6 6l-6-6zM364 192l6 6l-6 6l-6-6zM420 192l6 6l-6 6l-6-6zM476 192l6 6l-6 6l-6-6zM532 192l6 6l-6 6l-6-6zM588 192l6 6l-6 6l-6-6zM644 192l6 6l-6 6l-6-6zM700 192l6 6l-6 6l-6-6zM756 192l6 6l-6 6l-6-6zM812 192l6 6l-6 6l-6-6zM868 192l6 6l-6 6l-6-6zM924 192l6 6l-6 6l-6-6zM980 192l6 6l-6 6l-6-6zM1036 192l6 6l-6 6l-6-6zM1092 192l6 6l-6 6l-6-6zM1148 192l6 6l-6 6l-6-6zM1204 192l6 6l-6 6l-6-6zM1260 192l6 6l-6 6l-6-6zM1316 192l6 6l-6 6l-6-6zM1372 192l6 6l-6 6l-6-6zM1428 192l6 6l-6 6l-6-6zM1484 192l6 6l-6 6l-6-6zM1540 192l6 6l-6 6l-6-6zM1596 192l6 6l-6 6l-6-6zM28 248l6 6l-6 6l-6-6zM84 248l6 6l-6 6l-6-6zM140 248l6 6l-6 6l-6-6zM196 248l6 6l-6 6l-6-6zM252 248l6 6l-6 6l-6-6zM308 248l6 6l-6 6l-6-6zM364 248l6 6l-6 6l-6-6zM420 248l6 6l-6 6l-6-6zM476 248l6 6l-6 6l-6-6zM532 248l6 6l-6 6l-6-6zM588 248l6 6l-6 6l-6-6zM644 248l6 6l-6 6l-6-6zM700 248l6 6l-6 6l-6-6zM756 248l6 6l-6 6l-6-6zM812 248l6 6l-6 6l-6-6zM868 248l6 6l-6 6l-6-6zM924 248l6 6l-6 6l-6-6zM980 248l6 6l-6 6l-6-6zM1036 248l6 6l-6 6l-6-6zM1092 248l6 6l-6 6l-6-6zM1148 248l6 6l-6 6l-6-6zM1204 248l6 6l-6 6l-6-6zM1260 248l6 6l-6 6l-6-6zM1316 248l6 6l-6 6l-6-6zM1372 248l6 6l-6 6l-6-6zM1428 248l6 6l-6 6l-6-6zM1484 248l6 6l-6 6l-6-6zM1540 248l6 6l-6 6l-6-6zM1596 248l6 6l-6 6l-6-6zM28 304l6 6l-6 6l-6-6zM84 304l6 6l-6 6l-6-6zM140 304l6 6l-6 6l-6-6zM196 304l6 6l-6 6l-6-6zM252 304l6 6l-6 6l-6-6zM308 304l6 6l-6 6l-6-6zM364 304l6 6l-6 6l-6-6zM420 304l6 6l-6 6l-6-6zM476 304l6 6l-6 6l-6-6zM532 304l6 6l-6 6l-6-6zM588 304l6 6l-6 6l-6-6zM644 304l6 6l-6 6l-6-6zM700 304l6 6l-6 6l-6-6zM756 304l6 6l-6 6l-6-6zM812 304l6 6l-6 6l-6-6zM868 304l6 6l-6 6l-6-6zM924 304l6 6l-6 6l-6-6zM980 304l6 6l-6 6l-6-6zM1036 304l6 6l-6 6l-6-6zM1092 304l6 6l-6 6l-6-6zM1148 304l6 6l-6 6l-6-6zM1204 304l6 6l-6 6l-6-6zM1260 304l6 6l-6 6l-6-6zM1316 304l6 6l-6 6l-6-6zM1372 304l6 6l-6 6l-6-6zM1428 304l6 6l-6 6l-6-6zM1484 304l6 6l-6 6l-6-6zM1540 304l6 6l-6 6l-6-6zM1596 304l6 6l-6 6l-6-6zM28 360l6 6l-6 6l-6-6zM84 360l6 6l-6 6l-6-6zM140 360l6 6l-6 6l-6-6zM196 360l6 6l-6 6l-6-6zM252 360l6 6l-6 6l-6-6zM308 360l6 6l-6 6l-6-6zM364 360l6 6l-6 6l-6-6zM420 360l6 6l-6 6l-6-6zM476 360l6 6l-6 6l-6-6zM532 360l6 6l-6 6l-6-6zM588 360l6 6l-6 6l-6-6zM644 360l6 6l-6 6l-6-6zM700 360l6 6l-6 6l-6-6zM756 360l6 6l-6 6l-6-6zM812 360l6 6l-6 6l-6-6zM868 360l6 6l-6 6l-6-6zM924 360l6 6l-6 6l-6-6zM980 360l6 6l-6 6l-6-6zM1036 360l6 6l-6 6l-6-6zM1092 360l6 6l-6 6l-6-6zM1148 360l6 6l-6 6l-6-6zM1204 360l6 6l-6 6l-6-6zM1260 360l6 6l-6 6l-6-6zM1316 360l6 6l-6 6l-6-6zM1372 360l6 6l-6 6l-6-6zM1428 360l6 6l-6 6l-6-6zM1484 360l6 6l-6 6l-6-6zM1540 360l6 6l-6 6l-6-6zM1596 360l6 6l-6 6l-6-6zM28 416l6 6l-6 6l-6-6zM84 416l6 6l-6 6l-6-6zM140 416l6 6l-6 6l-6-6zM196 416l6 6l-6 6l-6-6zM252 416l6 6l-6 6l-6-6zM308 416l6 6l-6 6l-6-6zM364 416l6 6l-6 6l-6-6zM420 416l6 6l-6 6l-6-6zM476 416l6 6l-6 6l-6-6zM532 416l6 6l-6 6l-6-6zM588 416l6 6l-6 6l-6-6zM644 416l6 6l-6 6l-6-6zM700 416l6 6l-6 6l-6-6zM756 416l6 6l-6 6l-6-6zM812 416l6 6l-6 6l-6-6zM868 416l6 6l-6 6l-6-6zM924 416l6 6l-6 6l-6-6zM980 416l6 6l-6 6l-6-6zM1036 416l6 6l-6 6l-6-6zM1092 416l6 6l-6 6l-6-6zM1148 416l6 6l-6 6l-6-6zM1204 416l6 6l-6 6l-6-6zM1260 416l6 6l-6 6l-6-6zM1316 416l6 6l-6 6l-6-6zM1372 416l6 6l-6 6l-6-6zM1428 416l6 6l-6 6l-6-6zM1484 416l6 6l-6 6l-6-6zM1540 416l6 6l-6 6l-6-6zM1596 416l6 6l-6 6l-6-6zM28 472l6 6l-6 6l-6-6zM84 472l6 6l-6 6l-6-6zM140 472l6 6l-6 6l-6-6zM196 472l6 6l-6 6l-6-6zM252 472l6 6l-6 6l-6-6zM308 472l6 6l-6 6l-6-6zM364 472l6 6l-6 6l-6-6zM420 472l6 6l-6 6l-6-6zM476 472l6 6l-6 6l-6-6zM532 472l6 6l-6 6l-6-6zM588 472l6 6l-6 6l-6-6zM644 472l6 6l-6 6l-6-6zM700 472l6 6l-6 6l-6-6zM756 472l6 6l-6 6l-6-6zM812 472l6 6l-6 6l-6-6zM868 472l6 6l-6 6l-6-6zM924 472l6 6l-6 6l-6-6zM980 472l6 6l-6 6l-6-6zM1036 472l6 6l-6 6l-6-6zM1092 472l6 6l-6 6l-6-6zM1148 472l6 6l-6 6l-6-6zM1204 472l6 6l-6 6l-6-6zM1260 472l6 6l-6 6l-6-6zM1316 472l6 6l-6 6l-6-6zM1372 472l6 6l-6 6l-6-6zM1428 472l6 6l-6 6l-6-6zM1484 472l6 6l-6 6l-6-6zM1540 472l6 6l-6 6l-6-6zM1596 472l6 6l-6 6l-6-6zM28 528l6 6l-6 6l-6-6zM84 528l6 6l-6 6l-6-6zM140 528l6 6l-6 6l-6-6zM196 528l6 6l-6 6l-6-6zM252 528l6 6l-6 6l-6-6zM308 528l6 6l-6 6l-6-6zM364 528l6 6l-6 6l-6-6zM420 528l6 6l-6 6l-6-6zM476 528l6 6l-6 6l-6-6zM532 528l6 6l-6 6l-6-6zM588 528l6 6l-6 6l-6-6zM644 528l6 6l-6 6l-6-6zM700 528l6 6l-6 6l-6-6zM756 528l6 6l-6 6l-6-6zM812 528l6 6l-6 6l-6-6zM868 528l6 6l-6 6l-6-6zM924 528l6 6l-6 6l-6-6zM980 528l6 6l-6 6l-6-6zM1036 528l6 6l-6 6l-6-6zM1092 528l6 6l-6 6l-6-6zM1148 528l6 6l-6 6l-6-6zM1204 528l6 6l-6 6l-6-6zM1260 528l6 6l-6 6l-6-6zM1316 528l6 6l-6 6l-6-6zM1372 528l6 6l-6 6l-6-6zM1428 528l6 6l-6 6l-6-6zM1484 528l6 6l-6 6l-6-6zM1540 528l6 6l-6 6l-6-6zM1596 528l6 6l-6 6l-6-6zM28 584l6 6l-6 6l-6-6zM84 584l6 6l-6 6l-6-6zM140 584l6 6l-6 6l-6-6zM196 584l6 6l-6 6l-6-6zM252 584l6 6l-6 6l-6-6zM308 584l6 6l-6 6l-6-6zM364 584l6 6l-6 6l-6-6zM420 584l6 6l-6 6l-6-6zM476 584l6 6l-6 6l-6-6zM532 584l6 6l-6 6l-6-6zM588 584l6 6l-6 6l-6-6zM644 584l6 6l-6 6l-6-6zM700 584l6 6l-6 6l-6-6zM756 584l6 6l-6 6l-6-6zM812 584l6 6l-6 6l-6-6zM868 584l6 6l-6 6l-6-6zM924 584l6 6l-6 6l-6-6zM980 584l6 6l-6 6l-6-6zM1036 584l6 6l-6 6l-6-6zM1092 584l6 6l-6 6l-6-6zM1148 584l6 6l-6 6l-6-6zM1204 584l6 6l-6 6l-6-6zM1260 584l6 6l-6 6l-6-6zM1316 584l6 6l-6 6l-6-6zM1372 584l6 6l-6 6l-6-6zM1428 584l6 6l-6 6l-6-6zM1484 584l6 6l-6 6l-6-6zM1540 584l6 6l-6 6l-6-6zM1596 584l6 6l-6 6l-6-6z"
+    fill="#F3C9E6"
+  />
+  <rect x="0" y="640" width="1600" height="130" fill="#EDB8DC" />
+  <rect x="0" y="640" width="1600" height="10" fill="#D58FC4" />
+  <rect x="0" y="640" width="1600" height="3" fill="#E7A9D9" />
+  <rect x="0" y="760" width="1600" height="240" fill="#B676B0" />
+  <rect x="0" y="760" width="300" height="70" fill="#B676B0" />
+  <rect x="300" y="760" width="520" height="70" fill="#B07AAE" />
+  <rect x="820" y="760" width="460" height="70" fill="#BC7EB6" />
+  <rect x="1280" y="760" width="320" height="70" fill="#B271AC" />
+  <rect x="0" y="830" width="120" height="70" fill="#B271AC" />
+  <rect x="120" y="830" width="440" height="70" fill="#B676B0" />
+  <rect x="560" y="830" width="480" height="70" fill="#B07AAE" />
+  <rect x="1040" y="830" width="410" height="70" fill="#BC7EB6" />
+  <rect x="1450" y="830" width="150" height="70" fill="#B271AC" />
+  <rect x="0" y="900" width="420" height="65" fill="#BC7EB6" />
+  <rect x="420" y="900" width="480" height="65" fill="#B271AC" />
+  <rect x="900" y="900" width="460" height="65" fill="#B676B0" />
+  <rect x="1360" y="900" width="240" height="65" fill="#B07AAE" />
+  <rect x="0" y="965" width="200" height="35" fill="#B07AAE" />
+  <rect x="200" y="965" width="500" height="35" fill="#BC7EB6" />
+  <rect x="700" y="965" width="480" height="35" fill="#B271AC" />
+  <rect x="1180" y="965" width="420" height="35" fill="#B676B0" />
+  <rect x="0" y="760" width="1600" height="8" fill="#9C5C98" opacity=".55" />
+  <path
+    d="M0 830H1600M0 900H1600M0 965H1600M300 760V830M820 760V830M1280 760V830M120 830V900M560 830V900M1040 830V900M1450 830V900M420 900V965M900 900V965M1360 900V965M200 965V1000M700 965V1000M1180 965V1000"
+    fill="none"
     stroke="#9C5C98"
     stroke-width="3"
   />
 
-  <!-- alfombra -->
-  <ellipse cx="800" cy="890" rx="470" ry="78" fill="#8B6CF0" />
-  <ellipse
-    cx="800"
-    cy="890"
-    rx="420"
-    ry="62"
-    fill="none"
-    stroke="#FDE7F5"
-    stroke-width="6"
-    stroke-dasharray="4 14"
-    stroke-linecap="round"
-  />
-  <ellipse cx="800" cy="890" rx="330" ry="46" fill="#B49CF8" />
-
-  <Avatar />
-
-  <!-- escritorio -->
-  <rect x="470" y="590" width="720" height="26" rx="8" fill="#7D4690" />
-  <rect x="470" y="610" width="720" height="8" fill="#5A2F6B" />
-  <rect x="486" y="616" width="24" height="146" fill="#5A2F6B" />
-  <rect x="1150" y="616" width="24" height="146" fill="#5A2F6B" />
-  <rect x="1000" y="616" width="150" height="70" rx="6" fill="#5A2F6B" />
-  <rect x="1060" y="646" width="30" height="8" rx="3" fill="#E8B3DA" />
-
-  <!-- pie del monitor (la pantalla es la escena de Proyectos) -->
-  <rect x="840" y="560" width="40" height="30" fill="#3A3F5C" />
-  <rect x="810" y="584" width="100" height="8" rx="4" fill="#3A3F5C" />
-
-  <!-- teclado -->
-  <rect x="740" y="576" width="160" height="14" rx="5" fill="#E6E6EF" />
-
-  <!-- taza (en el extremo izquierdo, para dejar lugar a los sobres de Contacto) -->
-  <g transform="translate(-548 0)">
-    <rect x="1030" y="552" width="42" height="38" rx="6" fill="#FFFFFF" />
-    <path
-      d="M1072 562 Q1090 564 1086 578 Q1082 586 1072 584"
-      fill="none"
-      stroke="#FFFFFF"
-      stroke-width="6"
-    />
-    <path
-      class="steam"
-      d="M1042 540 Q1036 528 1044 518 M1056 540 Q1050 526 1058 514"
-      fill="none"
-      stroke="#B9A894"
-      stroke-width="3"
-      stroke-linecap="round"
-    />
-  </g>
-
-  <!-- lámpara -->
+  <!-- alfombra a rayas, en perspectiva -->
+  <path d="M426 822L1186 822L1306 978L306 978Z" fill="#2A1B6B" opacity=".14" />
   <path
-    d="M1126 590 L1126 540 L1096 470"
+    d="M430 812v-12M450 812v-12M470 812v-12M490 812v-12M510 812v-12M530 812v-12M550 812v-12M570 812v-12M590 812v-12M610 812v-12M630 812v-12M650 812v-12M670 812v-12M690 812v-12M710 812v-12M730 812v-12M750 812v-12M770 812v-12M790 812v-12M810 812v-12M830 812v-12M850 812v-12M870 812v-12M890 812v-12M910 812v-12M930 812v-12M950 812v-12M970 812v-12M990 812v-12M1010 812v-12M1030 812v-12M1050 812v-12M1070 812v-12M1090 812v-12M1110 812v-12M1130 812v-12M1150 812v-12M1170 812v-12M310 968v14M334 968v14M358 968v14M382 968v14M406 968v14M430 968v14M454 968v14M478 968v14M502 968v14M526 968v14M550 968v14M574 968v14M598 968v14M622 968v14M646 968v14M670 968v14M694 968v14M718 968v14M742 968v14M766 968v14M790 968v14M814 968v14M838 968v14M862 968v14M886 968v14M910 968v14M934 968v14M958 968v14M982 968v14M1006 968v14M1030 968v14M1054 968v14M1078 968v14M1102 968v14M1126 968v14M1150 968v14M1174 968v14M1198 968v14M1222 968v14M1246 968v14M1270 968v14"
     fill="none"
-    stroke="#3A3F5C"
-    stroke-width="8"
+    stroke="#C9B8FF"
+    stroke-width="4"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <rect x="1104" y="580" width="48" height="12" rx="5" fill="#3A3F5C" />
-  <path d="M1062 444 L1132 424 L1146 476 L1090 496Z" fill="#FFC857" />
-  <polygon points="1080,490 1142,474 1190,590 1020,590" fill="#FFE9A8" opacity="0.35" />
+  <clipPath id="room-rug">
+    <path d="M420 812L1180 812L1300 968L300 968Z" />
+  </clipPath>
+  <path d="M420 812L1180 812L1300 968L300 968Z" fill="#8B6CF0" />
+  <g clip-path="url(#room-rug)">
+    <path
+      d="M420 812L1180 812L1186.6666666666667 820.6666666666666L413.3333333333333 820.6666666666666Z"
+      fill="#B49CF8"
+    />
+    <path
+      d="M406.6666666666667 829.3333333333334L1193.3333333333333 829.3333333333334L1200 838L400 838Z"
+      fill="#FF8DB8"
+    />
+    <path
+      d="M393.3333333333333 846.6666666666666L1206.6666666666667 846.6666666666666L1213.3333333333333 855.3333333333334L386.6666666666667 855.3333333333334Z"
+      fill="#B49CF8"
+    />
+    <path
+      d="M380 864L1220 864L1226.6666666666667 872.6666666666666L373.3333333333333 872.6666666666666Z"
+      fill="#B49CF8"
+    />
+    <path
+      d="M366.6666666666667 881.3333333333334L1233.3333333333333 881.3333333333334L1240 890L360 890Z"
+      fill="#FF8DB8"
+    />
+    <path
+      d="M353.3333333333333 898.6666666666666L1246.6666666666667 898.6666666666666L1253.3333333333333 907.3333333333334L346.66666666666663 907.3333333333334Z"
+      fill="#B49CF8"
+    />
+    <path
+      d="M340 916L1260 916L1266.6666666666667 924.6666666666666L333.3333333333333 924.6666666666666Z"
+      fill="#B49CF8"
+    />
+    <path
+      d="M326.6666666666667 933.3333333333334L1273.3333333333333 933.3333333333334L1280 942L320 942Z"
+      fill="#FF8DB8"
+    />
+    <path
+      d="M313.33333333333337 950.6666666666666L1286.6666666666667 950.6666666666666L1293.3333333333333 959.3333333333334L306.6666666666667 959.3333333333334Z"
+      fill="#B49CF8"
+    />
+  </g>
+  <path d="M420 812L1180 812L1300 968L300 968Z" fill="none" stroke="#7B6CF6" stroke-width="10" />
 
-  <!-- gabinete bajo la estantería (las 4 repisas son la escena de Fuera del código): puertas planas
-  sin contorno, con una franja de luz arriba y tiradores verticales -->
-  <rect x="1240" y="489" width="272" height="241" rx="8" fill="#7D4690" />
-  <rect x="1252" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
-  <rect x="1382" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
-  <rect x="1252" y="501" width="118" height="10" rx="5" fill="#fff" opacity="0.14" />
-  <rect x="1382" y="501" width="118" height="10" rx="5" fill="#fff" opacity="0.14" />
-  <rect x="1356" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
-  <rect x="1388" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
+  <!--
+    Escritorio y lo que tiene encima, 60 px más abajo que en el dibujo original (el monitor y lo de
+    Contacto bajan lo mismo en sections.ts). La persona va al frente del escritorio.
+  -->
+  <g transform="translate(0 60)">
+    <rect x="416" y="616" width="24" height="146" fill="#5A2F6B" />
+    <rect x="416" y="616" width="8" height="146" fill="#4A2459" />
+    <rect x="1150" y="616" width="24" height="146" fill="#5A2F6B" />
+    <rect x="1166" y="616" width="8" height="146" fill="#4A2459" />
+    <rect x="416" y="752" width="24" height="10" rx="3" fill="#4A2459" />
+    <rect x="1150" y="752" width="24" height="10" rx="3" fill="#4A2459" />
+    <rect x="996" y="616" width="158" height="78" rx="6" fill="#5A2F6B" />
+    <rect x="1004" y="620" width="142" height="30" rx="5" fill="#7D4690" />
+    <rect x="1004" y="656" width="142" height="30" rx="5" fill="#7D4690" />
+    <rect x="1058" y="630" width="34" height="7" rx="3.5" fill="#E8B3DA" />
+    <rect x="1058" y="666" width="34" height="7" rx="3.5" fill="#E8B3DA" />
+    <rect x="1004" y="620" width="142" height="4" rx="2" fill="#fff" opacity=".1" />
+    <rect x="1004" y="656" width="142" height="4" rx="2" fill="#fff" opacity=".1" />
+    <rect x="400" y="590" width="790" height="28" rx="8" fill="#7D4690" />
+    <rect x="400" y="590" width="790" height="20" rx="8" fill="#8E55A3" />
+    <rect x="406" y="590" width="778" height="4" rx="2" fill="#fff" opacity=".16" />
+    <path
+      d="M430 606H490M520 600H700M760 604H980M1040 599H1160M560 612H820"
+      fill="none"
+      stroke="#7D4690"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity=".8"
+    />
+    <ellipse cx="890" cy="600" rx="9" ry="3" fill="none" stroke="#7D4690" stroke-width="2" />
+    <path d="M842 560H878L884 584H836Z" fill="#4A2459" />
+    <rect x="842" y="560" width="36" height="6" fill="#5A2F6B" />
+    <rect x="806" y="582" width="108" height="9" rx="4.5" fill="#5A2F6B" />
+    <rect x="812" y="582" width="96" height="3" rx="1.5" fill="#7D4690" />
+    <rect x="740" y="577" width="162" height="13" rx="5" fill="#D6D3E6" />
+    <rect x="740" y="574" width="162" height="11" rx="5" fill="#EEEDF6" />
+    <path
+      d="M750 578H892M752 582H890"
+      fill="none"
+      stroke="#C9C5DC"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-dasharray="6 3"
+    />
+    <path d="M924 588Q930 576 942 577Q952 578 951 588Z" fill="#EEEDF6" />
+    <path
+      d="M937 578V582"
+      fill="none"
+      stroke="#C9C5DC"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- taza de té, en el extremo izquierdo con el asa hacia afuera para que la silla no la tape -->
+    <g transform="translate(1016 0) scale(-1 1)">
+      <ellipse cx="503" cy="590" rx="26" ry="4" fill="#2A1B6B" opacity=".18" />
+      <path
+        d="M524 562Q542 562 541 575Q540 587 523 586"
+        fill="none"
+        stroke="#9A8CE0"
+        stroke-width="7"
+      />
+      <path d="M480 554H526L522 584Q521 590 514 590H492Q485 590 484 584Z" fill="#C6B8FF" />
+      <path d="M480 554H492L494 590H492Q485 590 484 584Z" fill="#B2A3F2" />
+      <ellipse cx="503" cy="554" rx="23" ry="4.5" fill="#B2A3F2" />
+      <ellipse cx="503" cy="555" rx="19" ry="3.2" fill="#C98A55" />
+      <path
+        d="M512 553Q520 560 520 572"
+        fill="none"
+        stroke="#FBF4FF"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <rect x="514" y="570" width="12" height="14" rx="2" fill="#FFE86B" />
+      <rect x="514" y="570" width="12" height="4" rx="2" fill="#FFF29E" />
+      <g class="steam">
+        <path
+          d="M494 544C486 534 500 526 493 514"
+          fill="none"
+          stroke="#C3AFD3"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity=".9"
+        />
+        <path
+          d="M508 544C500 532 514 524 507 510"
+          fill="none"
+          stroke="#C3AFD3"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity=".7"
+        />
+      </g>
+    </g>
+
+    <!-- flexo menta: su luz cae sobre lo de Contacto -->
+    <defs>
+      <linearGradient id="room-lamp-light" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FFF1B8" stop-opacity="0.75" />
+        <stop offset="1" stop-color="#FFF1B8" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <path d="M1084 486L1140 470L1204 592L1004 592Z" fill="url(#room-lamp-light)" />
+    <ellipse cx="1128" cy="590" rx="30" ry="4" fill="#2A1B6B" opacity=".18" />
+    <rect x="1102" y="578" width="52" height="12" rx="6" fill="#3A9E8A" />
+    <rect x="1106" y="578" width="44" height="4" rx="2" fill="#8ADBC8" />
+    <path
+      d="M1128 580L1124 534"
+      fill="none"
+      stroke="#3A9E8A"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M1124 534L1100 478"
+      fill="none"
+      stroke="#3A9E8A"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M1133 576L1130 540"
+      fill="none"
+      stroke="#2B2D42"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-dasharray="2 3"
+    />
+    <path
+      d="M1131 530L1110 482"
+      fill="none"
+      stroke="#2B2D42"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-dasharray="2 3"
+    />
+    <circle cx="1124" cy="534" r="6.5" fill="#8ADBC8" />
+    <circle cx="1124" cy="534" r="2.5" fill="#2B2D42" />
+    <g transform="rotate(-16 1100 462)">
+      <path
+        d="M1072 440H1128Q1140 466 1140 482Q1100 492 1060 482Q1060 466 1072 440Z"
+        fill="#8ADBC8"
+      />
+      <path d="M1072 440H1086L1080 486Q1068 485 1060 482Q1060 466 1072 440Z" fill="#6FC3AF" />
+      <circle cx="1100" cy="436" r="8" fill="#3A9E8A" />
+      <ellipse cx="1100" cy="484" rx="38" ry="6" fill="#FFF1B8" />
+    </g>
+
+    <g transform="translate(20 0)">
+      <Avatar />
+    </g>
+  </g>
+
+  <!-- gabinete bajo la estantería (las 4 repisas son la escena de Fuera del código): ×1,2 como la
+  estantería, termina 30 px dentro del piso -->
+  <g transform="translate(-254 -86) scale(1.2)">
+    <rect x="1240" y="489" width="272" height="241" rx="8" fill="#7D4690" />
+    <rect x="1252" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
+    <rect x="1382" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
+    <rect x="1252" y="501" width="118" height="10" rx="5" fill="#fff" opacity=".14" />
+    <rect x="1382" y="501" width="118" height="10" rx="5" fill="#fff" opacity=".14" />
+    <rect x="1356" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
+    <rect x="1388" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
+  </g>
 
   <Cat />
 </svg>

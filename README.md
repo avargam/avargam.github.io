@@ -100,3 +100,7 @@ Los tokens están en `@theme` de `src/styles/global.css` y generan utilidades co
 - El workflow (`.github/workflows/deploy.yml`) corre lint, formato, tipos y build en `dev`, `main` y las PRs, pero solo despliega desde `main`.
 
 Si el repositorio se llamara distinto de `avargam.github.io`, habría que agregar `base: '/nombre-del-repo'` en `astro.config.mjs` y ajustar `site`.
+
+## Créditos
+
+- Música de ambiente: "Chill lofi inspired", de isaiah658, en [OpenGameArt](https://opengameart.org/content/chill-lofi-inspired). Licencia CC0 (dominio público). Está en `public/audio/lofi-ambiente.mp3`, recodificada a MP3.

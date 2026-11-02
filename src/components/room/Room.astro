@@ -6,6 +6,7 @@
 import { getSection, sections, type SectionSlug } from '../../data/sections';
 import World from '../stage/World.astro';
 import SectionChips from '../ui/SectionChips.astro';
+import AmbientMusic from '../ui/AmbientMusic.astro';
 import CityScene from '../scenes/formacion/CityScene.astro';
 import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
 import CorkScene from '../scenes/experiencia/CorkScene.astro';
@@ -19,6 +20,7 @@ import RoomBack from './RoomBack.astro';
 import NamePlate from './NamePlate.astro';
 import RoomLabel from './RoomLabel.astro';
 import ContactMinis from './ContactMinis.astro';
+import AvatarArm from './AvatarArm.astro';
 import { objectRect, rectStyle, sceneInObject } from '../stage/geometry';
 
 interface Props {
@@ -112,6 +114,9 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       );
     })}
 
+    <div data-room-only inert={!!open}>
+      <AvatarArm />
+    </div>
     <NamePlate />
     {sections.map((s) => (
       <RoomLabel section={s} hidden={!!open} />
@@ -152,6 +157,7 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       )}
 
       <p data-announcer class="sr-only" aria-live="polite"></p>
+      <AmbientMusic />
     </div>
   </World>
 </main>
