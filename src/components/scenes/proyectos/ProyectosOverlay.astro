@@ -2,6 +2,7 @@
 /**
  * Capa HTML de Proyectos (escala 1:1 sobre la escena): solo Volver y el título para lectores de
  * pantalla. Los chips son la barra de tareas y la pista va en el menú Ayuda, los dos en la escena.
+ * Además, da la hora del reloj del escritorio.
  */
 import { getSection } from '../../../data/sections';
 import SectionShell from '../../ui/SectionShell.astro';
@@ -32,4 +33,18 @@ const { active } = Astro.props;
     },
   });
   if (nav) registerSection('proyectos', nav);
+
+  // La hora de la barra de menú del escritorio, al minuto.
+  const clock = document.querySelector<HTMLTimeElement>('[data-clock]');
+  const tick = () => {
+    const now = new Date();
+    if (clock)
+      clock.textContent = now.toLocaleTimeString('es-CL', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      });
+    setTimeout(tick, 60_000 - (now.getTime() % 60_000));
+  };
+  tick();
 </script>

@@ -72,7 +72,8 @@ const { initial } = Astro.props;
    * Animaciones ambientales del cuarto (vapor, gato, estrellas, ventanas, monitor, post-it): cada
    * una usa `animation-play-state: var(--ambient-state, paused)`, así corren solo con el cuarto en
    * reposo (`data-view="room"`, lo pone el router): no repintan la escena durante el zoom ni
-   * distraen dentro de una sección. Con movimiento reducido, cada componente las quita.
+   * distraen dentro de una sección. Una sección puede encender las suyas con su propio
+   * `data-view` (el escritorio de Proyectos). Con movimiento reducido, cada componente las quita.
    */
   [data-view='room'] {
     --ambient-state: running;

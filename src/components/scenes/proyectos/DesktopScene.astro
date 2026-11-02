@@ -9,6 +9,11 @@ import ProjectWindow from './ProjectWindow.astro';
 import { proyectosItems } from './desk';
 import desktop from './art/desktop.svg?raw';
 
+/** Silueta de la carpeta: la parte de atrás con su pestaña. */
+const FOLDER_BACK = 'M0 8Q0 2 6 2H26Q30 2 32 5L36 11H70Q76 11 76 17V56Q76 62 70 62H6Q0 62 0 56Z';
+/** El frente abierto: se inclina hacia adelante y deja asomar la hoja. */
+const FOLDER_OPEN = 'M-4 26Q-4 22 0 22H76Q80 22 79 26L74 58Q73 62 69 62H6Q2 62 1 58Z';
+
 const rect = (r: { x: number; y: number; w: number; h: number }) =>
   `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`;
 
@@ -24,7 +29,7 @@ const tabCss = proyectosItems
 const noJsCss = proyectosItems
   .map(
     ({ id }) => `html:not(.js) #${id}:target { display: block; }
-html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { background: var(--color-wall); color: var(--color-plum); border-color: var(--color-pink); }`,
+html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { background: var(--color-wall); color: var(--color-plum); box-shadow: inset 0 -3px var(--color-pink); }`,
   )
   .join('\n');
 ---
@@ -41,9 +46,11 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     <span class="font-bold" aria-hidden="true">
       Proyectos
     </span>
-    <span aria-hidden="true">Ver</span>
     <details class="help">
-      <summary>Ayuda</summary>
+      <summary>
+        <span aria-hidden="true">?</span>
+        <span class="sr-only">Ayuda</span>
+      </summary>
       <dl class="help-list">
         <div>
           <dt>Abrir un proyecto</dt>
@@ -65,6 +72,10 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
         </div>
       </dl>
     </details>
+    <span class="status-area" aria-hidden="true">
+      <span class="battery"></span>
+      <time class="clock" data-clock></time>
+    </span>
   </div>
 
   {proyectosItems.map(({ id, name, project, folder }) => (
@@ -77,15 +88,33 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
       aria-controls={id}
       aria-pressed="false"
     >
-      <svg width="76" height="62" viewBox="0 0 76 62" aria-hidden="true">
-        <path
-          d="M4 4 h24 l8 10 h36 v44 h-68 Z"
-          fill={project.color}
-          stroke="#5A2F6B"
-          stroke-width="4"
-          stroke-linejoin="round"
-        />
-        <path d="M4 22 h68" stroke="#5A2F6B" stroke-width="3" opacity=".4" />
+      <svg
+        class="folder-icon"
+        width="88"
+        height="70"
+        viewBox="-6 -2 88 70"
+        style={`--c:${project.color}`}
+        aria-hidden="true"
+      >
+        <path d={FOLDER_BACK} fill="#2A1B6B" opacity=".2" transform="translate(3 5)" />
+        <path class="folder-back" d={FOLDER_BACK} />
+        <g class="folder-sheet">
+          <rect x="8" width="58" height="40" rx="3" fill="#FBF4FF" />
+          <path
+            d="M16 10H52M16 18H48M16 26H44"
+            stroke="#DAD0FF"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+        </g>
+        <g class="folder-closed">
+          <rect class="folder-front" y="18" width="76" height="44" rx="6" />
+          <rect class="folder-lip" y="18" width="76" height="6" rx="3" />
+        </g>
+        <g class="folder-open">
+          <path class="folder-front" d={FOLDER_OPEN} />
+          <path class="folder-lip" d="M-4 26Q-4 22 0 22H76Q80 22 79 26V28H-4Z" />
+        </g>
       </svg>
       <span class="folder-name" aria-hidden="true">
         {project.folder.map((line, i) => (
@@ -122,12 +151,15 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
 
 <style>
   /*
-   * Ambiente (solo con el cuarto en reposo, ver `--ambient-state` en World.astro): las líneas horizontales
-   * de la grilla avanzan cada una hasta la siguiente (el ciclo se repite sin salto) y las franjas
-   * del sol bajan.
+   * Ambiente (con el cuarto en reposo y también dentro de Proyectos, ver `--ambient-state` en
+   * World.astro): las líneas horizontales de la grilla avanzan cada una hasta la siguiente (el ciclo
+   * se repite sin salto).
    */
-  .wallpaper :global(line[x1='56']),
-  .wallpaper :global(rect[x='600'][width='400']) {
+  :global([data-view='proyectos']) .desktop {
+    --ambient-state: running;
+  }
+
+  .wallpaper :global(line[x1='56']) {
     animation: grid-run 2.6s linear infinite;
     animation-play-state: var(--ambient-state, paused);
   }
@@ -157,38 +189,22 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     --dy: 70px;
   }
 
-  .wallpaper :global(rect[x='600'][width='400']) {
-    --dy: 26px;
-    animation-name: stripe-down;
-    animation-duration: 5.2s;
-  }
-
   @keyframes grid-run {
     to {
       transform: translateY(var(--dy));
     }
   }
 
-  @keyframes stripe-down {
-    0% {
-      opacity: 0;
-    }
-    20% {
-      opacity: 0.95;
-    }
-    to {
-      transform: translateY(var(--dy));
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .wallpaper :global(:is(line, rect)) {
+    .wallpaper :global(line) {
       animation: none;
     }
   }
 
+  /* Encima de las ventanas, para que el menú Ayuda no quede detrás. */
   .menubar {
     position: absolute;
+    z-index: 1;
     top: 50px;
     left: 56px;
     display: flex;
@@ -196,6 +212,7 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     height: 38px;
     align-items: center;
     gap: 32px;
+    padding-right: 28px;
     padding-left: 244px;
     background: rgb(249 221 240 / 0.92);
     color: var(--color-plum);
@@ -207,10 +224,22 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
   }
 
   .help summary {
-    padding: 2px 8px;
-    border-radius: 6px;
+    display: grid;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--color-plum);
+    color: var(--color-wall);
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 800;
     list-style: none;
+    place-items: center;
+    transition: background 0.2s;
+  }
+
+  .help summary:hover {
+    background: var(--color-desk);
   }
 
   .help summary::-webkit-details-marker {
@@ -218,20 +247,19 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
   }
 
   .help[open] summary {
-    background: var(--color-plum);
-    color: var(--color-wall);
+    background: var(--color-pink);
+    color: var(--color-ink);
   }
 
   .help-list {
     position: absolute;
-    top: 34px;
+    top: 38px;
     left: 0;
     width: 380px;
-    padding: 10px;
-    border: 3px solid var(--color-plum);
-    border-radius: 10px;
-    background: var(--color-wall);
-    box-shadow: 5px 6px 0 var(--color-plum);
+    padding: 6px 12px;
+    border-radius: 14px;
+    background: #fbf4ff;
+    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.2);
     color: var(--color-ink);
     font-size: 15px;
     font-weight: 600;
@@ -244,16 +272,61 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
   .help-list > div {
     display: flex;
     justify-content: space-between;
-    padding: 7px 8px;
+    padding: 9px 4px;
+  }
+
+  .help-list > div + div {
+    border-top: 1.5px solid #e8ddf2;
   }
 
   kbd {
-    padding: 2px 7px;
-    border-radius: 5px;
+    padding: 2px 8px;
+    border-radius: 6px;
     background: var(--color-lilac);
+    box-shadow: inset 0 -3px #9a8ce0;
     font-family: inherit;
     font-size: 13px;
     font-weight: 800;
+  }
+
+  .status-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+    font-weight: 700;
+  }
+
+  .battery {
+    position: relative;
+    width: 30px;
+    height: 15px;
+    border: 2px solid currentcolor;
+    border-radius: 4px;
+  }
+
+  .battery::before {
+    position: absolute;
+    inset: 2px 7px 2px 2px;
+    border-radius: 1px;
+    background: var(--color-mint);
+    content: '';
+  }
+
+  .battery::after {
+    position: absolute;
+    top: 3px;
+    right: -5px;
+    width: 3px;
+    height: 5px;
+    border-radius: 0 1px 1px 0;
+    background: currentcolor;
+    content: '';
+  }
+
+  /* Sin JS no hay hora. */
+  html:not(.js) .clock {
+    display: none;
   }
 
   @keyframes help-drop {
@@ -268,38 +341,85 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     align-content: start;
     justify-items: center;
     gap: 6px;
-    padding-top: 18px;
-    border: 4px solid transparent;
-    border-radius: 12px;
+    padding-top: 14px;
+    border-radius: 16px;
     cursor: pointer;
+    transition: background 0.2s;
   }
 
   .folder:hover,
   .folder:focus-visible {
-    background: rgb(90 47 107 / 0.25);
+    background: rgb(251 244 255 / 0.18);
     outline: none;
   }
 
-  .folder[aria-pressed='true'] {
-    border: 4px dashed var(--color-pink);
-    background: rgb(90 47 107 / 0.5);
+  .folder:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-wall);
   }
 
-  .folder svg {
+  .folder[aria-pressed='true'] {
+    background: rgb(251 244 255 / 0.3);
+  }
+
+  .folder-icon {
+    overflow: visible;
     transition: translate 0.2s;
   }
 
-  .folder:hover svg {
+  .folder:hover .folder-icon {
     translate: 0 -3px;
   }
 
+  /* Tonos de la carpeta a partir del color del proyecto. */
+  .folder-back {
+    fill: color-mix(in oklab, var(--c), #5a2f6b 18%);
+  }
+
+  .folder-front {
+    fill: var(--c);
+  }
+
+  .folder-lip {
+    fill: color-mix(in oklab, var(--c), #fff 30%);
+  }
+
+  /* Elegida, se abre: el frente se inclina y asoma la hoja. */
+  .folder-sheet {
+    opacity: 0;
+    translate: 0 14px;
+    transition:
+      opacity 0.2s,
+      translate 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .folder-open {
+    opacity: 0;
+  }
+
+  .folder-open,
+  .folder-closed {
+    transition: opacity 0.15s;
+  }
+
+  .folder[aria-pressed='true'] .folder-sheet {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .folder[aria-pressed='true'] .folder-open {
+    opacity: 1;
+  }
+
+  .folder[aria-pressed='true'] .folder-closed {
+    opacity: 0;
+  }
+
   .folder-name {
-    color: var(--color-wall);
+    color: #fbf4ff;
     font-size: 15px;
     font-weight: 700;
     line-height: 18px;
-    paint-order: stroke;
-    -webkit-text-stroke: 4px var(--color-plum);
+    text-shadow: 0 2px 3px rgb(42 27 107 / 0.45);
   }
 
   .taskbar {
@@ -331,7 +451,6 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     align-items: center;
     gap: 12px;
     padding: 0 14px;
-    border: 3px solid transparent;
     border-radius: 8px;
     background: var(--color-desk);
     color: var(--color-wall);
@@ -348,9 +467,26 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
   }
 
   .tab[aria-current] {
-    border-color: var(--color-pink);
     background: var(--color-wall);
     color: var(--color-plum);
+  }
+
+  /* La activa lleva una línea rosa abajo. */
+  .tab::after {
+    position: absolute;
+    right: 14px;
+    bottom: 0;
+    left: 14px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-pink);
+    content: '';
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .tab[aria-current]::after {
+    opacity: 1;
   }
 
   .tab-number {
