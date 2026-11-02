@@ -119,15 +119,15 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   }
 
   /**
-   * Quita el detalle abierto (sin mover la cámara ni la URL). Con `leave`, la consola de Juegos
-   * vuelve achicándose a la repisa (`data-leaving` hasta que termina); al cambiar de objeto se va
-   * de inmediato, porque el nuevo detalle ya entra en su lugar.
+   * Quita el detalle abierto (sin mover la cámara ni la URL). Con `leave`, los detalles con
+   * `data-leave` (la consola y las cajas de Juegos) vuelven achicándose a su objeto (`data-leaving`
+   * hasta que termina); al cambiar de objeto se van de inmediato, porque el nuevo ya entra.
    */
   function hide(leave = true) {
     if (!open) return;
     const detail = details.get(open);
     detail?.removeAttribute('data-open');
-    if (leave && detail?.matches('.console') && !prefersReducedMotion()) {
+    if (leave && detail?.hasAttribute('data-leave') && !prefersReducedMotion()) {
       detail.setAttribute('data-leaving', '');
       const done = (event: AnimationEvent) => {
         if (event.target !== detail) return;

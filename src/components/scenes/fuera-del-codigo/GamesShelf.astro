@@ -22,6 +22,21 @@ const boards = games.filter((g) => g.kind === 'mesa');
 const boxX = (k: number) => GAMES.box.x + GAMES.box.jitter[k % GAMES.box.jitter.length];
 // Cajas apiladas: la primera arriba, cada una sobre las de más abajo.
 const boxY = (k: number) => GAMES.box.base - boards.slice(k).reduce((sum, g) => sum + g.height, 0);
+// La caja abierta (`.obox`) mide 600×272 y parte del tamaño de su caja en la pila.
+const OBOX = { w: 600, h: 272 };
+
+/**
+ * Al abrir una caja, sale de la pila (sin recibir clics) y las de arriba bajan a ocupar su lugar;
+ * al cerrarla suben para hacerle espacio y la caja reaparece cuando termina de volver.
+ */
+const stackCss = boards
+  .map((g, k) => {
+    const self = `.games:has(#${g.id}:is([data-open], [data-leaving])) [data-sub="${g.id}"] { opacity: 0; pointer-events: none; }`;
+    const above = boards.slice(0, k).map((a) => `[data-sub="${a.id}"]`);
+    if (!above.length) return self;
+    return `${self}\n.games:has(#${g.id}[data-open]) :is(${above.join(', ')}) { translate: 0 ${g.height}px; }`;
+  })
+  .join('\n');
 const cartX = (k: number) => GAMES.cart.x + (k - 4) * GAMES.cart.step;
 const colors = (g: Game) => `--c:${g.color};--t:${g.textColor ?? 'var(--color-ink)'}`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -31,6 +46,7 @@ const { handheld } = GAMES;
 const mini = handheld.w / 600;
 const consoleCenter = { x: handheld.x + handheld.w / 2, y: handheld.y + handheld.h / 2 };
 const slotTop = { x: consoleCenter.x, y: handheld.y - 10 };
+const consoleFly = `--fx:${consoleCenter.x - center.x}px;--fy:${consoleCenter.y - center.y}px;--fly-sx:${mini};--fly-sy:${mini}`;
 const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mini}px;width:${380 * mini}px;height:${236 * mini}px`;
 ---
 
@@ -106,8 +122,9 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
         <article
           id={g.id}
           class="sub-detail fly obox"
-          style={`--fx:${fx}px;--fy:${fy}px;${colors(g)}`}
+          style={`--fx:${fx}px;--fy:${fy}px;--fly-sx:${g.width / OBOX.w};--fly-sy:${g.height / OBOX.h};${colors(g)}`}
           data-sub-detail={g.id}
+          data-leave
           aria-label={g.title}
         >
           <div class="tray">
@@ -158,8 +175,9 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
         <article
           id={g.id}
           class="sub-detail fly console"
-          style={`--fx:${consoleCenter.x - center.x}px;--fy:${consoleCenter.y - center.y}px;${colors(g)}`}
+          style={`${consoleFly};${colors(g)}`}
           data-sub-detail={g.id}
+          data-leave
           aria-label={g.title}
         >
           <div class="slot" aria-hidden="true" />
@@ -234,6 +252,8 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     </text>
   </svg>
 </div>
+
+<style is:inline set:html={stackCss} />
 
 <style>
   /* Los dados ruedan al llegar a la repisa. */
@@ -474,6 +494,8 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
 
   /* ---------- caja abierta ---------- */
   .obox {
+    --fly-rot: 0deg;
+    --back-delay: 0.2s;
     top: 126px;
     left: 500px;
     width: 600px;
@@ -548,6 +570,20 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
 
   .obox[data-open] .lid {
     animation: lid-off 0.7s 0.55s cubic-bezier(0.5, 0, 0.3, 1) backwards;
+  }
+
+  /* Al cerrar, la tapa vuelve a caer sobre la caja antes de que regrese a la pila. */
+  .obox[data-leaving] .lid {
+    opacity: 1;
+    animation: lid-on 0.25s cubic-bezier(0.4, 0, 0.6, 1) backwards;
+  }
+
+  @keyframes lid-on {
+    from {
+      opacity: 0;
+      translate: 300px -240px;
+      rotate: 20deg;
+    }
   }
 
   @keyframes lid-off {
@@ -657,8 +693,8 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
   }
 
   /*
-   * Sale de la consola de la repisa (que está derecha y mide 0,32 de esta) cuando la pantallita ya
-   * mostró el juego, y al cerrar vuelve a ella.
+   * Sale de la consola de la repisa (derecha y a un tercio de esta) cuando la pantallita ya mostró
+   * el juego, y al cerrar vuelve a ella.
    */
   .console {
     --delay: var(--console-out);
@@ -785,18 +821,6 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  .console[data-leaving] {
-    display: block;
-    pointer-events: none;
-    animation: console-back 0.4s cubic-bezier(0.5, 0, 0.7, 0.4) forwards;
-  }
-
-  @keyframes console-back {
-    to {
-      transform: translate(var(--fx), var(--fy)) scale(0.32);
-    }
   }
 
   /* El clip aparece cuando la consola ya llegó al frente. */

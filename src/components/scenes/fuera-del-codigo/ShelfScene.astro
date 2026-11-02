@@ -259,7 +259,11 @@ const noJsCss = fueraItems
     display: block;
   }
 
-  /* Libro, caja y consola vuelan al frente desde su objeto (--fx, --fy) y reciben sus clics. */
+  /*
+   * Libro, caja y consola vuelan al frente desde su objeto (--fx, --fy) y reciben sus clics. Parten
+   * a escala (--fly-sx, --fly-sy) y girados (--fly-rot); la caja y la consola parten del tamaño
+   * exacto de su objeto en la repisa.
+   */
   .shelf :global(.fly) {
     pointer-events: auto;
   }
@@ -271,10 +275,25 @@ const noJsCss = fueraItems
   @keyframes fly {
     0% {
       opacity: 0;
-      transform: translate(var(--fx), var(--fy)) scale(0.32) rotate(var(--fly-rot, -6deg));
+      transform: translate(var(--fx), var(--fy)) scale(var(--fly-sx, 0.32), var(--fly-sy, 0.32))
+        rotate(var(--fly-rot, -6deg));
     }
     10% {
       opacity: 1;
+    }
+  }
+
+  /* Los que tienen `data-leave` vuelven a su objeto al cerrar (`data-leaving`, `shelfClient.ts`). */
+  .shelf :global(.fly[data-leaving]) {
+    display: block;
+    pointer-events: none;
+    animation: fly-back 0.4s var(--back-delay, 0s) cubic-bezier(0.5, 0, 0.7, 0.4) forwards;
+  }
+
+  @keyframes fly-back {
+    to {
+      transform: translate(var(--fx), var(--fy)) scale(var(--fly-sx, 0.32), var(--fly-sy, 0.32))
+        rotate(var(--fly-rot, -6deg));
     }
   }
 
