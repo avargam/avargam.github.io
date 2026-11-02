@@ -584,15 +584,45 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     text-align: center;
   }
 
+  /* Se enciende cuando entra el cartucho y se apaga cuando la consola sale de la repisa. */
   .handheld-screen:has(+ .cart-fly + .console:is([data-open], html:not(.js) :target)) {
     display: grid;
-    animation: power-on 0.3s 0.45s steps(3) backwards;
+    animation:
+      power-on 0.3s 0.45s steps(3) backwards,
+      mini-off 0s var(--console-out) forwards;
   }
 
   @keyframes power-on {
     from {
       opacity: 0;
     }
+  }
+
+  @keyframes mini-off {
+    to {
+      opacity: 0;
+    }
+  }
+
+  /*
+   * Hay una sola consola: la de la repisa se oculta cuando la grande empieza a crecer desde su lugar
+   * y vuelve cuando la grande termina de achicarse de regreso (`data-leaving`).
+   */
+  .games {
+    --console-out: 0.8s;
+  }
+
+  .games :global(.handheld) {
+    transition: opacity 0s;
+  }
+
+  .games:has(.console[data-open]) :global(.handheld) {
+    opacity: 0;
+    transition-delay: var(--console-out);
+  }
+
+  .games:has(.console[data-leaving]) :global(.handheld) {
+    opacity: 0;
   }
 
   .cart-fly {
@@ -626,9 +656,12 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     }
   }
 
-  /* Sale de la consola de la repisa, que está derecha y mide 0,32 de esta. */
+  /*
+   * Sale de la consola de la repisa (que está derecha y mide 0,32 de esta) cuando la pantallita ya
+   * mostró el juego, y al cerrar vuelve a ella.
+   */
   .console {
-    --delay: 0.5s;
+    --delay: var(--console-out);
     --fly-rot: 0deg;
     top: 118px;
     left: 500px;
@@ -754,8 +787,21 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     object-fit: cover;
   }
 
+  .console[data-leaving] {
+    display: block;
+    pointer-events: none;
+    animation: console-back 0.4s cubic-bezier(0.5, 0, 0.7, 0.4) forwards;
+  }
+
+  @keyframes console-back {
+    to {
+      transform: translate(var(--fx), var(--fy)) scale(0.32);
+    }
+  }
+
+  /* El clip aparece cuando la consola ya llegó al frente. */
   .console[data-open] .clip {
-    animation: clip-in 0.3s 1.2s backwards;
+    animation: clip-in 0.3s calc(var(--delay) + 0.7s) backwards;
   }
 
   @keyframes clip-in {
@@ -775,7 +821,7 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
   }
 
   .console[data-open] .scene-placeholder {
-    animation: scene-cycle 8s calc(1.2s + var(--i) * 4s) infinite backwards;
+    animation: scene-cycle 8s calc(var(--delay) + 0.7s + var(--i) * 4s) infinite backwards;
   }
 
   @keyframes scene-cycle {

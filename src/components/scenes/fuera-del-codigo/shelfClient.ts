@@ -94,7 +94,8 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (topic === 'musica') {
       topicEl(topic)?.style.setProperty('--arm-from', switching ? '-16deg' : '0deg');
     }
-    hide();
+    hide(false);
+    detail.removeAttribute('data-leaving');
     // Un recálculo de estilos entre cerrar y abrir reinicia las animaciones de la repisa y del
     // detalle al cambiar de objeto (el vinilo vuelve a caer, la cuenta regresiva vuelve a correr).
     void detail.offsetWidth;
@@ -117,11 +118,24 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (announcer) announcer.textContent = detail.getAttribute('aria-label') ?? '';
   }
 
-  /** Quita el detalle abierto (sin mover la cámara ni la URL). */
-  function hide() {
+  /**
+   * Quita el detalle abierto (sin mover la cámara ni la URL). Con `leave`, la consola de Juegos
+   * vuelve achicándose a la repisa (`data-leaving` hasta que termina); al cambiar de objeto se va
+   * de inmediato, porque el nuevo detalle ya entra en su lugar.
+   */
+  function hide(leave = true) {
     if (!open) return;
     const detail = details.get(open);
     detail?.removeAttribute('data-open');
+    if (leave && detail?.matches('.console') && !prefersReducedMotion()) {
+      detail.setAttribute('data-leaving', '');
+      const done = (event: AnimationEvent) => {
+        if (event.target !== detail) return;
+        detail.removeAttribute('data-leaving');
+        detail.removeEventListener('animationend', done);
+      };
+      detail.addEventListener('animationend', done);
+    }
     for (const video of detail?.querySelectorAll('video') ?? []) video.pause();
     objects.get(open)?.removeAttribute('aria-current');
     const topic = topicOf(open);
