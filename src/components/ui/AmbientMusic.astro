@@ -68,7 +68,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       const from = audio.volume;
       const start = performance.now();
       const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / FADE);
+        // El primer cuadro puede traer una marca de tiempo anterior a `start`: sin el tope, el
+        // volumen quedaría negativo, el navegador lo rechaza y la música sigue muda.
+        const t = Math.min(1, Math.max(0, (now - start) / FADE));
         audio.volume = from + (target - from) * t;
         if (t < 1) frame = requestAnimationFrame(tick);
         else done?.();
