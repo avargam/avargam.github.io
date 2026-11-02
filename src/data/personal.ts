@@ -43,7 +43,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-frieren',
     title: 'Frieren',
-    color: '#8ADBC8',
+    color: '#A9C4F5',
+    textColor: '#2E2170',
     height: 232,
     description:
       'Una elfa maga que ya venció al Rey Demonio vuelve a recorrer el mundo, esta vez para entender a los compañeros humanos que el tiempo se llevó.',
@@ -52,6 +53,7 @@ export const anime: Manga[] = [
     id: 'anime-chainsaw',
     title: 'Chainsaw Man',
     color: '#FF9E7A',
+    textColor: '#2E2170',
     height: 214,
     description:
       'Denji, ahogado en deudas, se fusiona con Pochita, su perro motosierra, y termina cazando demonios para el gobierno. Caótico, brutal y extrañamente tierno.',
@@ -59,7 +61,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-madoka',
     title: 'Madoka Magica',
-    color: '#FF6FA3',
+    color: '#F9DDF0',
+    textColor: '#2E2170',
     height: 238,
     description:
       'Kyubey cumple cualquier deseo a cambio de volverse chica mágica. Bajo los colores pastel, el contrato esconde algo mucho más oscuro.',
@@ -68,6 +71,7 @@ export const anime: Manga[] = [
     id: 'anime-msik',
     title: 'Mahou Shoujo Ikusei Keikaku',
     color: '#C6B8FF',
+    textColor: '#2E2170',
     height: 226,
     description:
       'Un juego para el celular convierte a sus jugadoras en chicas mágicas de verdad, hasta que anuncia que solo la mitad puede quedarse.',
@@ -75,8 +79,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-wha',
     title: 'Witch Hat Atelier',
-    color: '#7B6CF6',
-    textColor: '#FFFFFF',
+    color: '#6A56B8',
+    textColor: '#FBF4FF',
     height: 218,
     description:
       'Coco descubre que la magia se dibuja con tinta. Después de un hechizo que sale mal, se vuelve aprendiz de bruja para arreglarlo.',
@@ -84,7 +88,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-chiikawa',
     title: 'Chiikawa',
-    color: '#FFFDF7',
+    color: '#FBF4FF',
+    textColor: '#2E2170',
     height: 206,
     description:
       'Criaturas pequeñas y redondas que arrancan maleza para vivir, comen rico y lloran seguido, en un mundo tierno pero sorprendentemente duro.',
@@ -93,6 +98,7 @@ export const anime: Manga[] = [
     id: 'anime-ansatsu',
     title: 'Ansatsu Kyoshitsu',
     color: '#FFE86B',
+    textColor: '#2E2170',
     height: 236,
     description:
       'La criatura que destruyó parte de la Luna se vuelve profesor de la clase 3‑E. Sus alumnos tienen un año para asesinarlo.',
@@ -100,8 +106,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-wixoss',
     title: 'Wixoss',
-    color: '#3B2A80',
-    textColor: '#FFFFFF',
+    color: '#2E2170',
+    textColor: '#F9DDF0',
     height: 210,
     description:
       'En un juego de cartas, las chicas que ganan pueden cumplir su deseo. Lo que cuesta perder (y ganar) es más de lo que parece.',
@@ -303,7 +309,7 @@ export const games: Game[] = [
     kind: 'video',
     title: 'Super Mario Galaxy',
     label: ['MARIO', 'GALAXY'],
-    color: '#6A56B8',
+    color: '#FFE86B',
     clip: '/clips/galaxy.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
     genre: 'Plataformas 3D',

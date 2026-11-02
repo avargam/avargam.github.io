@@ -197,7 +197,15 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       return;
     }
     if (target.closest('[data-clap]')) {
-      clap();
+      replay('cine', 'data-clap');
+      return;
+    }
+    if (target.closest('[data-chime]')) {
+      replay('anime', 'data-chime');
+      return;
+    }
+    if (target.closest('[data-phones]')) {
+      replay('musica', 'data-swing');
       return;
     }
     const peg = target.closest<HTMLAnchorElement>('[data-peg]');
@@ -215,7 +223,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (!open || event.defaultPrevented || target.closest('[data-overlay]')) return;
     if (
       target.closest(
-        '[data-sub], [data-roll], [data-clap], .sub-detail.fly, .film-screen, .ticket, [data-player]',
+        '[data-sub], [data-roll], [data-clap], [data-chime], [data-phones], .sub-detail.fly, .film-screen, .ticket, [data-player]',
       )
     )
       return;
@@ -235,13 +243,17 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   }
 
   /* ---------- Juegos: el d20 elige un juego al azar ---------- */
-  /** La claqueta de Cine marca la toma; otro clic la reinicia aunque no haya terminado. */
-  function clap() {
-    const cinema = topicEl('cine');
-    if (!cinema) return;
-    cinema.removeAttribute('data-clap');
-    void cinema.offsetWidth;
-    cinema.setAttribute('data-clap', '');
+  /**
+   * Reproduce la animación de un objeto de la repisa (la claqueta de Cine, el fūrin de Anime, los
+   * audífonos de Música) con
+   * el atributo `attr` en su tema; otro clic la reinicia aunque no haya terminado.
+   */
+  function replay(topic: string, attr: string) {
+    const el = topicEl(topic);
+    if (!el) return;
+    el.removeAttribute(attr);
+    void el.offsetWidth;
+    el.setAttribute(attr, '');
   }
 
   async function roll() {

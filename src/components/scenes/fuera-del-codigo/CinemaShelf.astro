@@ -270,14 +270,13 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
   }
 
   /*
-   * Caja acostada en la pila: sin el borde de los lomos y con el título en horizontal. Los
+   * Caja acostada en la pila: con el título en horizontal y la franja clara a la izquierda. Los
    * selectores llevan `.cinema` para ganarle a las reglas comunes de `.spine` y `.sub-object`.
    */
   .cinema .case {
     align-items: center;
     justify-content: flex-start;
     padding: 0 0 0 32px;
-    border: 0;
     border-radius: 6px;
     font-size: 12.5px;
   }
@@ -446,6 +445,7 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
     position: absolute;
     z-index: 1;
     overflow: hidden;
+    border-radius: 3px;
     pointer-events: auto;
   }
 

@@ -50,7 +50,7 @@ export const fueraItems: ShelfItem[] = topics.map((topic, index) => ({
 export const fueraItem = (id: string) => fueraItems.find((item) => item.id === id);
 
 /** Centro del detalle que vuela al frente (libro, caja, consola) en cada repisa. */
-export const DETAIL_CENTER = { juegos: { x: 800, y: 262 }, anime: { x: 800, y: 440 } };
+export const DETAIL_CENTER = { juegos: { x: 800, y: 262 }, anime: { x: 800, y: 600 } };
 
 /**
  * Juegos: cajas de mesa apiladas (la primera arriba, cada una corrida `jitter` px; su tamaño está en
@@ -64,8 +64,18 @@ export const GAMES = {
   d20: { x: 1238, y: 392 },
 };
 
-/** Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. */
-export const ANIME = { x: 262, w: 54, gap: 4, base: shelfBase(1), book: { x: 480, y: 300 } };
+/**
+ * Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. El fūrin cuelga
+ * de la repisa de arriba (`chime` es su zona clicable).
+ */
+export const ANIME = {
+  x: 280,
+  w: 54,
+  gap: 4,
+  base: shelfBase(1),
+  book: { x: 480, y: 460 },
+  chime: { x: 1236, y: 492, w: 88, h: 262 },
+};
 
 /**
  * Cine: cajas de DVD apiladas (la primera arriba, cada una corrida `jitter` px), lente del
@@ -80,16 +90,18 @@ export const CINE = {
   slide: 36,
   base: shelfBase(2),
   lens: { x: 1187, y: shelfBase(2) - 140 },
-  screen: { x: 707, y: 883, w: 326, h: 224 },
+  // El telón visible: del borde del arte (704, 878) hasta la barra de abajo (y 1104).
+  screen: { x: 704, y: 878, w: 332, h: 226 },
   /** Zona clicable de la claqueta. */
   clapper: { x: 554, y: 1070, w: 112, h: 112 },
 };
 
-/** Música: portadas en la repisa de pared y plato del tocadiscos. */
+/** Música: portadas en la repisa de pared, plato del tocadiscos y zona clicable de los audífonos. */
 export const MUSICA = {
   x: 262,
   step: 110,
   size: 96,
   top: VT + 3 * VH + 126 - 96 - 4,
   platter: { x: 790, y: shelfBase(3) - 80 },
+  phones: { x: 1116, y: 1296, w: 128, h: 102 },
 };
