@@ -14,6 +14,9 @@ import { prefersReducedMotion } from '../../stage/camera';
 import { panToSceneRect } from '../../stage/router';
 import type { ItemNav } from '../../stage/itemNav';
 
+/** Lo que tarda el brazo del tocadiscos en bajar sobre el vinilo (`arm-drop` en `MusicShelf`). */
+const ARM_DOWN_MS = 1600;
+
 export interface Shelf {
   /** Teclas con un objeto abierto (← →, Esc, espacio en Música). Devuelve `true` si la consumió. */
   onKey(event: KeyboardEvent): boolean;
@@ -81,11 +84,18 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     const topic = topicOf(id);
     const detail = details.get(id);
     if (!topic || !detail) return;
+    // Si ya sonaba otro disco, el brazo parte desde abajo y sube antes de que caiga el nuevo.
+    const switching = open !== null && topicOf(open) === topic;
+    if (topic === 'musica') {
+      topicEl(topic)?.style.setProperty('--arm-from', switching ? '-16deg' : '0deg');
+    }
     hide();
+    // Un recálculo de estilos entre cerrar y abrir reinicia las animaciones de la repisa y del
+    // detalle al cambiar de objeto (el vinilo vuelve a caer, la cuenta regresiva vuelve a correr).
+    void detail.offsetWidth;
     open = id;
     topicEl(topic)?.setAttribute('data-open', id);
     objects.get(id)?.setAttribute('aria-current', 'true');
-    void detail.offsetWidth;
     detail.setAttribute('data-open', '');
     // Durante la cuenta regresiva, el clip carga y vuelve al inicio sin verse; sin animaciones no
     // hay cuenta regresiva y se reproduce de inmediato.
@@ -277,11 +287,17 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       step(action === 'prev' ? -1 : 1);
     });
 
+    /** Reproduce; si el navegador no lo permite, el reproductor queda en pausa. */
+    function start() {
+      if (!audio) return;
+      setPaused(false);
+      audio.play().catch(() => setPaused(true));
+    }
+
     function togglePlay() {
       if (!audio) return;
       if (audio.paused) {
-        void audio.play().catch(() => {});
-        setPaused(false);
+        start();
       } else {
         audio.pause();
         setPaused(true);
@@ -308,10 +324,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
         audio.src = song.dataset.audio ?? '';
         audio.volume = 0.6;
         // La música parte cuando la aguja baja (y nunca sin un clic o una tecla de por medio).
-        timer = window.setTimeout(
-          () => void audio.play().catch(() => {}),
-          prefersReducedMotion() ? 0 : 1100,
-        );
+        timer = window.setTimeout(start, prefersReducedMotion() ? 0 : ARM_DOWN_MS);
       },
       stop() {
         clearTimeout(timer);
