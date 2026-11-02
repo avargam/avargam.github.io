@@ -43,7 +43,8 @@ export const fueraItems: ShelfItem[] = topics.map((topic, index) => ({
   index,
   pair: index < 2 ? 0 : 1,
   frame: centered(800, VT + index * VH + 170, 1180, 738),
-  hit: { x: 254, y: VT + index * VH + 20, w: 1120, h: 330 },
+  // El contorno punteado (9 px por fuera) queda a 13 px de cada lateral, sin taparse con el derecho.
+  hit: { x: 254, y: VT + index * VH + 20, w: 1092, h: 330 },
 }));
 
 export const fueraItem = (id: string) => fueraItems.find((item) => item.id === id);
@@ -62,15 +63,22 @@ export const GAMES = {
 /** Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. */
 export const ANIME = { x: 262, w: 54, gap: 4, base: shelfBase(1), book: { x: 480, y: 300 } };
 
-/** Cine: cajas de DVD, lente del proyector y pantalla (el telón desplegado). */
+/**
+ * Cine: cajas de DVD apiladas (la primera arriba, cada una corrida `jitter` px), lente del
+ * proyector y pantalla (el telón desplegado). La caja elegida sale `slide` px hacia la derecha.
+ */
 export const CINE = {
-  x: 262,
-  w: 42,
-  gap: 5,
-  h: 190,
+  x: 266,
+  w: 190,
+  h: 42,
+  step: 43,
+  jitter: [6, -2, 8, 0, 10, 2],
+  slide: 36,
   base: shelfBase(2),
   lens: { x: 1187, y: shelfBase(2) - 140 },
   screen: { x: 707, y: 883, w: 326, h: 224 },
+  /** Zona clicable de la claqueta. */
+  clapper: { x: 554, y: 1070, w: 112, h: 112 },
 };
 
 /** Música: portadas en la repisa de pared y plato del tocadiscos. */
