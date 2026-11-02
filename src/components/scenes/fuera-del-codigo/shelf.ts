@@ -62,12 +62,17 @@ export const GAMES = {
 /** Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. */
 export const ANIME = { x: 262, w: 54, gap: 4, base: shelfBase(1), book: { x: 480, y: 300 } };
 
-/** Cine: cajas de DVD, lente del proyector y pantalla (el telón desplegado). */
+/**
+ * Cine: cajas de DVD apiladas (la primera arriba, cada una corrida `jitter` px), lente del
+ * proyector y pantalla (el telón desplegado). La caja elegida sale `slide` px hacia la derecha.
+ */
 export const CINE = {
-  x: 262,
-  w: 42,
-  gap: 5,
-  h: 190,
+  x: 266,
+  w: 190,
+  h: 42,
+  step: 43,
+  jitter: [6, -2, 8, 0, 10, 2],
+  slide: 36,
   base: shelfBase(2),
   lens: { x: 1187, y: shelfBase(2) - 140 },
   screen: { x: 707, y: 883, w: 326, h: 224 },

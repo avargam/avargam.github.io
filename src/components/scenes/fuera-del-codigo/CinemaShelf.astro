@@ -1,15 +1,18 @@
 ---
 /**
- * Repisa de Cine: al llegar, baja el telón y se enciende el proyector. Al elegir una caja, su disco
- * entra al proyector y, tras una cuenta regresiva, la pantalla muestra dos escenas de la película
- * (un clip de 8 s de `public/` o, mientras falte, escenas de relleno) y aparece la entrada.
+ * Repisa de Cine: al llegar, baja el telón y se enciende el proyector. Al elegir una caja, la
+ * claqueta marca la toma, el disco entra al proyector y, tras una cuenta regresiva, la pantalla
+ * muestra dos escenas de la película (un clip de 8 s de `public/` o, mientras falte, escenas de
+ * relleno) y aparece la entrada.
  */
 import { films } from '../../../data/personal';
 import { CINE } from './shelf';
 import art from './art/cine.svg?raw';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const caseX = (k: number) => CINE.x + k * (CINE.w + CINE.gap);
+// Cajas apiladas: la primera arriba.
+const caseX = (k: number) => CINE.x + CINE.jitter[k % CINE.jitter.length];
+const caseY = (k: number) => CINE.base - (films.length - k) * CINE.step + CINE.step - CINE.h;
 const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE.screen.w}px;height:${CINE.screen.h}px`;
 ---
 
@@ -43,7 +46,7 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     <a
       href={`#${f.id}`}
       class="sub-object spine case"
-      style={`left:${caseX(k)}px;top:${CINE.base - CINE.h}px;width:${CINE.w}px;height:${CINE.h}px;--c:${f.color};--t:${f.textColor ?? '#fff'};--k:${k}`}
+      style={`left:${caseX(k)}px;top:${caseY(k)}px;width:${CINE.w}px;height:${CINE.h}px;--c:${f.color};--t:${f.textColor ?? '#fff'};--k:${k};--slide:${CINE.slide}px`}
       data-sub={f.id}
       aria-controls={f.id}
     >
@@ -52,9 +55,9 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
   ))}
 
   {films.map((f, k) => {
-    // El disco sale de la caja (que sube 24 px) y entra al proyector.
-    const cx = caseX(k) + CINE.w / 2;
-    const cy = CINE.base - CINE.h - 24 + 30;
+    // El disco sale del extremo de la caja (que se corre a la derecha) y entra al proyector.
+    const cx = caseX(k) + CINE.slide + CINE.w - 20;
+    const cy = caseY(k) + CINE.h / 2;
     return (
       <>
         <span
@@ -199,27 +202,116 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     transition-delay: 1s;
   }
 
-  .case {
-    padding: 26px 0 30px;
-    font-size: 12px;
+  /*
+   * Caja acostada en la pila: sin el borde de los lomos y con el título en horizontal. Los
+   * selectores llevan `.cinema` para ganarle a las reglas comunes de `.spine` y `.sub-object`.
+   */
+  .cinema .case {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 0 0 32px;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12.5px;
+  }
+
+  /* la franja clara del lomo, ahora vertical en el extremo izquierdo */
+  .cinema .case::before {
+    top: 0;
+    bottom: 0;
+    left: 14px;
+    width: 8px;
+    height: auto;
+    background: rgb(255 255 255 / 0.4);
+  }
+
+  .cinema .case span {
+    writing-mode: horizontal-tb;
   }
 
   /* el disco que asoma de la caja */
   .case::after {
     position: absolute;
-    bottom: 8px;
-    left: 50%;
-    width: 16px;
-    height: 16px;
-    margin-left: -8px;
-    border: 2px solid var(--color-plum);
+    top: 50%;
+    right: 11px;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
     border-radius: 50%;
-    background: radial-gradient(var(--c) 0 25%, #e8e6f0 26%);
+    background: radial-gradient(circle closest-side, var(--c) 0 38%, var(--color-wall) 40%);
     content: '';
   }
 
-  .case[aria-current] {
-    translate: 0 -24px;
+  /* Acostadas, las cajas se asoman y salen hacia el lado en vez de subir. */
+  .cinema.topic[data-active] .case {
+    animation-name: nudge-side;
+  }
+
+  @keyframes nudge-side {
+    50% {
+      translate: 12px 0;
+    }
+  }
+
+  .cinema.topic[data-active] .case:not([aria-current]):hover {
+    translate: 10px 0;
+  }
+
+  .cinema .case[aria-current] {
+    translate: var(--slide) 0;
+  }
+
+  /*
+   * La claqueta marca la toma al elegir una película: la tapa se abre más, golpea cerrada (con un
+   * rebote) y vuelve a quedar entreabierta; el cuerpo da un saltito con el golpe.
+   */
+  .cinema :global(:is(.clapper, .clap-lid)) {
+    transform-box: view-box;
+  }
+
+  .cinema :global(.clapper) {
+    transform-origin: 600px 1180px;
+  }
+
+  .cinema :global(.clap-lid) {
+    transform-origin: 563px 1100px;
+  }
+
+  .cinema:has(.film[data-open]) :global(.clap-lid) {
+    animation: clap 0.9s 0.05s cubic-bezier(0.5, 0, 0.5, 1);
+  }
+
+  .cinema:has(.film[data-open]) :global(.clapper) {
+    animation: clap-hop 0.9s 0.05s ease-out;
+  }
+
+  @keyframes clap {
+    40% {
+      transform: rotate(-18deg);
+    }
+    58% {
+      transform: rotate(14deg);
+      animation-timing-function: ease-out;
+    }
+    66% {
+      transform: rotate(10deg);
+    }
+    72%,
+    82% {
+      transform: rotate(14deg);
+    }
+  }
+
+  @keyframes clap-hop {
+    55% {
+      transform: none;
+    }
+    62% {
+      transform: translateY(-7px) rotate(-1.5deg);
+    }
+    74% {
+      transform: none;
+    }
   }
 
   .dvd {
@@ -227,11 +319,23 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     z-index: 2;
     width: 64px;
     height: 64px;
-    border: 3px solid var(--color-plum);
     border-radius: 50%;
+    /* hueco al centro, anillo claro y dos brillos sobre el lila */
     background:
-      radial-gradient(#fffdf7 0 13%, var(--color-plum) 14% 18%, transparent 19%),
-      conic-gradient(#c6e6ff, #ffc6e6, #fff3b0, #c6ffe9, #c6e6ff);
+      radial-gradient(
+        circle closest-side,
+        transparent 0 13%,
+        #e9e3ff 14% 23%,
+        #fbf4ff 24% 35%,
+        transparent 36%
+      ),
+      conic-gradient(
+        #dad0ff 0 10deg,
+        #f9ddf0 10deg 50deg,
+        #dad0ff 50deg 190deg,
+        #a9c4f5 190deg 230deg,
+        #dad0ff 230deg
+      );
     opacity: 0;
     pointer-events: none;
   }
@@ -392,35 +496,37 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     box-shadow: none;
   }
 
+  /* Entrada de papel sin borde: las muescas junto al talón se recortan con la máscara. */
   .ticket {
     position: absolute;
-    top: 856px;
+    top: 854px;
     left: 252px;
     z-index: 1;
     width: 404px;
     margin: 0;
-    padding: 9px 16px 11px 38px;
-    border: 3px solid var(--color-plum);
-    border-radius: 8px;
-    background: #fff8e7;
-    box-shadow: 4px 5px 0 var(--color-plum);
+    padding: 9px 16px 11px 44px;
+    border-radius: 10px;
+    background: #fbf4ff;
     color: var(--color-ink);
-    rotate: -1.5deg;
+    mask:
+      radial-gradient(circle 9px at 28px 0, transparent 98%, #000) top / 100% 51% no-repeat,
+      radial-gradient(circle 9px at 28px 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    rotate: 1.5deg;
   }
 
-  /* talón de la entrada */
+  /* talón de la entrada, con el perforado en el color del papel (queda a la derecha al girarlo) */
   .ticket::before {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     display: grid;
-    width: 24px;
+    width: 28px;
     place-items: center;
-    border-right: 3px dashed var(--color-plum);
-    border-radius: 0 6px 6px 0;
-    background: var(--color-sun);
-    color: var(--color-plum);
+    background:
+      radial-gradient(circle 2.5px, #fbf4ff 95%, transparent) 0 50% / 6px 13px repeat-y,
+      var(--color-pink);
+    color: var(--color-wall);
     content: 'ADMIT ONE';
     font-size: 8px;
     font-weight: 800;
@@ -430,7 +536,7 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
   }
 
   .ticket small {
-    color: var(--color-muted);
+    color: #9a8ce0;
     font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.2em;
@@ -438,14 +544,14 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
 
   .ticket b {
     margin-right: 8px;
-    color: var(--color-plum);
+    color: #4b3a8f;
     font-family: var(--font-display);
     font-size: 20px;
     line-height: 1.05;
   }
 
   .ticket em {
-    color: var(--color-muted);
+    color: #6a56b8;
     font-size: 11px;
     font-style: normal;
     font-weight: 700;
@@ -466,6 +572,7 @@ const screenStyle = `left:${CINE.screen.x}px;top:${CINE.screen.y}px;width:${CINE
     .cinema[data-active] :global(.screen),
     .cinema[data-active] .beam,
     .cinema[data-active] :global(.lens),
+    .cinema :global(:is(.clapper, .clap-lid)),
     .dvd,
     .film[data-open] *,
     .film[data-open] .ticket {
