@@ -25,6 +25,13 @@ const boxY = (k: number) => GAMES.box.base - boards.slice(k).reduce((sum, g) => 
 const cartX = (k: number) => GAMES.cart.x + (k - 4) * GAMES.cart.step;
 const colors = (g: Game) => `--c:${g.color};--t:${g.textColor ?? 'var(--color-ink)'}`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// La consola de la repisa: su centro (de donde sale la grande), la ranura y la pantalla, que
+// replican las proporciones de `.console` a la escala de la consola chica.
+const { handheld } = GAMES;
+const mini = handheld.w / 600;
+const consoleCenter = { x: handheld.x + handheld.w / 2, y: handheld.y + handheld.h / 2 };
+const slotTop = { x: consoleCenter.x, y: handheld.y - 10 };
+const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mini}px;width:${380 * mini}px;height:${236 * mini}px`;
 ---
 
 <div
@@ -78,10 +85,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <button
     type="button"
     class="d20-hit"
+    style={`left:${GAMES.d20.x - 28}px;top:${GAMES.d20.y - 28}px`}
     data-roll
     aria-label="Tirar el d20: elige un juego al azar"
   ></button>
-  <span class="roll-note" aria-hidden="true">
+  <span
+    class="roll-note"
+    style={`left:${GAMES.d20.x - 198}px;top:${GAMES.d20.y - 102}px`}
+    aria-hidden="true"
+  >
     ¿a qué jugamos? ↓
   </span>
 
@@ -135,18 +147,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     const cy = GAMES.cart.top + 18;
     return (
       <>
-        <span class="handheld-screen" aria-hidden="true">
+        <span class="handheld-screen" style={miniScreen} aria-hidden="true">
           ▶ {g.label.join(' ')}
         </span>
         <span
           class="cart-fly"
-          style={`left:${cartX(k)}px;top:${GAMES.cart.top - 14}px;--c:${g.color};--fx:${GAMES.handheld.x - cx}px;--fy:${GAMES.handheld.slot - cy}px`}
+          style={`left:${cartX(k)}px;top:${GAMES.cart.top - 14}px;--c:${g.color};--fx:${slotTop.x - cx}px;--fy:${slotTop.y - cy}px`}
           aria-hidden="true"
         />
         <article
           id={g.id}
           class="sub-detail fly console"
-          style={`--fx:${GAMES.handheld.x - center.x}px;--fy:${GAMES.handheld.y - center.y}px;${colors(g)}`}
+          style={`--fx:${consoleCenter.x - center.x}px;--fy:${consoleCenter.y - center.y}px;${colors(g)}`}
           data-sub-detail={g.id}
           aria-label={g.title}
         >
@@ -377,8 +389,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   /* ---------- d20 ---------- */
   .d20-hit {
     position: absolute;
-    top: 364px;
-    left: 1060px;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -401,8 +411,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .roll-note {
     position: absolute;
-    top: 286px;
-    left: 990px;
     color: var(--color-plum);
     font-family: var(--font-hand);
     font-size: 26px;
@@ -558,17 +566,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   /* ---------- consola ---------- */
+  /* La pantalla de la consola de la repisa (posición y tamaño desde `GAMES.handheld`). */
   .handheld-screen {
     position: absolute;
-    top: 350px;
-    left: 926px;
     display: none;
-    width: 92px;
-    height: 62px;
     padding: 4px;
     place-items: center;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 3px;
     background: #2e2170;
     color: #fbf4ff;
     font-family: var(--font-display);
@@ -577,8 +582,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     letter-spacing: 0.06em;
     line-height: 1.25;
     text-align: center;
-    rotate: -7deg;
-    transform-origin: 46px 110px;
   }
 
   .handheld-screen:has(+ .cart-fly + .console:is([data-open], html:not(.js) :target)) {
@@ -616,15 +619,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       translate: calc(var(--fx) * 0.6) calc(var(--fy) * 0.6 - 70px);
       rotate: 20deg;
     }
+    /* entra a la ranura de la consola chica, que mide la mitad del cartucho */
     100% {
       translate: var(--fx) var(--fy);
-      rotate: -7deg;
-      scale: 0.7;
+      scale: 0.5;
     }
   }
 
+  /* Sale de la consola de la repisa, que está derecha y mide 0,32 de esta. */
   .console {
     --delay: 0.5s;
+    --fly-rot: 0deg;
     top: 118px;
     left: 500px;
     width: 600px;
