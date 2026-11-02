@@ -39,7 +39,7 @@ export const projects: Project[] = [
     description:
       'App Android que lee con la cámara un sudoku en papel, incluidos los números escritos a lápiz, y enseña el siguiente paso lógico en vez de la respuesta. Todo corre en el teléfono.',
     tags: ['Kotlin', 'Jetpack Compose', 'OpenCV', 'ML Kit'],
-    highlight: '13 técnicas que coinciden con HoDoKu en 16.753 pasos',
+    highlight: '13 técnicas iguales a HoDoKu en 16.753 pasos',
     legend: 'Tablero detectado · lápiz · pista en tres etapas',
     links: [
       {
