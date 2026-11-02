@@ -57,6 +57,11 @@ const { active } = Astro.props;
 </script>
 
 <style>
+  /* En el teléfono, la esquina es del botón de la música: Ordenar va justo debajo. */
+  :global(html.touch) .tidy[data-screen='top-right'] {
+    top: calc(var(--vy) + 66px * var(--inv));
+  }
+
   .tidy {
     position: absolute;
     top: 56px;

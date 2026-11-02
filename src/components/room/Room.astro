@@ -6,6 +6,7 @@
 import { getSection, sections, type SectionSlug } from '../../data/sections';
 import World from '../stage/World.astro';
 import SectionChips from '../ui/SectionChips.astro';
+import AmbientMusic from '../ui/AmbientMusic.astro';
 import CityScene from '../scenes/formacion/CityScene.astro';
 import FormacionOverlay from '../scenes/formacion/FormacionOverlay.astro';
 import CorkScene from '../scenes/experiencia/CorkScene.astro';
@@ -156,6 +157,7 @@ ${active} [data-room-ui] [data-chip="${slug}"] > span { background: var(--color-
       )}
 
       <p data-announcer class="sr-only" aria-live="polite"></p>
+      <AmbientMusic />
     </div>
   </World>
 </main>
