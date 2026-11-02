@@ -50,7 +50,7 @@ export const fueraItems: ShelfItem[] = topics.map((topic, index) => ({
 export const fueraItem = (id: string) => fueraItems.find((item) => item.id === id);
 
 /** Centro del detalle que vuela al frente (libro, caja, consola) en cada repisa. */
-export const DETAIL_CENTER = { juegos: { x: 800, y: 262 }, anime: { x: 800, y: 440 } };
+export const DETAIL_CENTER = { juegos: { x: 800, y: 262 }, anime: { x: 800, y: 600 } };
 
 /**
  * Juegos: cajas de mesa apiladas (la primera arriba, cada una corrida `jitter` px; su tamaño está en
@@ -73,7 +73,7 @@ export const ANIME = {
   w: 54,
   gap: 4,
   base: shelfBase(1),
-  book: { x: 480, y: 300 },
+  book: { x: 480, y: 460 },
   chime: { x: 1236, y: 492, w: 88, h: 262 },
 };
 
