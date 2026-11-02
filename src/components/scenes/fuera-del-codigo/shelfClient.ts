@@ -8,7 +8,8 @@
  *   [data-sub-detail=id]      su detalle, visible con `data-open`
  *   [data-sub-close]          botón ✕ del detalle
  *
- * Música (audio y reproductor) y Juegos (el d20) tienen además su propia lógica aquí.
+ * Música (audio y reproductor), Juegos (el d20) y Cine (la claqueta) tienen además su propia
+ * lógica aquí.
  */
 import { prefersReducedMotion } from '../../stage/camera';
 import { panToSceneRect } from '../../stage/router';
@@ -165,6 +166,10 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       void roll();
       return;
     }
+    if (target.closest('[data-clap]')) {
+      clap();
+      return;
+    }
     const peg = target.closest<HTMLAnchorElement>('[data-peg]');
     if (peg) {
       event.preventDefault();
@@ -180,7 +185,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (!open || event.defaultPrevented || target.closest('[data-overlay]')) return;
     if (
       target.closest(
-        '[data-sub], [data-roll], .sub-detail.fly, .film-screen, .ticket, [data-player]',
+        '[data-sub], [data-roll], [data-clap], .sub-detail.fly, .film-screen, .ticket, [data-player]',
       )
     )
       return;
@@ -200,6 +205,15 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   }
 
   /* ---------- Juegos: el d20 elige un juego al azar ---------- */
+  /** La claqueta de Cine marca la toma; otro clic la reinicia aunque no haya terminado. */
+  function clap() {
+    const cinema = topicEl('cine');
+    if (!cinema) return;
+    cinema.removeAttribute('data-clap');
+    void cinema.offsetWidth;
+    cinema.setAttribute('data-clap', '');
+  }
+
   async function roll() {
     const games = topicEl('juegos');
     const die = games?.querySelector<SVGSVGElement>('.big-d20');

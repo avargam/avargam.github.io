@@ -76,6 +76,8 @@ export const CINE = {
   base: shelfBase(2),
   lens: { x: 1187, y: shelfBase(2) - 140 },
   screen: { x: 707, y: 883, w: 326, h: 224 },
+  /** Zona clicable de la claqueta. */
+  clapper: { x: 554, y: 1070, w: 112, h: 112 },
 };
 
 /** Música: portadas en la repisa de pared y plato del tocadiscos. */
