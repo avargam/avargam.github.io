@@ -245,7 +245,8 @@ const { platter } = MUSICA;
   /*
    * El brazo gira desde el centro del pivote. Al elegir un disco sube (si estaba sobre el anterior,
    * `--arm-from`), espera a que el vinilo llegue al plato y baja a los 1,6 s, cuando parte el audio
-   * (`ARM_DOWN_MS` en `shelfClient.ts`). Al cerrar vuelve a su lugar con la transición.
+   * (`ARM_DOWN_MS` en `shelfClient.ts`). Al pausar o cerrar vuelve a su lugar con la transición
+   * (`ARM_MOVE_MS`).
    */
   .music :global(.tonearm) {
     transform-box: view-box;
@@ -305,8 +306,13 @@ const { platter } = MUSICA;
     }
   }
 
-  .music[data-paused] :is(.shine, .disc i, .note, :global(.speaker)) {
+  /* En pausa el vinilo deja de girar y el brazo se levanta; las notas las maneja `shelfClient.ts`. */
+  .music[data-paused] :is(.shine, .disc i, :global(.speaker)) {
     animation-play-state: paused;
+  }
+
+  .music[data-open][data-paused] :global(.tonearm) {
+    transform: none;
   }
 
   /* ---------- mini reproductor ---------- */

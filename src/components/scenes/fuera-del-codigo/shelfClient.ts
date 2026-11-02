@@ -16,6 +16,10 @@ import type { ItemNav } from '../../stage/itemNav';
 
 /** Lo que tarda el brazo del tocadiscos en bajar sobre el vinilo (`arm-drop` en `MusicShelf`). */
 const ARM_DOWN_MS = 1600;
+/** Lo que tarda el brazo en subir o bajar al pausar y reanudar (su transición en `MusicShelf`). */
+const ARM_MOVE_MS = 500;
+/** Espera de la primera nota al elegir un disco (el retraso base de `float` en `MusicShelf`). */
+const NOTE_DELAY_MS = 1600;
 
 export interface Shelf {
   /** Teclas con un objeto abierto (← →, Esc, espacio en Música). Devuelve `true` si la consumió. */
@@ -251,7 +255,34 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     const fmt = (t: number) =>
       `${Math.floor((t || 0) / 60)}:${String(Math.floor(t || 0) % 60).padStart(2, '0')}`;
 
+    const notes = [...(topic?.querySelectorAll<HTMLElement>('.note') ?? [])];
+    // Las animaciones de las notas en pausa: al terminar dejan de aparecer en `getAnimations()`.
+    let held: Animation[] = [];
+
+    /**
+     * Al pausar, cada nota termina el vuelo en que va y no sale otra; al reanudar, vuelven a salir
+     * escalonadas desde que el brazo baja.
+     */
+    function setNotes(paused: boolean) {
+      if (paused) {
+        held = notes.flatMap((note) => note.getAnimations());
+        for (const anim of held) {
+          const iteration = anim.effect?.getComputedTiming().currentIteration;
+          anim.effect?.updateTiming({ iterations: iteration == null ? 0 : iteration + 1 });
+        }
+        return;
+      }
+      for (const anim of held) {
+        // Rebobina hasta que al retraso de cada nota le quede lo que tarda el brazo en bajar: así
+        // se conserva el escalonado entre notas.
+        anim.effect?.updateTiming({ iterations: Infinity });
+        anim.currentTime = NOTE_DELAY_MS - ARM_MOVE_MS;
+      }
+      held = [];
+    }
+
     function setPaused(paused: boolean) {
+      if (topic && topic.hasAttribute('data-paused') !== paused) setNotes(paused);
       topic?.toggleAttribute('data-paused', paused);
       if (!toggle) return;
       toggle.textContent = paused ? '▶' : '❚❚';
@@ -294,10 +325,17 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       audio.play().catch(() => setPaused(true));
     }
 
+    /**
+     * Pausa o reanuda. Decide por el estado del reproductor y no por el audio, que aún no suena
+     * mientras baja la aguja: pausar en ese momento cancela el arranque. Al reanudar, el brazo baja
+     * y el audio vuelve cuando la aguja toca el disco.
+     */
     function togglePlay() {
       if (!audio) return;
-      if (audio.paused) {
-        start();
+      clearTimeout(timer);
+      if (topic?.hasAttribute('data-paused')) {
+        setPaused(false);
+        timer = window.setTimeout(start, prefersReducedMotion() ? 0 : ARM_MOVE_MS);
       } else {
         audio.pause();
         setPaused(true);
