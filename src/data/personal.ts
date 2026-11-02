@@ -52,7 +52,7 @@ export const anime: Manga[] = [
   {
     id: 'anime-chainsaw',
     title: 'Chainsaw Man',
-    color: '#FF6FA3',
+    color: '#FF9E7A',
     textColor: '#2E2170',
     height: 214,
     description:
@@ -97,8 +97,8 @@ export const anime: Manga[] = [
   {
     id: 'anime-ansatsu',
     title: 'Ansatsu Kyoshitsu',
-    color: '#4B3A8F',
-    textColor: '#FBF4FF',
+    color: '#FFE86B',
+    textColor: '#2E2170',
     height: 236,
     description:
       'La criatura que destruyó parte de la Luna se vuelve profesor de la clase 3‑E. Sus alumnos tienen un año para asesinarlo.',
@@ -309,7 +309,7 @@ export const games: Game[] = [
     kind: 'video',
     title: 'Super Mario Galaxy',
     label: ['MARIO', 'GALAXY'],
-    color: '#6A56B8',
+    color: '#FFE86B',
     clip: '/clips/galaxy.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
     genre: 'Plataformas 3D',

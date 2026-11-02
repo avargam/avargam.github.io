@@ -90,16 +90,18 @@ export const CINE = {
   slide: 36,
   base: shelfBase(2),
   lens: { x: 1187, y: shelfBase(2) - 140 },
-  screen: { x: 707, y: 883, w: 326, h: 224 },
+  // El telón visible: del borde del arte (704, 878) hasta la barra de abajo (y 1104).
+  screen: { x: 704, y: 878, w: 332, h: 226 },
   /** Zona clicable de la claqueta. */
   clapper: { x: 554, y: 1070, w: 112, h: 112 },
 };
 
-/** Música: portadas en la repisa de pared y plato del tocadiscos. */
+/** Música: portadas en la repisa de pared, plato del tocadiscos y zona clicable de los audífonos. */
 export const MUSICA = {
   x: 262,
   step: 110,
   size: 96,
   top: VT + 3 * VH + 126 - 96 - 4,
   platter: { x: 790, y: shelfBase(3) - 80 },
+  phones: { x: 1116, y: 1296, w: 128, h: 102 },
 };

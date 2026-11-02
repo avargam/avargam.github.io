@@ -204,6 +204,10 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       replay('anime', 'data-chime');
       return;
     }
+    if (target.closest('[data-phones]')) {
+      replay('musica', 'data-swing');
+      return;
+    }
     const peg = target.closest<HTMLAnchorElement>('[data-peg]');
     if (peg) {
       event.preventDefault();
@@ -219,7 +223,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (!open || event.defaultPrevented || target.closest('[data-overlay]')) return;
     if (
       target.closest(
-        '[data-sub], [data-roll], [data-clap], [data-chime], .sub-detail.fly, .film-screen, .ticket, [data-player]',
+        '[data-sub], [data-roll], [data-clap], [data-chime], [data-phones], .sub-detail.fly, .film-screen, .ticket, [data-player]',
       )
     )
       return;
@@ -240,7 +244,8 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
 
   /* ---------- Juegos: el d20 elige un juego al azar ---------- */
   /**
-   * Reproduce la animación de un objeto de la repisa (la claqueta de Cine, el fūrin de Anime) con
+   * Reproduce la animación de un objeto de la repisa (la claqueta de Cine, el fūrin de Anime, los
+   * audífonos de Música) con
    * el atributo `attr` en su tema; otro clic la reinicia aunque no haya terminado.
    */
   function replay(topic: string, attr: string) {
