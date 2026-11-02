@@ -7,7 +7,11 @@
  *   [data-desk-hit=id]   su ancla `#id` (sin JS, `:target` lo abre)
  *   [data-desk-card]     la tarjeta de LinkedIn (`data-in-holder`, `data-flipped`)
  *   [data-loot]          lo que trae el paquete (`data-out` cuando está en la mesa)
- *   [data-desk-sticker]       estampillas y stickers: se pegan al sobre (`[data-stuck]`)
+ *   [data-pellet=i]      relleno del paquete: se arrastra fuera de la caja y se lanza fuera de la mesa
+ *   [data-desk-sheet]    la hoja de stickers
+ *   [data-desk-sticker]  stickers: se despegan de la hoja (`data-on-sheet`) y se pegan a una superficie
+ *   [data-surface=…]     donde se pegan: el sobre (frente, carta y bolsillo), el paquete (tapas e
+ *                        interior), la carpeta (tapa y hoja), el tarjetero y las caras de la tarjeta
  *   [data-copy-email]    botón de la carta ("Ordenar", `[data-desk-tidy]`, está en la capa)
  */
 import { moveCamera, prefersReducedMotion } from '../../stage/camera';
@@ -18,12 +22,12 @@ import {
   readView,
   type Camera,
 } from '../../stage/geometry';
-import { restartAttr, trackDrag } from '../../stage/drag';
+import { restartAttr, trackDrag, type Velocity } from '../../stage/drag';
 import { trackPan, stopPan, type PanTarget } from '../../stage/pan';
 import { isTouch, type SectionController } from '../../stage/router';
 import { contact, contacts, type ContactId } from '../../../data/contact';
 import { profile } from '../../../data/profile';
-import { SIZE, cardInHolder, type Spot } from './desk';
+import { PELLETS, SHEET, SIZE, cardInHolder, fromDesk, slotSpot, toDesk, type Spot } from './desk';
 
 const IDS = contacts.map((c) => c.id);
 const isId = (id: string): id is ContactId => (IDS as string[]).includes(id);
@@ -60,10 +64,13 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
   const parcel = objects.get('github')!;
   const holder = objects.get('linkedin')!;
   const card = query('[data-desk-card]');
-  const stuck = query('[data-stuck]');
   const stamp = query('.copied');
   const loot = [...root.querySelectorAll<HTMLElement>('[data-loot]')];
   const pato = loot.find((el) => el.dataset.loot === 'pato');
+  const sheet = query('[data-desk-sheet]');
+  const stickers = [...root.querySelectorAll<HTMLElement>('[data-desk-sticker]')];
+  const pelletBox = query('[data-pellets]');
+  const pellets = [...root.querySelectorAll<HTMLElement>('[data-pellet]')];
 
   /* ---------- posiciones ---------- */
   const pos = new Map<HTMLElement, Spot>();
@@ -243,36 +250,239 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
     }
   }
 
-  /* Estampillas y stickers: soltados sobre el sobre se pegan y viajan con él. */
-  function stickIfOnEnvelope(el: HTMLElement) {
-    const e = pos.get(envelope)!;
+  /* ---------- dentro de otros objetos ---------- */
+  // Los stickers van en la hoja o pegados a una superficie, y los pellets en la caja: en
+  // coordenadas de ese objeto, que gira sobre su centro (y, dentro de él, de la zona que los lleva).
+  // Al sacarlos o meterlos, se quedan donde se ven.
+  interface Frame {
+    obj: Spot;
+    w: number;
+    h: number;
+    /** Zona dentro del objeto (la capa donde quedan), en sus coordenadas. */
+    zone: { x: number; y: number; w: number; h: number };
+  }
+  const frameOf = (
+    obj: HTMLElement,
+    w = obj.offsetWidth,
+    h = obj.offsetHeight,
+    zone = { x: 0, y: 0, w, h },
+  ): Frame => ({
+    obj: pos.get(obj)!,
+    w,
+    h,
+    zone,
+  });
+  const center = (el: HTMLElement) => {
     const p = pos.get(el)!;
-    const hw = el.offsetWidth / 2;
-    const hh = el.offsetHeight / 2;
-    const cx = p.x + hw - e.x;
-    const cy = p.y + hh - e.y;
-    if (cx < 10 || cx > SIZE.correo.w - 10 || cy < 10 || cy > SIZE.correo.h - 10) return;
-    stuck.append(el);
-    place(el, { x: cx - hw, y: cy - hh, r: p.r - e.r });
+    return { x: p.x + el.offsetWidth / 2, y: p.y + el.offsetHeight / 2, r: p.r };
+  };
+  /** Centro de `el` (en la mesa) en coordenadas de la zona. */
+  const inZone = (el: HTMLElement, { obj, w, h, zone }: Frame) => {
+    const c = center(el);
+    const local = fromDesk(obj, w, h, c.x, c.y);
+    return { x: local.x - zone.x, y: local.y - zone.y };
+  };
+
+  /** Pasa `el` de la mesa a `parent`, la zona de un objeto. */
+  function attach(el: HTMLElement, parent: HTMLElement, frame: Frame) {
+    const r = pos.get(el)!.r;
+    const local = inZone(el, frame);
+    parent.append(el);
+    place(el, {
+      x: local.x - el.offsetWidth / 2,
+      y: local.y - el.offsetHeight / 2,
+      r: r - frame.obj.r,
+    });
+  }
+
+  /** Lo inverso: de la zona de un objeto a la mesa. */
+  function detach(el: HTMLElement, { obj, w, h, zone }: Frame) {
+    const c = center(el);
+    const out = toDesk(obj, w, h, c.x + zone.x, c.y + zone.y);
+    root.append(el);
+    place(el, { x: out.x - el.offsetWidth / 2, y: out.y - el.offsetHeight / 2, r: c.r + obj.r });
+  }
+
+  /** El centro de `el` (en la mesa) cae dentro de la zona, a más de `margin` del borde. */
+  function over(el: HTMLElement, frame: Frame, margin = 10) {
+    const { x, y } = inZone(el, frame);
+    const { w, h } = frame.zone;
+    return x > margin && x < w - margin && y > margin && y < h - margin;
+  }
+
+  const frames = {
+    sheet: () => frameOf(sheet, SHEET.w, SHEET.h),
+    parcel: () => frameOf(parcel, SIZE.github.w, SIZE.github.h),
+  };
+
+  /* Superficies: capas `[data-surface]` de cada objeto, cerrado y abierto (el frente del sobre o su
+     carta y bolsillo, las tapas del paquete o su interior, la tapa de la carpeta o su hoja), el
+     bolsillo del tarjetero y las dos caras de la tarjeta. Un sticker pegado viaja con su objeto y se
+     esconde con la cara que lo lleva. */
+  const surfaceActive: Record<string, () => boolean> = {
+    correo: () => !isOpen('correo'),
+    carta: () => isOpen('correo'),
+    bolsillo: () => isOpen('correo'),
+    github: () => !isOpen('github'),
+    'github-dentro': () => isOpen('github'),
+    cv: () => !isOpen('cv'),
+    'cv-hoja': () => isOpen('cv'),
+    'card-front': () => !card.hasAttribute('data-flipped'),
+    'card-back': () => card.hasAttribute('data-flipped'),
+  };
+  const surfaces = [...root.querySelectorAll<HTMLElement>('[data-surface]')].map((layer) => {
+    const obj = layer.parentElement!.closest<HTMLElement>('.desk-obj')!;
+    return { layer, obj, active: surfaceActive[layer.dataset.surface!] ?? (() => true) };
+  });
+  type Surface = (typeof surfaces)[number];
+
+  /**
+   * La zona de la capa dentro de su objeto. Sus padres no giran mientras la cara está a la vista,
+   * pero pueden estar corridos (la carta sube con `translate`).
+   */
+  function surfaceFrame({ layer, obj }: Surface) {
+    let x = 0;
+    let y = 0;
+    for (
+      let n: HTMLElement | null = layer;
+      n && n !== obj;
+      n = n.offsetParent as HTMLElement | null
+    ) {
+      x += n.offsetLeft;
+      y += n.offsetTop;
+      const [tx = '0', ty = '0'] = getComputedStyle(n).translate.split(' ');
+      x += parseFloat(tx) || 0;
+      y += parseFloat(ty) || 0;
+    }
+    return frameOf(obj, obj.offsetWidth, obj.offsetHeight, {
+      x,
+      y,
+      w: layer.offsetWidth,
+      h: layer.offsetHeight,
+    });
+  }
+
+  /* Stickers: se despegan de la hoja, se pegan a una superficie si se sueltan encima y vuelven a su
+     hueco si se sueltan sobre la hoja. */
+  const fromSheet = new Set(stickers.filter((el) => el.hasAttribute('data-on-sheet')));
+  const slots = [...sheet.querySelectorAll<HTMLElement>('[data-sheet-slot]')];
+  const markSlots = () => {
+    for (const slot of slots) {
+      const i = slot.dataset.sheetSlot;
+      slot.toggleAttribute('data-empty', !sheet.querySelector(`[data-slot="${i}"]`));
+    }
+  };
+
+  function toSlot(el: HTMLElement) {
+    sheet.append(el);
+    el.removeAttribute('data-stuck');
+    el.setAttribute('data-on-sheet', '');
+    place(el, slotSpot(Number(el.dataset.slot)));
+    el.style.zIndex = '1';
+    markSlots();
+  }
+
+  function stick(el: HTMLElement, surface: Surface) {
+    attach(el, surface.layer, surfaceFrame(surface));
     el.style.zIndex = '1';
     restartAttr(el, 'data-stuck');
   }
 
-  function unstick(el: HTMLElement) {
-    const e = pos.get(envelope)!;
-    const p = pos.get(el)!;
-    root.append(el);
+  function peel(el: HTMLElement) {
+    const surface = surfaces.find((s) => s.layer === el.parentElement);
+    if (el.parentElement === sheet) detach(el, frames.sheet());
+    else if (surface) detach(el, surfaceFrame(surface));
+    el.removeAttribute('data-on-sheet');
     el.removeAttribute('data-stuck');
-    place(el, { x: e.x + p.x, y: e.y + p.y, r: p.r + e.r });
+    markSlots();
   }
 
-  /* Ordenar: todo cerrado y en su lugar; lo del paquete, adentro. */
+  /** Lo de más arriba bajo el sticker: la hoja (vuelve a su hueco) o una superficie (se pega). */
+  function dropSticker(el: HTMLElement) {
+    const zOf = (obj: HTMLElement) => Number(obj.style.zIndex) || 0;
+    const targets = [
+      { obj: sheet, hit: () => over(el, frames.sheet()), go: () => toSlot(el) },
+      ...surfaces
+        .filter((s) => s.active())
+        .map((s) => ({ obj: s.obj, hit: () => over(el, surfaceFrame(s)), go: () => stick(el, s) })),
+    ].sort((a, b) => zOf(b.obj) - zOf(a.obj));
+    targets.find((t) => t.hit())?.go();
+  }
+
+  /* Pellets: salen de la caja al arrastrarlos y vuelven si se sueltan sobre ella abierta; soltados
+     rápido salen volando, girando, hasta dejar la mesa. */
+  function toBox(el: HTMLElement) {
+    attach(el, pelletBox, frames.parcel());
+    el.style.zIndex = '';
+  }
+
+  function dropPellet(el: HTMLElement, velocity: Velocity) {
+    if (Math.hypot(velocity.vx, velocity.vy) > PELLETS.fling) return fling(el, velocity);
+    if (overParcel(el)) toBox(el);
+  }
+
+  function fling(el: HTMLElement, { vx, vy }: Velocity) {
+    if (prefersReducedMotion()) {
+      el.hidden = true;
+      return;
+    }
+    el.setAttribute('data-flying', '');
+    const spin = Math.hypot(vx, vy) * 0.5 * (vx < 0 ? -1 : 1);
+    let k = 1;
+    let last = performance.now();
+    const step = (now: number) => {
+      // "Ordenar" lo devolvió a la caja a medio vuelo.
+      if (!el.hasAttribute('data-flying')) return;
+      const dt = Math.min(now - last, 40);
+      last = now;
+      // Acelera y crece un poco: se va hacia afuera de la pantalla, no se detiene.
+      vx *= 1.015;
+      vy *= 1.015;
+      k = Math.min(1.5, k + 0.0012 * dt);
+      const p = pos.get(el)!;
+      place(el, { x: p.x + vx * dt, y: p.y + vy * dt, r: p.r + spin * dt });
+      el.style.scale = String(k);
+      if (p.x < -120 || p.x > 1720 || p.y < -120 || p.y > 1120) {
+        el.removeAttribute('data-flying');
+        el.hidden = true;
+        return;
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /** Un clic (sin arrastre) sobre algo que se sacó de un objeto: vuelve a donde estaba. */
+  function putBack(el: HTMLElement, from: HTMLElement | null) {
+    const surface = surfaces.find((s) => s.layer === from);
+    if (from === sheet) toSlot(el);
+    else if (surface) stick(el, surface);
+    else if (from === pelletBox) toBox(el);
+  }
+
+  /* Ordenar: todo cerrado y en su lugar; lo del paquete y los pellets, adentro; los stickers, en
+     la hoja (el corazón, despegado en la mesa). */
   async function tidy() {
     closeAll();
-    for (const el of stuck.querySelectorAll<HTMLElement>('[data-desk-sticker]')) unstick(el);
     for (const el of loot) el.removeAttribute('data-out');
+    for (const el of stickers) {
+      if (fromSheet.has(el)) toSlot(el);
+      else {
+        root.append(el);
+        el.removeAttribute('data-stuck');
+      }
+    }
+    markSlots();
+    for (const el of pellets) {
+      el.removeAttribute('data-flying');
+      el.hidden = false;
+      el.style.scale = '';
+      el.style.zIndex = '';
+      pelletBox.append(el);
+      place(el, homes.get(el)!);
+    }
     for (const el of all) {
-      if (el === card || loot.includes(el)) continue;
+      if (el === card || loot.includes(el) || pellets.includes(el) || fromSheet.has(el)) continue;
       el.setAttribute('data-settle', '');
       place(el, homes.get(el)!);
     }
@@ -337,7 +547,12 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
       if (isTouch()) trackPan(event, root, deskPan, readView().s);
       return;
     }
-    if (el.parentElement === stuck) unstick(el);
+    // Lo que está dentro de otro objeto sale a la mesa antes de capturar el puntero (moverlo
+    // después de capturarlo lo soltaría).
+    const from = el.parentElement;
+    const isPellet = pellets.includes(el);
+    if (stickers.includes(el)) peel(el);
+    if (isPellet && from === pelletBox) detach(el, frames.parcel());
     const { x, y } = pos.get(el)!;
     trackDrag(event, el, root, {
       start() {
@@ -353,16 +568,21 @@ export function initDesk(root: HTMLElement, overlay: HTMLElement): SectionContro
           y: Math.min(1000 - h * 0.4, Math.max(-h * 0.6, y + dy)),
         });
         if (el === holder && cardHome()) followHolder();
-        if (loot.includes(el)) parcel.toggleAttribute('data-target', overParcel(el));
+        if (loot.includes(el) || isPellet) parcel.toggleAttribute('data-target', overParcel(el));
       },
-      end(moved) {
+      end(moved, velocity) {
         if (!moved) {
           pointerClick = true;
           setTimeout(() => (pointerClick = false));
+          putBack(el, from);
           return activate(el);
         }
+        if (isPellet) {
+          parcel.removeAttribute('data-target');
+          return dropPellet(el, velocity);
+        }
         restartAttr(el, 'data-drop');
-        if (el.hasAttribute('data-desk-sticker')) stickIfOnEnvelope(el);
+        if (stickers.includes(el)) dropSticker(el);
         if (loot.includes(el)) {
           parcel.removeAttribute('data-target');
           if (overParcel(el)) void storeLoot(el);

@@ -1,5 +1,5 @@
 ---
-/** CV: una carpeta. Al abrirla, la tapa se da vuelta hacia la derecha y adentro está la hoja con el PDF. */
+/** CV: una carpeta manila con clip. Al abrirla, la tapa se da vuelta hacia la derecha y adentro está la hoja con el PDF. */
 import { profile } from '../../../data/profile';
 import { contact } from '../../../data/contact';
 import { HOME, spotStyle } from './desk';
@@ -49,6 +49,7 @@ const sections = [
         Ver en otra pestaña ↗
       </a>
     </div>
+    <div class="stuck" data-surface="cv-hoja"></div>
   </section>
   <div class="cover" aria-hidden="true">
     <div class="face">
@@ -57,6 +58,16 @@ const sections = [
         {first} {second} M.
       </b>
       <span>PDF ↓</span>
+      <svg class="clip" width="28" height="72" viewBox="0 0 28 72">
+        <path
+          d="M5 4v52a9 9 0 0 0 18 0V12a6 6 0 0 0-12 0v38"
+          fill="none"
+          stroke="#9a8ce0"
+          stroke-width="5"
+          stroke-linecap="round"
+        ></path>
+      </svg>
+      <div class="stuck" data-surface="cv"></div>
     </div>
     <div class="rev"></div>
   </div>
@@ -75,9 +86,8 @@ const sections = [
     display: grid;
     width: 110px;
     height: 44px;
-    padding-top: 4px;
-    border: 4px solid var(--color-plum);
-    border-radius: 9px 9px 0 0;
+    padding-top: 6px;
+    border-radius: 10px 10px 0 0;
     background: #e9c35e;
     color: var(--color-plum);
     font-family: var(--font-display);
@@ -94,7 +104,6 @@ const sections = [
   .body {
     position: absolute;
     inset: 0;
-    border: 5px solid var(--color-plum);
     border-radius: 4px 10px 10px;
     background: #e9c35e;
     box-shadow: var(--sh, 8px 10px 0) var(--shadow);
@@ -107,10 +116,8 @@ const sections = [
     left: 14px;
     width: 242px;
     height: 326px;
-    overflow: hidden;
     padding: 16px;
-    border: 3px solid var(--color-plum);
-    border-radius: 3px;
+    border-radius: 4px;
     background: #fffdf7;
     color: var(--color-ink);
     /* Cerrada, los enlaces de la hoja no reciben clics ni foco. */
@@ -185,14 +192,14 @@ const sections = [
   .cover > div {
     position: absolute;
     inset: 0;
-    border: 5px solid var(--color-plum);
     border-radius: 4px 10px 10px;
     backface-visibility: hidden;
   }
 
   .face {
     padding: 120px 26px 0;
-    background: #f3d37a;
+    /* La franja de abajo, un tono más oscura. */
+    background: linear-gradient(transparent 320px, #eac562 0) #f3d37a;
     color: var(--color-plum);
   }
 
@@ -218,15 +225,21 @@ const sections = [
     display: inline-block;
     margin-top: 18px;
     padding: 4px 14px;
-    border: 3px solid var(--color-plum);
     border-radius: 999px;
-    background: #fff;
+    background: #fbf4ff;
+    box-shadow: 0 3px 0 var(--shadow);
     font-size: 15px;
     font-weight: 800;
   }
 
+  .clip {
+    position: absolute;
+    top: -22px;
+    right: 26px;
+  }
+
   .rev {
-    background: #e9c35e;
+    background: #ddb24e;
     transform: rotateY(180deg);
   }
 

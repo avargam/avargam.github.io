@@ -16,9 +16,18 @@ export interface DragHandlers {
   start?: () => void;
   /** Desplazamiento desde donde se tomó, en unidades de la escena. */
   move: (dx: number, dy: number) => void;
-  /** Se soltó; `moved` es falso si fue un clic. */
-  end: (moved: boolean) => void;
+  /** Se soltó; `moved` es falso si fue un clic. `velocity` es la del final del gesto. */
+  end: (moved: boolean, velocity: Velocity) => void;
 }
+
+/** Velocidad del puntero en unidades de la escena por milisegundo. */
+export interface Velocity {
+  vx: number;
+  vy: number;
+}
+
+/** Ventana (ms) de la que sale la velocidad al soltar: lo último del gesto, no su promedio. */
+const VELOCITY_WINDOW = 90;
 
 /** Sigue el puntero de `event` sobre `el` hasta soltarlo. `scene` da la escala (su ancho es 1600). */
 export function trackDrag(
@@ -32,11 +41,18 @@ export function trackDrag(
   const k = scene.getBoundingClientRect().width / STAGE_W;
   const { pointerId, clientX: sx, clientY: sy } = event;
   let moved = false;
+  const samples = [{ x: 0, y: 0, t: event.timeStamp }];
+  const sample = (e: PointerEvent) => {
+    const dx = (e.clientX - sx) / k;
+    const dy = (e.clientY - sy) / k;
+    samples.push({ x: dx, y: dy, t: e.timeStamp });
+    while (samples.length > 2 && e.timeStamp - samples[0].t > VELOCITY_WINDOW) samples.shift();
+    return { dx, dy };
+  };
 
   const onMove = (e: PointerEvent) => {
     if (e.pointerId !== pointerId) return;
-    const dx = (e.clientX - sx) / k;
-    const dy = (e.clientY - sy) / k;
+    const { dx, dy } = sample(e);
     if (!moved) {
       if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       moved = true;
@@ -51,7 +67,15 @@ export function trackDrag(
     el.removeEventListener('pointerup', onEnd);
     el.removeEventListener('pointercancel', onEnd);
     el.removeAttribute('data-lifted');
-    end(moved);
+    sample(e);
+    const first = samples[0];
+    const last = samples[samples.length - 1];
+    const dt = Math.max(last.t - first.t, 1);
+    const still = e.type === 'pointercancel';
+    end(moved, {
+      vx: still ? 0 : (last.x - first.x) / dt,
+      vy: still ? 0 : (last.y - first.y) / dt,
+    });
   };
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerup', onEnd);

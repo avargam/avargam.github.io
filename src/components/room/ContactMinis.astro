@@ -1,7 +1,8 @@
 ---
 /**
  * Objeto de Contacto en el cuarto: lo que hay en la mesa, en miniatura y de frente (la carpeta del CV,
- * el paquete encima, el sobre apoyado y el tarjetero). El viewBox coincide con su `object` en sections.ts.
+ * el paquete encima, el sobre apoyado y el tarjetero), planos como el resto del cuarto. El viewBox
+ * coincide con su `object` en sections.ts.
  */
 import type { Rect } from '../stage/geometry';
 
@@ -17,24 +18,17 @@ const { x, y, w, h } = Astro.props.rect;
   viewBox={`${x} ${y} ${w} ${h}`}
   aria-hidden="true"
 >
-  <g stroke="var(--color-plum)" stroke-linejoin="round">
-    <rect x="1013" y="585" width="52" height="6" rx="1.5" fill="#f3d37a" stroke-width="2"></rect>
-    <rect x="1017" y="561" width="32" height="25" rx="2" fill="#e7b67a" stroke-width="2.5"></rect>
-    <path d="M1030 562h6v23h-6zM1018 570h30v5h-30z" fill="#f5e6b8" stroke="none"></path>
-    <g transform="rotate(-9 1068 575)">
-      <rect
-        x="1050"
-        y="562"
-        width="36"
-        height="26"
-        rx="2"
-        fill="var(--color-paper)"
-        stroke-width="2.5"
-      ></rect>
-      <path d="M1050 563 1068 577 1086 563" fill="none" stroke-width="2"></path>
-      <circle cx="1068" cy="577" r="3.5" fill="var(--color-hotpink)" stroke-width="1.5"></circle>
-    </g>
-    <rect x="1090" y="574" width="14" height="9" rx="1" fill="#fff" stroke-width="1.5"></rect>
-    <rect x="1087" y="579" width="20" height="11" rx="2" fill="#6c5aa8" stroke-width="2"></rect>
+  <rect x="1013" y="585" width="52" height="6" rx="1.5" fill="#f3d37a"></rect>
+  <rect x="1013" y="588" width="52" height="3" fill="#e9c35e"></rect>
+  <rect x="1017" y="561" width="32" height="25" rx="2" fill="#e7b67a"></rect>
+  <rect x="1017" y="582" width="32" height="4" fill="#d9a468"></rect>
+  <path d="M1030 561h6v21h-6zM1017 570h32v5h-32z" fill="#f5e6b8"></path>
+  <g transform="rotate(-9 1068 575)">
+    <rect x="1050" y="562" width="36" height="26" rx="2" fill="var(--color-paper)"></rect>
+    <path d="M1051 563 1068 577 1085 563Z" fill="#ffe4ec"></path>
+    <circle cx="1068" cy="576" r="3.5" fill="var(--color-hotpink)"></circle>
   </g>
+  <rect x="1090" y="573" width="14" height="10" rx="1" fill="#fbf4ff"></rect>
+  <rect x="1087" y="579" width="20" height="11" rx="2" fill="#6a56b8"></rect>
+  <rect x="1087" y="579" width="20" height="2" fill="#8571d6"></rect>
 </svg>
