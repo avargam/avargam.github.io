@@ -10,7 +10,7 @@
  */
 import { getSection, type ZoomSection } from '../../../data/sections';
 import { cameraForSceneRect, cameraTransform, rectStyle } from '../../stage/geometry';
-import { fueraItems, VH, VT } from './shelf';
+import { fueraItems, shelfBase, VH, VT } from './shelf';
 import GamesShelf from './GamesShelf.astro';
 import AnimeShelf from './AnimeShelf.astro';
 import CinemaShelf from './CinemaShelf.astro';
@@ -20,12 +20,10 @@ import front from './art/front.svg?raw';
 
 const section = getSection('fuera-del-codigo') as ZoomSection;
 
-/** Placa y clavija de la repisa elegida, en rosa. */
+/** Placa de la repisa elegida en blanco (las demás son rosadas) y su clavija en rosa. */
 const selectedCss = fueraItems
   .map(
-    ({
-      id,
-    }) => `[data-items][data-selected="${id}"] [data-plate="${id}"] { background: var(--color-pink); }
+    ({ id }) => `[data-items][data-selected="${id}"] [data-plate="${id}"] { background: #fbf4ff; }
 [data-items][data-selected="${id}"] [data-peg="${id}"] { background: var(--color-pink); box-shadow: 0 0 10px var(--color-pink); }`,
   )
   .join('\n');
@@ -78,12 +76,7 @@ const noJsCss = fueraItems
   </svg>
 
   {fueraItems.map((item, i) => (
-    <span
-      class="plate"
-      style={`top:${VT + i * VH + 337}px`}
-      data-plate={item.id}
-      aria-hidden="true"
-    >
+    <span class="plate" style={`top:${shelfBase(i) + 9}px`} data-plate={item.id} aria-hidden="true">
       {item.plate}
     </span>
   ))}
@@ -119,20 +112,21 @@ const noJsCss = fueraItems
     outline-offset: 4px;
   }
 
+  /* Placa en el canto de la repisa (bajo el brillo de 7 px del borde). */
   .plate {
     position: absolute;
     left: 262px;
     display: grid;
     height: 18px;
-    padding: 0 14px;
+    padding: 0 12px;
     place-items: center;
-    border: 2.5px solid var(--color-plum);
-    border-radius: 4px;
-    background: #f3d37a;
-    color: var(--color-ink);
-    font-size: 12px;
+    border-radius: 3px;
+    background: var(--color-pink);
+    color: #2e2170;
+    font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
+    line-height: 1;
     transition: background 0.3s;
   }
 

@@ -26,13 +26,14 @@ const boxY = (k: number) => GAMES.box.base - boards.slice(k).reduce((sum, g) => 
 const OBOX = { w: 600, h: 272 };
 
 /**
- * Al abrir una caja, sale de la pila (sin recibir clics) y las de arriba bajan a ocupar su lugar;
- * al cerrarla suben para hacerle espacio y la caja reaparece cuando termina de volver.
+ * Al abrir un juego, su caja o cartucho sale de la repisa (sin recibir clics) y reaparece cuando
+ * termina de volver. Las cajas de arriba bajan a ocupar su lugar y al cerrarla suben a hacerle espacio.
  */
-const stackCss = boards
-  .map((g, k) => {
+const stackCss = games
+  .map((g) => {
     const self = `.games:has(#${g.id}:is([data-open], [data-leaving])) [data-sub="${g.id}"] { opacity: 0; pointer-events: none; }`;
-    const above = boards.slice(0, k).map((a) => `[data-sub="${a.id}"]`);
+    if (g.kind !== 'mesa') return self;
+    const above = boards.slice(0, boards.indexOf(g)).map((a) => `[data-sub="${a.id}"]`);
     if (!above.length) return self;
     return `${self}\n.games:has(#${g.id}[data-open]) :is(${above.join(', ')}) { translate: 0 ${g.height}px; }`;
   })
@@ -92,7 +93,9 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
         aria-controls={g.id}
       >
         <span class="sr-only">{g.title}</span>
-        <span aria-hidden="true">{g.label.join(' ')}</span>
+        <span class="cart-label" aria-hidden="true">
+          {g.label.join(' ')}
+        </span>
         <b aria-hidden="true">{k + 1}</b>
       </a>
     ),
@@ -159,7 +162,8 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
         </article>
       );
     }
-    // El cartucho entra a la consola de la repisa, que se enciende; la consola grande sale de ella.
+    // El cartucho sale de la repisa y entra a la consola chica, que se enciende; la grande sale de
+    // ella. Al cerrar, la grande vuelve a la chica y el cartucho sale de ella de regreso a su lugar.
     const cx = cartX(k) + GAMES.cart.w / 2;
     const cy = GAMES.cart.top + 18;
     return (
@@ -169,9 +173,11 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
         </span>
         <span
           class="cart-fly"
-          style={`left:${cartX(k)}px;top:${GAMES.cart.top - 14}px;--c:${g.color};--fx:${slotTop.x - cx}px;--fy:${slotTop.y - cy}px`}
+          style={`left:${cartX(k)}px;top:${GAMES.cart.top}px;--c:${g.color};--fx:${slotTop.x - cx}px;--fy:${slotTop.y - cy}px`}
           aria-hidden="true"
-        />
+        >
+          <span class="cart-label">{g.label.join(' ')}</span>
+        </span>
         <article
           id={g.id}
           class="sub-detail fly console"
@@ -341,7 +347,8 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     font-style: normal;
   }
 
-  .cart {
+  .cart,
+  .cart-fly {
     position: absolute;
     width: 46px;
     height: 64px;
@@ -350,7 +357,7 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
   }
 
   /* contactos del cartucho */
-  .cart::before {
+  :is(.cart, .cart-fly)::before {
     position: absolute;
     right: 9px;
     bottom: 7px;
@@ -360,7 +367,7 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     content: '';
   }
 
-  .cart span[aria-hidden] {
+  .cart-label {
     position: absolute;
     top: 9px;
     right: 5px;
@@ -389,10 +396,6 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     background: #2e2170;
     color: #fbf4ff;
     font-size: 9px;
-  }
-
-  .cart[aria-current] {
-    translate: 0 -14px;
   }
 
   /* El juego que eligió el d20 brilla antes de abrirse. */
@@ -657,23 +660,41 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     transition-delay: var(--console-out);
   }
 
+  /* Al cerrar, `data-leaving` dura hasta que el cartucho vuelve; la consola chica, solo el regreso. */
   .games:has(.console[data-leaving]) :global(.handheld) {
-    opacity: 0;
+    animation: mini-back 0.4s step-end;
+  }
+
+  @keyframes mini-back {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .games .console[data-leaving] {
+    animation:
+      fly-back 0.4s cubic-bezier(0.5, 0, 0.7, 0.4) forwards,
+      console-hold 0.9s;
+  }
+
+  @keyframes console-hold {
+    to {
+      visibility: visible;
+    }
   }
 
   .cart-fly {
-    position: absolute;
     z-index: 2;
-    width: 46px;
-    height: 64px;
-    border-radius: 6px;
-    background: var(--c);
     opacity: 0;
     pointer-events: none;
   }
 
   .cart-fly:has(+ .console[data-open]) {
     animation: cart-in 0.55s cubic-bezier(0.4, 0, 0.3, 1);
+  }
+
+  .cart-fly:has(+ .console[data-leaving]) {
+    animation: cart-out 0.5s 0.4s cubic-bezier(0.4, 0, 0.3, 1);
   }
 
   @keyframes cart-in {
@@ -689,6 +710,21 @@ const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mi
     100% {
       translate: var(--fx) var(--fy);
       scale: 0.5;
+    }
+  }
+
+  @keyframes cart-out {
+    0% {
+      opacity: 1;
+      translate: var(--fx) var(--fy);
+      scale: 0.5;
+    }
+    40% {
+      translate: calc(var(--fx) * 0.6) calc(var(--fy) * 0.6 - 70px);
+      rotate: 20deg;
+    }
+    100% {
+      opacity: 1;
     }
   }
 
