@@ -1,0 +1,106 @@
+---
+/**
+ * El brazo que teclea: va en su propia capa, encima de los objetos, para que la mano quede sobre el
+ * teclado y el borde del monitor (que es la escena de Proyectos). Se va al empezar cualquier viaje
+ * de la cámara, para no tapar la pantalla durante el zoom.
+ */
+---
+
+<svg
+  class="room-arm pointer-events-none absolute inset-0"
+  viewBox="0 0 1600 1000"
+  aria-hidden="true"
+>
+  <g transform="translate(0 60)">
+    <g class="av-arm">
+      <path
+        d="M626 486Q632 542 664 560L736 574"
+        fill="none"
+        stroke="#E8558C"
+        stroke-width="30"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        transform="translate(-3 3)"
+      />
+      <path
+        d="M626 486Q632 542 664 560"
+        fill="none"
+        stroke="#FF6FA3"
+        stroke-width="27"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M664 560L736 574"
+        fill="none"
+        stroke="#FF6FA3"
+        stroke-width="23"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M640 494Q646 534 670 550L730 562"
+        fill="none"
+        stroke="#FFAECD"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M729 572L739 574"
+        fill="none"
+        stroke="#FF86B4"
+        stroke-width="21"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <g class="av-hand">
+        <path
+          d="M742 566Q758 562 766 570Q770 576 762 580L744 582Q738 580 738 574Z"
+          fill="#E3AE86"
+        />
+        <path d="M752 566Q756 562 760 566L758 570Z" fill="#CB916A" />
+        <path
+          d="M756 564Q764 566 766 572"
+          fill="none"
+          stroke="#FFE0C8"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </g>
+    </g>
+  </g>
+</svg>
+
+<style>
+  .room-arm {
+    transition: opacity 0.2s;
+  }
+
+  :global([data-room-root]:not([data-destination='room'])) .room-arm {
+    opacity: 0;
+  }
+
+  /* Teclea: la mano sube y baja. */
+  .av-hand {
+    animation: av-type 0.5s steps(2) infinite;
+    animation-play-state: var(--ambient-state, paused);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .room-arm {
+      transition: none;
+    }
+
+    .av-hand {
+      animation: none;
+    }
+  }
+
+  @keyframes av-type {
+    50% {
+      transform: translateY(-2.5px);
+    }
+  }
+</style>

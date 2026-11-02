@@ -1,52 +1,207 @@
 ---
-/** Persona sentada al escritorio (silla, piernas, torso, cabeza, brazo). Provisional hasta tener el avatar definitivo. */
+/**
+ * Persona sentada al frente del escritorio, de perfil hacia el monitor, con su silla. La luz del
+ * monitor deja un filo rosado en la cara y el pecho. El brazo que teclea va aparte (`AvatarArm`),
+ * encima del monitor. Respira y parpadea con el cuarto en reposo.
+ */
 ---
 
 <g>
-  <!-- silla -->
-  <rect x="520" y="468" width="46" height="150" rx="14" fill="#2A1B6B" />
-  <rect x="520" y="596" width="150" height="26" rx="12" fill="#2A1B6B" />
-  <rect x="590" y="620" width="14" height="110" fill="#1D1250" />
-  <path d="M545 742 H650" stroke="#1D1250" stroke-width="10" stroke-linecap="round" />
-  <circle cx="548" cy="754" r="9" fill="#2B2D42" />
-  <circle cx="647" cy="754" r="9" fill="#2B2D42" />
-  <!-- piernas -->
-  <rect x="590" y="598" width="130" height="30" rx="14" fill="#2B2F7A" />
-  <rect x="696" y="614" width="30" height="130" rx="13" fill="#2B2F7A" />
-  <ellipse cx="716" cy="752" rx="34" ry="13" fill="#FFFFFF" />
-  <ellipse cx="716" cy="760" rx="34" ry="6" fill="#8B6CF0" />
-  <!-- torso -->
-  <rect x="556" y="452" width="100" height="160" rx="40" fill="#FF6FA3" />
+  <!-- silla de oficina -->
   <path
-    d="M590 454 Q606 476 622 454"
+    d="M560 744L640 744"
     fill="none"
-    stroke="#5368C6"
-    stroke-width="5"
+    stroke="#1D1250"
+    stroke-width="10"
     stroke-linecap="round"
+    stroke-linejoin="round"
   />
-  <!-- cuello y cabeza -->
-  <rect x="596" y="428" width="26" height="30" rx="10" fill="#D79E78" />
-  <circle cx="612" cy="394" r="44" fill="#E3AE86" />
   <path
-    d="M568 392 Q566 346 612 346 Q660 346 654 398 Q640 372 614 372 Q588 372 580 400 Z"
-    fill="#2B2D42"
-  />
-  <circle cx="644" cy="400" r="9" fill="none" stroke="#2B2D42" stroke-width="4" />
-  <circle cx="644" cy="400" r="2.5" fill="#2B2D42" />
-  <path
-    d="M642 421 Q652 426 660 419"
+    d="M597 744L566 752M597 744L628 752"
     fill="none"
-    stroke="#9A5B44"
-    stroke-width="4"
+    stroke="#1D1250"
+    stroke-width="9"
     stroke-linecap="round"
+    stroke-linejoin="round"
   />
-  <!-- brazo hacia el teclado -->
+  <circle cx="548" cy="756" r="9" fill="#2B2D42" />
+  <circle cx="646" cy="756" r="9" fill="#2B2D42" />
+  <circle cx="597" cy="758" r="8" fill="#2B2D42" />
+  <circle cx="548" cy="754" r="3" fill="#4A4D68" />
+  <circle cx="646" cy="754" r="3" fill="#4A4D68" />
+  <rect x="589" y="640" width="16" height="104" rx="3" fill="#1D1250" />
+  <rect x="586" y="620" width="22" height="34" rx="4" fill="#2A1B6B" />
+  <rect x="586" y="620" width="22" height="5" rx="2" fill="#3B2A80" />
   <path
-    d="M636 500 Q690 520 748 580"
-    fill="none"
-    stroke="#FF6FA3"
-    stroke-width="30"
-    stroke-linecap="round"
+    d="M528 470Q520 470 518 482L512 590Q512 610 530 610L556 610L566 486Q566 470 552 468Z"
+    fill="#2A1B6B"
   />
-  <circle cx="758" cy="584" r="13" fill="#E3AE86" />
+  <path
+    d="M528 470Q520 470 518 482L512 590Q512 600 520 606L526 488Q528 476 540 474Z"
+    fill="#3B2A80"
+  />
+  <rect x="512" y="592" width="162" height="30" rx="14" fill="#2A1B6B" />
+  <rect x="518" y="594" width="150" height="8" rx="4" fill="#3B2A80" />
+  <path d="M520 560Q522 540 540 540L548 540L548 556Q530 558 528 572Z" fill="#1D1250" opacity=".5" />
+  <!-- piernas, torso y cabeza -->
+  <path d="M584 598L706 600Q730 602 730 624L726 628Q722 636 708 634L590 630Z" fill="#2B2F7A" />
+  <path d="M698 616Q698 606 712 606Q728 606 728 620L728 734L700 734Z" fill="#2B2F7A" />
+  <path d="M698 620L706 620L706 734L700 734Z" fill="#20246A" />
+  <rect x="700" y="728" width="28" height="10" rx="3" fill="#2B2D42" />
+  <rect x="700" y="732" width="28" height="4" rx="2" fill="#FBF4FF" />
+  <path
+    d="M698 744Q698 734 710 734L726 734Q736 734 744 740L756 746Q764 750 762 758L698 758Z"
+    fill="#FFFFFF"
+  />
+  <path d="M696 756H764V760Q764 764 758 764H702Q696 764 696 760Z" fill="#8B6CF0" />
+  <circle cx="726" cy="742" r="2" fill="#C6B8FF" />
+  <circle cx="736" cy="744" r="2" fill="#C6B8FF" />
+  <g class="av-breath">
+    <path
+      d="M602 446C576 446 560 466 558 500L556 600Q556 612 570 612L640 612Q652 612 652 598L654 500C654 468 636 446 612 446Z"
+      fill="#FF6FA3"
+    />
+    <path
+      d="M602 446C576 446 560 466 558 500L556 600Q556 612 570 612L582 612L580 500C580 474 590 456 606 447Z"
+      fill="#E8558C"
+    />
+    <path
+      d="M642 460C650 472 654 486 654 500L652 598Q652 606 648 610L647 500C647 486 645 472 639 462Z"
+      fill="#FFAECD"
+    />
+    <rect x="558" y="590" width="94" height="20" rx="10" fill="#E8558C" opacity=".55" />
+    <path d="M592 452Q607 470 624 452L620 446Q607 458 596 446Z" fill="#5368C6" />
+  </g>
+  <g class="av-head">
+    <rect x="598" y="424" width="26" height="32" rx="10" fill="#CB916A" />
+    <path
+      d="M612 350C640 350 657 367 657 391L663 403Q665 409 657 410L656 416Q655 430 641 436Q623 442 604 434C580 428 568 410 568 392C568 367 586 350 612 350Z"
+      fill="#E3AE86"
+    />
+    <path
+      d="M657 391L663 403Q665 409 657 410L656 416Q655 430 641 436L645 430Q651 424 651 414L654 405L651 392C651 380 648 370 642 362C651 368 657 378 657 391Z"
+      fill="#F7CBA8"
+    />
+    <path
+      d="M604 434C580 428 568 410 568 392L578 400C584 418 596 428 612 432Z"
+      fill="#CB916A"
+      opacity=".6"
+    />
+    <ellipse cx="607" cy="398" rx="7" ry="10" fill="#CB916A" />
+    <path
+      d="M605 393Q610 396 606 403"
+      fill="none"
+      stroke="#B27A55"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+    <path
+      d="M654 380C658 356 638 340 612 340C582 340 563 360 564 390C565 406 572 418 583 426L592 420C589 410 590 400 598 392L602 381Q628 384 645 370Q651 376 654 380Z"
+      fill="#2B2D42"
+    />
+    <path
+      d="M582 358Q600 346 624 348"
+      fill="none"
+      stroke="#43476A"
+      stroke-width="5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M572 380Q574 368 580 362"
+      fill="none"
+      stroke="#43476A"
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path d="M644 370Q656 368 660 378Q652 374 646 376Z" fill="#2B2D42" />
+    <path d="M613 380H622L618 401Q614 401 613 396Z" fill="#2B2D42" />
+    <path
+      d="M638 382L651 380"
+      fill="none"
+      stroke="#2B2D42"
+      stroke-width="3.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <g class="av-eye">
+      <ellipse cx="646" cy="396" rx="2.6" ry="3.6" fill="#2B2D42" />
+    </g>
+    <circle cx="646" cy="397" r="10.5" fill="#FFFFFF" opacity=".22" />
+    <circle cx="646" cy="397" r="10.5" fill="none" stroke="#2B2D42" stroke-width="3.4" />
+    <path
+      d="M635.5 395L612 393"
+      fill="none"
+      stroke="#2B2D42"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <ellipse cx="636" cy="414" rx="6" ry="4" fill="#FF8DB8" opacity=".55" />
+    <path
+      d="M645 421Q651 425 656 420"
+      fill="none"
+      stroke="#9A5B44"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
 </g>
+
+<style>
+  .av-breath,
+  .av-head,
+  .av-eye {
+    animation-play-state: var(--ambient-state, paused);
+    transform-box: fill-box;
+  }
+
+  /* Respira: el torso se infla apenas y la cabeza sube con él. */
+  .av-breath {
+    animation: av-breath 3.8s ease-in-out infinite;
+    transform-origin: 50% 100%;
+  }
+
+  .av-head {
+    animation: av-head 3.8s ease-in-out infinite;
+  }
+
+  /* Parpadea cada cinco segundos. */
+  .av-eye {
+    animation: av-blink 5s infinite;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .av-breath,
+    .av-head,
+    .av-eye {
+      animation: none;
+    }
+  }
+
+  @keyframes av-breath {
+    50% {
+      transform: scale(1.012, 1.022);
+    }
+  }
+
+  @keyframes av-head {
+    50% {
+      transform: translateY(-2.5px);
+    }
+  }
+
+  @keyframes av-blink {
+    0%,
+    94%,
+    100% {
+      transform: none;
+    }
+    97% {
+      transform: scaleY(0.1);
+    }
+  }
+</style>
