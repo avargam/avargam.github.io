@@ -43,7 +43,8 @@ export const fueraItems: ShelfItem[] = topics.map((topic, index) => ({
   index,
   pair: index < 2 ? 0 : 1,
   frame: centered(800, VT + index * VH + 170, 1180, 738),
-  hit: { x: 254, y: VT + index * VH + 20, w: 1120, h: 330 },
+  // El contorno punteado (9 px por fuera) queda a 13 px de cada lateral, sin taparse con el derecho.
+  hit: { x: 254, y: VT + index * VH + 20, w: 1092, h: 330 },
 }));
 
 export const fueraItem = (id: string) => fueraItems.find((item) => item.id === id);
