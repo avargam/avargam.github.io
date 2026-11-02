@@ -189,6 +189,8 @@ interface GameBase extends Favorite {
 /** Juego de mesa: una caja parada en la repisa. Su componente es `art/juegos/<art>.svg`. */
 export interface BoardGame extends GameBase {
   kind: 'mesa';
+  /** Caja acostada en la pila: ancho y alto (más ancha hacia abajo, para que la pila se vea estable). */
+  width: number;
   height: number;
   art: 'dnd' | 'tren' | 'munchkin' | 'exit';
 }
@@ -218,9 +220,10 @@ export const games: Game[] = [
     id: 'juegos-dnd',
     kind: 'mesa',
     title: 'Dungeons & Dragons',
-    color: '#B23A5A',
-    textColor: '#FFFFFF',
-    height: 204,
+    color: '#4B3A8F',
+    textColor: '#FBF4FF',
+    width: 236,
+    height: 58,
     art: 'dnd',
     genre: 'Rol cooperativo',
     facts: [
@@ -232,8 +235,10 @@ export const games: Game[] = [
     id: 'juegos-tren',
     kind: 'mesa',
     title: 'Aventureros al Tren',
-    color: '#FFE86B',
-    height: 182,
+    color: '#A9C4F5',
+    textColor: '#2E2170',
+    width: 254,
+    height: 52,
     art: 'tren',
     genre: 'Rutas y cartas',
     facts: [
@@ -245,8 +250,10 @@ export const games: Game[] = [
     id: 'juegos-munchkin',
     kind: 'mesa',
     title: 'Munchkin',
-    color: '#FF9E7A',
-    height: 196,
+    color: '#FF6FA3',
+    textColor: '#FBF4FF',
+    width: 270,
+    height: 64,
     art: 'munchkin',
     genre: 'Cartas, todos contra todos',
     facts: [
@@ -258,9 +265,10 @@ export const games: Game[] = [
     id: 'juegos-exit',
     kind: 'mesa',
     title: 'Exit',
-    color: '#2B2D42',
-    textColor: '#FFFFFF',
-    height: 188,
+    color: '#2E2170',
+    textColor: '#F9DDF0',
+    width: 288,
+    height: 50,
     art: 'exit',
     genre: 'Escape room cooperativo',
     facts: [
@@ -273,7 +281,7 @@ export const games: Game[] = [
     kind: 'video',
     title: 'Animal Crossing',
     label: ['ANIMAL', 'CROSSING'],
-    color: '#8ADBC8',
+    color: '#A9C4F5',
     clip: '/clips/animal-crossing.mp4',
     scenes: ['#3E9C7E', '#FFE86B'],
     genre: 'Simulación de vida',
@@ -284,7 +292,7 @@ export const games: Game[] = [
     kind: 'video',
     title: 'The Binding of Isaac: Rebirth',
     label: ['ISAAC', 'REBIRTH'],
-    color: '#FF9E7A',
+    color: '#FF6FA3',
     clip: '/clips/isaac.mp4',
     scenes: ['#5A2F6B', '#B23A5A'],
     genre: 'Roguelike',
@@ -295,7 +303,7 @@ export const games: Game[] = [
     kind: 'video',
     title: 'Super Mario Galaxy',
     label: ['MARIO', 'GALAXY'],
-    color: '#7B6CF6',
+    color: '#6A56B8',
     clip: '/clips/galaxy.mp4',
     scenes: ['#2A1B6B', '#7B6CF6'],
     genre: 'Plataformas 3D',

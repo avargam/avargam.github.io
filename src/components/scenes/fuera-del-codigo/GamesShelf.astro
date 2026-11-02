@@ -10,10 +10,18 @@ import dnd from './art/juegos/dnd.svg?raw';
 import tren from './art/juegos/tren.svg?raw';
 import munchkin from './art/juegos/munchkin.svg?raw';
 import exit from './art/juegos/exit.svg?raw';
+import dndIcon from './art/juegos/iconos/dnd.svg?raw';
+import trenIcon from './art/juegos/iconos/tren.svg?raw';
+import munchkinIcon from './art/juegos/iconos/munchkin.svg?raw';
+import exitIcon from './art/juegos/iconos/exit.svg?raw';
 
 const componentArt = { dnd, tren, munchkin, exit };
+const boxIcon = { dnd: dndIcon, tren: trenIcon, munchkin: munchkinIcon, exit: exitIcon };
 const center = DETAIL_CENTER.juegos;
-const boxX = (k: number) => GAMES.box.x + k * GAMES.box.step;
+const boards = games.filter((g) => g.kind === 'mesa');
+const boxX = (k: number) => GAMES.box.x + GAMES.box.jitter[k % GAMES.box.jitter.length];
+// Cajas apiladas: la primera arriba, cada una sobre las de más abajo.
+const boxY = (k: number) => GAMES.box.base - boards.slice(k).reduce((sum, g) => sum + g.height, 0);
 const cartX = (k: number) => GAMES.cart.x + (k - 4) * GAMES.cart.step;
 const colors = (g: Game) => `--c:${g.color};--t:${g.textColor ?? 'var(--color-ink)'}`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -39,13 +47,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     g.kind === 'mesa' ? (
       <a
         href={`#${g.id}`}
-        class="sub-object spine gbox"
-        style={`left:${boxX(k)}px;top:${GAMES.box.base - g.height}px;width:${GAMES.box.w}px;height:${g.height}px;${colors(g)};--k:${k}`}
+        class="sub-object side gbox"
+        style={`left:${boxX(k)}px;top:${boxY(k)}px;width:${g.width}px;height:${g.height}px;${colors(g)};--k:${k};--slide:${GAMES.box.slide}px`}
         data-sub={g.id}
         aria-controls={g.id}
       >
-        <span>{g.title}</span>
-        <i aria-hidden="true">{k + 1}</i>
+        <span class="face">
+          <span class="name">{g.title}</span>
+          <svg class="mark" viewBox="-10 -10 20 20" aria-hidden="true">
+            <g set:html={boxIcon[g.art]} />
+          </svg>
+          <i aria-hidden="true">{k + 1}</i>
+        </span>
       </a>
     ) : (
       <a
@@ -75,8 +88,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   {games.map((g, k) => {
     if (g.kind === 'mesa') {
       // La caja vuela desde su lugar en la repisa y se le va la tapa.
-      const fx = boxX(k) + GAMES.box.w / 2 - center.x;
-      const fy = GAMES.box.base - g.height / 2 - 30 - center.y;
+      const fx = boxX(k) + g.width / 2 - center.x;
+      const fy = boxY(k) + g.height / 2 - center.y;
       return (
         <article
           id={g.id}
@@ -189,18 +202,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     viewBox="0 0 150 150"
     aria-hidden="true"
   >
+    <!-- Sin contorno: el trazo del mismo color solo redondea las esquinas. -->
     <polygon
-      points="75,6 135,40 135,110 75,144 15,110 15,40"
-      fill="#7B6CF6"
-      stroke="#5A2F6B"
-      stroke-width="6"
+      points="75,8 133,41 133,109 75,142 17,109 17,41"
+      fill="#FF6FA3"
+      stroke="#FF6FA3"
+      stroke-width="8"
       stroke-linejoin="round"
     ></polygon>
     <polygon
       points="75,30 118,100 32,100"
-      fill="#8E80FF"
-      stroke="#5A2F6B"
-      stroke-width="4"
+      fill="#F9DDF0"
+      stroke="#F9DDF0"
+      stroke-width="6"
       stroke-linejoin="round"
     ></polygon>
     <text x="75" y="88" text-anchor="middle">
@@ -234,43 +248,98 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   }
 
+  /*
+   * Caja de mesa acostada: la tapa (`.face`, con el título, el ícono y el número) cubre el 64 % de
+   * arriba y sobresale 3 px por lado de la base, más oscura, para que se lea como caja y no como
+   * libro.
+   */
   .gbox {
-    padding: 26px 0 32px;
-    font-size: 12.5px;
+    padding: 0 3px;
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--c) 72%, #1b1245) content-box;
+  }
+
+  .face {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    height: 64%;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 14px;
+    border-radius: 5px;
+    background: var(--c);
+    color: var(--t);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .face .name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mark {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: currentColor;
+  }
+
+  .mark :global(.cut) {
+    fill: var(--c);
+  }
+
+  .face i {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: #fbf4ff;
+    color: #2e2170;
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-style: normal;
   }
 
   .cart {
     position: absolute;
     width: 46px;
     height: 64px;
-    border: 3px solid var(--color-plum);
-    border-radius: 6px 6px 2px 2px;
+    border-radius: 6px;
     background: var(--c);
   }
 
   /* contactos del cartucho */
   .cart::before {
     position: absolute;
-    right: 7px;
-    bottom: 3px;
-    left: 7px;
-    height: 8px;
-    background: repeating-linear-gradient(90deg, var(--color-sun) 0 3px, transparent 3px 6px);
+    right: 9px;
+    bottom: 7px;
+    left: 9px;
+    height: 10px;
+    background: repeating-linear-gradient(90deg, rgb(46 33 112 / 0.4) 0 3px, transparent 3px 6px);
     content: '';
   }
 
   .cart span[aria-hidden] {
     position: absolute;
-    top: 7px;
-    right: 4px;
-    left: 4px;
+    top: 9px;
+    right: 5px;
+    left: 5px;
     display: grid;
-    height: 36px;
+    height: 28px;
     place-items: center;
-    border-radius: 2px;
-    background: #fffdf7;
-    color: var(--color-ink);
-    font-size: 7.5px;
+    border-radius: 4px;
+    background: #fbf4ff;
+    color: #2e2170;
+    font-size: 6.5px;
     font-weight: 800;
     line-height: 1.15;
     text-align: center;
@@ -278,21 +347,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .cart b {
     position: absolute;
-    top: -9px;
-    right: -9px;
+    top: -7px;
+    right: -7px;
     display: grid;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     place-items: center;
-    border: 2.5px solid var(--color-plum);
     border-radius: 50%;
-    background: #fff;
-    color: var(--color-plum);
-    font-size: 10px;
-  }
-
-  .gbox[aria-current] {
-    translate: 0 -30px;
+    background: #2e2170;
+    color: #fbf4ff;
+    font-size: 9px;
   }
 
   .cart[aria-current] {
@@ -361,7 +425,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .big-d20 text {
-    fill: #fff;
+    fill: #2e2170;
     font-family: var(--font-display);
     font-size: 40px;
     font-weight: 800;
@@ -414,28 +478,44 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 14px;
-    padding: 14px;
-    border: 5px solid var(--color-plum);
-    border-radius: 10px;
+    padding: 15px;
+    border-radius: 15px;
     background: var(--c);
-    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.3);
   }
 
   .tray .art {
     width: 100%;
     height: 100%;
-    border: 4px solid var(--color-plum);
-    border-radius: 6px;
-    background: #fffdf7;
+    border-radius: 10px;
   }
 
   .label {
     display: flex;
     flex-direction: column;
-    padding: 12px 14px;
-    border: 4px solid var(--color-plum);
-    border-radius: 6px;
-    background: #fffdf7;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #fbf4ff;
+  }
+
+  /* La ficha de la caja en los colores de la paleta (los estilos comunes los comparte Anime). */
+  .label .kick {
+    color: #9a8ce0;
+  }
+
+  .label h3 {
+    color: #4b3a8f;
+  }
+
+  .label .genre {
+    color: #6a56b8;
+  }
+
+  .obox .label :global(.facts div) {
+    border-top: 2px solid #dad0ff;
+  }
+
+  .obox .label :global(.facts dd) {
+    color: #4b3a8f;
   }
 
   /* La tapa (encima, con el título) sale volando. En reposo ya no está. */
@@ -445,10 +525,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     padding: 20px;
     place-items: center;
-    border: 5px solid var(--color-plum);
-    border-radius: 12px;
+    border-radius: 18px;
     background: var(--c);
-    box-shadow: inset 0 -16px 0 rgb(0 0 0 / 0.12);
+    box-shadow: inset 0 -16px 0 rgb(27 18 69 / 0.18);
     color: var(--t);
     font-family: var(--font-display);
     font-size: 40px;
@@ -489,16 +568,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     padding: 4px;
     place-items: center;
     overflow: hidden;
-    border-radius: 6px;
-    background: var(--color-indigo);
-    color: #cffff3;
+    border-radius: 8px;
+    background: #2e2170;
+    color: #fbf4ff;
     font-family: var(--font-display);
     font-size: 8.5px;
     font-weight: 800;
     letter-spacing: 0.06em;
     line-height: 1.25;
     text-align: center;
-    text-shadow: 0 0 3px #4fd1b5;
     rotate: -7deg;
     transform-origin: 46px 110px;
   }
@@ -519,8 +597,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     z-index: 2;
     width: 46px;
     height: 64px;
-    border: 3px solid var(--color-plum);
-    border-radius: 6px 6px 2px 2px;
+    border-radius: 6px;
     background: var(--c);
     opacity: 0;
     pointer-events: none;
@@ -560,10 +637,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     grid-template-columns: 110px 1fr 110px;
     align-items: center;
-    border: 5px solid var(--color-plum);
     border-radius: 44px;
-    background: #6c5aa8;
-    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.3);
+    background: #6a56b8;
   }
 
   .slot {
@@ -573,7 +648,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     width: 70px;
     height: 44px;
     margin-left: -35px;
-    border: 4px solid var(--color-plum);
     border-radius: 8px 8px 0 0;
     background: var(--c);
   }
@@ -588,8 +662,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .dpad::before,
   .dpad::after {
     position: absolute;
-    border-radius: 4px;
-    background: var(--color-ink);
+    border-radius: 7px;
+    background: #2e2170;
     content: '';
   }
 
@@ -618,24 +692,24 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .buttons i {
     width: 30px;
     height: 30px;
-    border: 3px solid var(--color-plum);
     border-radius: 50%;
     background: var(--color-pink);
   }
 
   .buttons i + i {
-    background: var(--color-mint);
+    background: #a9c4f5;
     translate: 0 -16px;
   }
 
+  /* La pantalla con su marco índigo (una sombra sólida, para no cambiar su tamaño). */
   .screen {
     position: relative;
     height: 236px;
     overflow: hidden;
-    border: 5px solid var(--color-plum);
     border-radius: 10px;
-    background: var(--color-night-deep);
-    color: #cffff3;
+    background: #2e2170;
+    box-shadow: 0 0 0 7px #2e2170;
+    color: #fbf4ff;
   }
 
   .bar,
@@ -646,12 +720,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     z-index: 1;
     margin: 0;
     padding: 6px 10px;
-    background: rgb(27 18 69 / 0.85);
+    background: rgb(46 33 112 / 0.85);
   }
 
   .screen .bar {
     top: 0;
-    color: #cffff3;
+    color: #fbf4ff;
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -664,15 +738,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     padding: 5px 10px;
     font-size: 11px;
     font-weight: 700;
-  }
-
-  /* scanlines */
-  .screen::after {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.14) 0 1px, transparent 1px 3px);
-    content: '';
   }
 
   /* El clip aparece cuando se enciende la pantalla, y ahí empieza a reproducirse (`data-clip-start`). */

@@ -54,7 +54,7 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
   {films.map((f, k) => (
     <a
       href={`#${f.id}`}
-      class="sub-object spine case"
+      class="sub-object spine side case"
       style={`left:${caseX(k)}px;top:${caseY(k)}px;width:${CINE.w}px;height:${CINE.h}px;--c:${f.color};--t:${f.textColor ?? '#fff'};--k:${k};--slide:${CINE.slide}px`}
       data-sub={f.id}
       aria-controls={f.id}
@@ -307,25 +307,6 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
     border-radius: 50%;
     background: radial-gradient(circle closest-side, var(--c) 0 38%, var(--color-wall) 40%);
     content: '';
-  }
-
-  /* Acostadas, las cajas se asoman y salen hacia el lado en vez de subir. */
-  .cinema.topic[data-active] .case {
-    animation-name: nudge-side;
-  }
-
-  @keyframes nudge-side {
-    50% {
-      translate: 12px 0;
-    }
-  }
-
-  .cinema.topic[data-active] .case:not([aria-current]):hover {
-    translate: 10px 0;
-  }
-
-  .cinema .case[aria-current] {
-    translate: var(--slide) 0;
   }
 
   /* Zona clicable de la claqueta: solo con la repisa elegida (si no, el clic elige la repisa). */

@@ -52,9 +52,12 @@ export const fueraItem = (id: string) => fueraItems.find((item) => item.id === i
 /** Centro del detalle que vuela al frente (libro, caja, consola) en cada repisa. */
 export const DETAIL_CENTER = { juegos: { x: 800, y: 262 }, anime: { x: 800, y: 440 } };
 
-/** Juegos: cajas de mesa paradas, cartuchos sobre la pila, consola, d20. */
+/**
+ * Juegos: cajas de mesa apiladas (la primera arriba, cada una corrida `jitter` px; su tamaño está en
+ * `games`), cartuchos sobre la pila, consola, d20. La caja elegida sale `slide` px hacia la derecha.
+ */
 export const GAMES = {
-  box: { x: 572, step: 72, w: 64, base: shelfBase(0) },
+  box: { x: 572, jitter: [10, 2, 8, 0], slide: 24, base: shelfBase(0) },
   cart: { x: 298, step: 50, w: 46, h: 64, top: shelfBase(0) - 90 - 38 - 64 },
   handheld: { x: 972, y: 380, slot: 336 },
   d20: { x: 1088, y: 392 },

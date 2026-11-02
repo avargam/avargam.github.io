@@ -180,6 +180,28 @@ const noJsCss = fueraItems
     }
   }
 
+  /*
+   * Objetos acostados en una pila (`.side`, los estuches de Cine y las cajas de mesa): se asoman y
+   * salen hacia el lado en vez de subir; al elegirlos se corren `--slide` px.
+   */
+  .shelf :global(.topic[data-active] .sub-object.side) {
+    animation-name: nudge-side;
+  }
+
+  @keyframes nudge-side {
+    50% {
+      translate: 12px 0;
+    }
+  }
+
+  .shelf :global(.topic[data-active] .sub-object.side:not([aria-current]):hover) {
+    translate: 10px 0;
+  }
+
+  .shelf :global(.sub-object.side[aria-current]) {
+    translate: var(--slide) 0;
+  }
+
   /* Lomo (tomo, caja de mesa o de DVD) con el título en vertical. */
   .shelf :global(.spine) {
     display: flex;
