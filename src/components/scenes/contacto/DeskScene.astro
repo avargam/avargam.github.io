@@ -73,10 +73,11 @@ const sticker = STICKER_KINDS.map((kind, i) => ({ kind, i, peeled: PEELED[kind] 
     <ellipse cx="1300" cy="640" rx="9" ry="20" fill="#8e55a3"></ellipse>
     <ellipse cx="80" cy="380" rx="18" ry="34" fill="var(--color-desk)" opacity=".55"></ellipse>
     <ellipse cx="80" cy="380" rx="7" ry="16" fill="#8a51a0"></ellipse>
-    <!-- La luz de la lámpara que en el cuarto está junto a la mesa. -->
-    <g fill="var(--color-sun)" opacity=".04">
-      {[980, 820, 660, 500, 340].map((r) => (
-        <circle cx="1600" cy="0" r={r} />
+    <!-- La luz de la lámpara que en el cuarto está junto a la mesa: cada círculo suma, así que
+         brilla más hacia la esquina. -->
+    <g fill="var(--color-sun)">
+      {[1000, 840, 680, 520, 380, 240].map((r) => (
+        <circle cx="1600" cy="0" r={r} opacity=".05" />
       ))}
     </g>
   </svg>
