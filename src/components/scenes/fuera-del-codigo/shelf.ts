@@ -64,8 +64,18 @@ export const GAMES = {
   d20: { x: 1238, y: 392 },
 };
 
-/** Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. */
-export const ANIME = { x: 262, w: 54, gap: 4, base: shelfBase(1), book: { x: 480, y: 300 } };
+/**
+ * Anime: lomos de los tomos; el libro abierto mide 640×280 y vuela desde su lomo. El fūrin cuelga
+ * de la repisa de arriba (`chime` es su zona clicable).
+ */
+export const ANIME = {
+  x: 280,
+  w: 54,
+  gap: 4,
+  base: shelfBase(1),
+  book: { x: 480, y: 300 },
+  chime: { x: 1236, y: 492, w: 88, h: 262 },
+};
 
 /**
  * Cine: cajas de DVD apiladas (la primera arriba, cada una corrida `jitter` px), lente del
