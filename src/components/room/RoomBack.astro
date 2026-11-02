@@ -84,39 +84,15 @@ import Cat from './Cat.astro';
   <path d="M1062 444 L1132 424 L1146 476 L1090 496Z" fill="#FFC857" />
   <polygon points="1080,490 1142,474 1190,590 1020,590" fill="#FFE9A8" opacity="0.35" />
 
-  <!-- gabinete bajo la estantería (las 4 repisas son la escena de Fuera del código) -->
-  <rect
-    x="1240"
-    y="489"
-    width="272"
-    height="241"
-    rx="6"
-    fill="#7D4690"
-    stroke="#5A2F6B"
-    stroke-width="4"
-  />
-  <rect
-    x="1250"
-    y="503"
-    width="122"
-    height="212"
-    rx="4"
-    fill="#9B5BB0"
-    stroke="#5A2F6B"
-    stroke-width="3"
-  />
-  <rect
-    x="1380"
-    y="503"
-    width="122"
-    height="212"
-    rx="4"
-    fill="#9B5BB0"
-    stroke="#5A2F6B"
-    stroke-width="3"
-  />
-  <circle cx="1362" cy="610" r="6" fill="#FFE86B" />
-  <circle cx="1394" cy="610" r="6" fill="#FFE86B" />
+  <!-- gabinete bajo la estantería (las 4 repisas son la escena de Fuera del código): puertas planas
+  sin contorno, con una franja de luz arriba y tiradores verticales -->
+  <rect x="1240" y="489" width="272" height="241" rx="8" fill="#7D4690" />
+  <rect x="1252" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
+  <rect x="1382" y="501" width="118" height="217" rx="6" fill="#9B5BB0" />
+  <rect x="1252" y="501" width="118" height="10" rx="5" fill="#fff" opacity="0.14" />
+  <rect x="1382" y="501" width="118" height="10" rx="5" fill="#fff" opacity="0.14" />
+  <rect x="1356" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
+  <rect x="1388" y="585" width="8" height="40" rx="4" fill="#FFE86B" />
 
   <Cat />
 </svg>

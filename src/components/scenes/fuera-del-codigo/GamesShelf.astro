@@ -10,13 +10,45 @@ import dnd from './art/juegos/dnd.svg?raw';
 import tren from './art/juegos/tren.svg?raw';
 import munchkin from './art/juegos/munchkin.svg?raw';
 import exit from './art/juegos/exit.svg?raw';
+import dndIcon from './art/juegos/iconos/dnd.svg?raw';
+import trenIcon from './art/juegos/iconos/tren.svg?raw';
+import munchkinIcon from './art/juegos/iconos/munchkin.svg?raw';
+import exitIcon from './art/juegos/iconos/exit.svg?raw';
 
 const componentArt = { dnd, tren, munchkin, exit };
+const boxIcon = { dnd: dndIcon, tren: trenIcon, munchkin: munchkinIcon, exit: exitIcon };
 const center = DETAIL_CENTER.juegos;
-const boxX = (k: number) => GAMES.box.x + k * GAMES.box.step;
+const boards = games.filter((g) => g.kind === 'mesa');
+const boxX = (k: number) => GAMES.box.x + GAMES.box.jitter[k % GAMES.box.jitter.length];
+// Cajas apiladas: la primera arriba, cada una sobre las de más abajo.
+const boxY = (k: number) => GAMES.box.base - boards.slice(k).reduce((sum, g) => sum + g.height, 0);
+// La caja abierta (`.obox`) mide 600×272 y parte del tamaño de su caja en la pila.
+const OBOX = { w: 600, h: 272 };
+
+/**
+ * Al abrir un juego, su caja o cartucho sale de la repisa (sin recibir clics) y reaparece cuando
+ * termina de volver. Las cajas de arriba bajan a ocupar su lugar y al cerrarla suben a hacerle espacio.
+ */
+const stackCss = games
+  .map((g) => {
+    const self = `.games:has(#${g.id}:is([data-open], [data-leaving])) [data-sub="${g.id}"] { opacity: 0; pointer-events: none; }`;
+    if (g.kind !== 'mesa') return self;
+    const above = boards.slice(0, boards.indexOf(g)).map((a) => `[data-sub="${a.id}"]`);
+    if (!above.length) return self;
+    return `${self}\n.games:has(#${g.id}[data-open]) :is(${above.join(', ')}) { translate: 0 ${g.height}px; }`;
+  })
+  .join('\n');
 const cartX = (k: number) => GAMES.cart.x + (k - 4) * GAMES.cart.step;
 const colors = (g: Game) => `--c:${g.color};--t:${g.textColor ?? 'var(--color-ink)'}`;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// La consola de la repisa: su centro (de donde sale la grande), la ranura y la pantalla, que
+// replican las proporciones de `.console` a la escala de la consola chica.
+const { handheld } = GAMES;
+const mini = handheld.w / 600;
+const consoleCenter = { x: handheld.x + handheld.w / 2, y: handheld.y + handheld.h / 2 };
+const slotTop = { x: consoleCenter.x, y: handheld.y - 10 };
+const consoleFly = `--fx:${consoleCenter.x - center.x}px;--fy:${consoleCenter.y - center.y}px;--fly-sx:${mini};--fly-sy:${mini}`;
+const miniScreen = `left:${handheld.x + 110 * mini}px;top:${handheld.y + 27 * mini}px;width:${380 * mini}px;height:${236 * mini}px`;
 ---
 
 <div
@@ -39,13 +71,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     g.kind === 'mesa' ? (
       <a
         href={`#${g.id}`}
-        class="sub-object spine gbox"
-        style={`left:${boxX(k)}px;top:${GAMES.box.base - g.height}px;width:${GAMES.box.w}px;height:${g.height}px;${colors(g)};--k:${k}`}
+        class="sub-object side gbox"
+        style={`left:${boxX(k)}px;top:${boxY(k)}px;width:${g.width}px;height:${g.height}px;${colors(g)};--k:${k};--slide:${GAMES.box.slide}px`}
         data-sub={g.id}
         aria-controls={g.id}
       >
-        <span>{g.title}</span>
-        <i aria-hidden="true">{k + 1}</i>
+        <span class="face">
+          <span class="name">{g.title}</span>
+          <svg class="mark" viewBox="-10 -10 20 20" aria-hidden="true">
+            <g set:html={boxIcon[g.art]} />
+          </svg>
+          <i aria-hidden="true">{k + 1}</i>
+        </span>
       </a>
     ) : (
       <a
@@ -56,7 +93,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         aria-controls={g.id}
       >
         <span class="sr-only">{g.title}</span>
-        <span aria-hidden="true">{g.label.join(' ')}</span>
+        <span class="cart-label" aria-hidden="true">
+          {g.label.join(' ')}
+        </span>
         <b aria-hidden="true">{k + 1}</b>
       </a>
     ),
@@ -65,24 +104,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <button
     type="button"
     class="d20-hit"
+    style={`left:${GAMES.d20.x - 28}px;top:${GAMES.d20.y - 28}px`}
     data-roll
     aria-label="Tirar el d20: elige un juego al azar"
   ></button>
-  <span class="roll-note" aria-hidden="true">
+  <span
+    class="roll-note"
+    style={`left:${GAMES.d20.x - 198}px;top:${GAMES.d20.y - 102}px`}
+    aria-hidden="true"
+  >
     ¿a qué jugamos? ↓
   </span>
 
   {games.map((g, k) => {
     if (g.kind === 'mesa') {
       // La caja vuela desde su lugar en la repisa y se le va la tapa.
-      const fx = boxX(k) + GAMES.box.w / 2 - center.x;
-      const fy = GAMES.box.base - g.height / 2 - 30 - center.y;
+      const fx = boxX(k) + g.width / 2 - center.x;
+      const fy = boxY(k) + g.height / 2 - center.y;
       return (
         <article
           id={g.id}
           class="sub-detail fly obox"
-          style={`--fx:${fx}px;--fy:${fy}px;${colors(g)}`}
+          style={`--fx:${fx}px;--fy:${fy}px;--fly-sx:${g.width / OBOX.w};--fly-sy:${g.height / OBOX.h};${colors(g)}`}
           data-sub-detail={g.id}
+          data-leave
           aria-label={g.title}
         >
           <div class="tray">
@@ -117,24 +162,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         </article>
       );
     }
-    // El cartucho entra a la consola de la repisa, que se enciende; la consola grande sale de ella.
+    // El cartucho sale de la repisa y entra a la consola chica, que se enciende; la grande sale de
+    // ella. Al cerrar, la grande vuelve a la chica y el cartucho sale de ella de regreso a su lugar.
     const cx = cartX(k) + GAMES.cart.w / 2;
     const cy = GAMES.cart.top + 18;
     return (
       <>
-        <span class="handheld-screen" aria-hidden="true">
+        <span class="handheld-screen" style={miniScreen} aria-hidden="true">
           ▶ {g.label.join(' ')}
         </span>
         <span
           class="cart-fly"
-          style={`left:${cartX(k)}px;top:${GAMES.cart.top - 14}px;--c:${g.color};--fx:${GAMES.handheld.x - cx}px;--fy:${GAMES.handheld.slot - cy}px`}
+          style={`left:${cartX(k)}px;top:${GAMES.cart.top}px;--c:${g.color};--fx:${slotTop.x - cx}px;--fy:${slotTop.y - cy}px`}
           aria-hidden="true"
-        />
+        >
+          <span class="cart-label">{g.label.join(' ')}</span>
+        </span>
         <article
           id={g.id}
           class="sub-detail fly console"
-          style={`--fx:${GAMES.handheld.x - center.x}px;--fy:${GAMES.handheld.y - center.y}px;${colors(g)}`}
+          style={`${consoleFly};${colors(g)}`}
           data-sub-detail={g.id}
+          data-leave
           aria-label={g.title}
         >
           <div class="slot" aria-hidden="true" />
@@ -189,18 +238,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     viewBox="0 0 150 150"
     aria-hidden="true"
   >
+    <!-- Sin contorno: el trazo del mismo color solo redondea las esquinas. -->
     <polygon
-      points="75,6 135,40 135,110 75,144 15,110 15,40"
-      fill="#7B6CF6"
-      stroke="#5A2F6B"
-      stroke-width="6"
+      points="75,8 133,41 133,109 75,142 17,109 17,41"
+      fill="#FF6FA3"
+      stroke="#FF6FA3"
+      stroke-width="8"
       stroke-linejoin="round"
     ></polygon>
     <polygon
       points="75,30 118,100 32,100"
-      fill="#8E80FF"
-      stroke="#5A2F6B"
-      stroke-width="4"
+      fill="#F9DDF0"
+      stroke="#F9DDF0"
+      stroke-width="6"
       stroke-linejoin="round"
     ></polygon>
     <text x="75" y="88" text-anchor="middle">
@@ -208,6 +258,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     </text>
   </svg>
 </div>
+
+<style is:inline set:html={stackCss} />
 
 <style>
   /* Los dados ruedan al llegar a la repisa. */
@@ -234,43 +286,99 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   }
 
+  /*
+   * Caja de mesa acostada: la tapa (`.face`, con el título, el ícono y el número) cubre el 64 % de
+   * arriba y sobresale 3 px por lado de la base, más oscura, para que se lea como caja y no como
+   * libro.
+   */
   .gbox {
-    padding: 26px 0 32px;
-    font-size: 12.5px;
+    padding: 0 3px;
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--c) 72%, #1b1245) content-box;
   }
 
-  .cart {
+  .face {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    height: 64%;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 14px;
+    border-radius: 5px;
+    background: var(--c);
+    color: var(--t);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .face .name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mark {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: currentColor;
+  }
+
+  .mark :global(.cut) {
+    fill: var(--c);
+  }
+
+  .face i {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: #fbf4ff;
+    color: #2e2170;
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-style: normal;
+  }
+
+  .cart,
+  .cart-fly {
     position: absolute;
     width: 46px;
     height: 64px;
-    border: 3px solid var(--color-plum);
-    border-radius: 6px 6px 2px 2px;
+    border-radius: 6px;
     background: var(--c);
   }
 
   /* contactos del cartucho */
-  .cart::before {
+  :is(.cart, .cart-fly)::before {
     position: absolute;
-    right: 7px;
-    bottom: 3px;
-    left: 7px;
-    height: 8px;
-    background: repeating-linear-gradient(90deg, var(--color-sun) 0 3px, transparent 3px 6px);
+    right: 9px;
+    bottom: 7px;
+    left: 9px;
+    height: 10px;
+    background: repeating-linear-gradient(90deg, rgb(46 33 112 / 0.4) 0 3px, transparent 3px 6px);
     content: '';
   }
 
-  .cart span[aria-hidden] {
+  .cart-label {
     position: absolute;
-    top: 7px;
-    right: 4px;
-    left: 4px;
+    top: 9px;
+    right: 5px;
+    left: 5px;
     display: grid;
-    height: 36px;
+    height: 28px;
     place-items: center;
-    border-radius: 2px;
-    background: #fffdf7;
-    color: var(--color-ink);
-    font-size: 7.5px;
+    border-radius: 4px;
+    background: #fbf4ff;
+    color: #2e2170;
+    font-size: 6.5px;
     font-weight: 800;
     line-height: 1.15;
     text-align: center;
@@ -278,25 +386,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .cart b {
     position: absolute;
-    top: -9px;
-    right: -9px;
+    top: -7px;
+    right: -7px;
     display: grid;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     place-items: center;
-    border: 2.5px solid var(--color-plum);
     border-radius: 50%;
-    background: #fff;
-    color: var(--color-plum);
-    font-size: 10px;
-  }
-
-  .gbox[aria-current] {
-    translate: 0 -30px;
-  }
-
-  .cart[aria-current] {
-    translate: 0 -14px;
+    background: #2e2170;
+    color: #fbf4ff;
+    font-size: 9px;
   }
 
   /* El juego que eligió el d20 brilla antes de abrirse. */
@@ -313,8 +412,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   /* ---------- d20 ---------- */
   .d20-hit {
     position: absolute;
-    top: 364px;
-    left: 1060px;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -337,8 +434,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .roll-note {
     position: absolute;
-    top: 286px;
-    left: 990px;
     color: var(--color-plum);
     font-family: var(--font-hand);
     font-size: 26px;
@@ -361,7 +456,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .big-d20 text {
-    fill: #fff;
+    fill: #2e2170;
     font-family: var(--font-display);
     font-size: 40px;
     font-weight: 800;
@@ -402,6 +497,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   /* ---------- caja abierta ---------- */
   .obox {
+    --fly-rot: 0deg;
+    --back-delay: 0.2s;
     top: 126px;
     left: 500px;
     width: 600px;
@@ -414,28 +511,44 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     grid-template-columns: 320px 1fr;
     gap: 14px;
-    padding: 14px;
-    border: 5px solid var(--color-plum);
-    border-radius: 10px;
+    padding: 15px;
+    border-radius: 15px;
     background: var(--c);
-    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.3);
   }
 
   .tray .art {
     width: 100%;
     height: 100%;
-    border: 4px solid var(--color-plum);
-    border-radius: 6px;
-    background: #fffdf7;
+    border-radius: 10px;
   }
 
   .label {
     display: flex;
     flex-direction: column;
-    padding: 12px 14px;
-    border: 4px solid var(--color-plum);
-    border-radius: 6px;
-    background: #fffdf7;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #fbf4ff;
+  }
+
+  /* La ficha de la caja en los colores de la paleta (los estilos comunes los comparte Anime). */
+  .label .kick {
+    color: #9a8ce0;
+  }
+
+  .label h3 {
+    color: #4b3a8f;
+  }
+
+  .label .genre {
+    color: #6a56b8;
+  }
+
+  .obox .label :global(.facts div) {
+    border-top: 2px solid #dad0ff;
+  }
+
+  .obox .label :global(.facts dd) {
+    color: #4b3a8f;
   }
 
   /* La tapa (encima, con el título) sale volando. En reposo ya no está. */
@@ -445,10 +558,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     padding: 20px;
     place-items: center;
-    border: 5px solid var(--color-plum);
-    border-radius: 12px;
+    border-radius: 18px;
     background: var(--c);
-    box-shadow: inset 0 -16px 0 rgb(0 0 0 / 0.12);
+    box-shadow: inset 0 -16px 0 rgb(27 18 69 / 0.18);
     color: var(--t);
     font-family: var(--font-display);
     font-size: 40px;
@@ -461,6 +573,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
   .obox[data-open] .lid {
     animation: lid-off 0.7s 0.55s cubic-bezier(0.5, 0, 0.3, 1) backwards;
+  }
+
+  /* Al cerrar, la tapa vuelve a caer sobre la caja antes de que regrese a la pila. */
+  .obox[data-leaving] .lid {
+    opacity: 1;
+    animation: lid-on 0.25s cubic-bezier(0.4, 0, 0.6, 1) backwards;
+  }
+
+  @keyframes lid-on {
+    from {
+      opacity: 0;
+      translate: 300px -240px;
+      rotate: 20deg;
+    }
   }
 
   @keyframes lid-off {
@@ -479,33 +605,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   /* ---------- consola ---------- */
+  /* La pantalla de la consola de la repisa (posición y tamaño desde `GAMES.handheld`). */
   .handheld-screen {
     position: absolute;
-    top: 350px;
-    left: 926px;
     display: none;
-    width: 92px;
-    height: 62px;
     padding: 4px;
     place-items: center;
     overflow: hidden;
-    border-radius: 6px;
-    background: var(--color-indigo);
-    color: #cffff3;
+    border-radius: 3px;
+    background: #2e2170;
+    color: #fbf4ff;
     font-family: var(--font-display);
     font-size: 8.5px;
     font-weight: 800;
     letter-spacing: 0.06em;
     line-height: 1.25;
     text-align: center;
-    text-shadow: 0 0 3px #4fd1b5;
-    rotate: -7deg;
-    transform-origin: 46px 110px;
   }
 
+  /* Se enciende cuando entra el cartucho y se apaga cuando la consola sale de la repisa. */
   .handheld-screen:has(+ .cart-fly + .console:is([data-open], html:not(.js) :target)) {
     display: grid;
-    animation: power-on 0.3s 0.45s steps(3) backwards;
+    animation:
+      power-on 0.3s 0.45s steps(3) backwards,
+      mini-off 0s var(--console-out) forwards;
   }
 
   @keyframes power-on {
@@ -514,20 +637,64 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   }
 
+  @keyframes mini-off {
+    to {
+      opacity: 0;
+    }
+  }
+
+  /*
+   * Hay una sola consola: la de la repisa se oculta cuando la grande empieza a crecer desde su lugar
+   * y vuelve cuando la grande termina de achicarse de regreso (`data-leaving`).
+   */
+  .games {
+    --console-out: 0.8s;
+  }
+
+  .games :global(.handheld) {
+    transition: opacity 0s;
+  }
+
+  .games:has(.console[data-open]) :global(.handheld) {
+    opacity: 0;
+    transition-delay: var(--console-out);
+  }
+
+  /* Al cerrar, `data-leaving` dura hasta que el cartucho vuelve; la consola chica, solo el regreso. */
+  .games:has(.console[data-leaving]) :global(.handheld) {
+    animation: mini-back 0.4s step-end;
+  }
+
+  @keyframes mini-back {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .games .console[data-leaving] {
+    animation:
+      fly-back 0.4s cubic-bezier(0.5, 0, 0.7, 0.4) forwards,
+      console-hold 0.9s;
+  }
+
+  @keyframes console-hold {
+    to {
+      visibility: visible;
+    }
+  }
+
   .cart-fly {
-    position: absolute;
     z-index: 2;
-    width: 46px;
-    height: 64px;
-    border: 3px solid var(--color-plum);
-    border-radius: 6px 6px 2px 2px;
-    background: var(--c);
     opacity: 0;
     pointer-events: none;
   }
 
   .cart-fly:has(+ .console[data-open]) {
     animation: cart-in 0.55s cubic-bezier(0.4, 0, 0.3, 1);
+  }
+
+  .cart-fly:has(+ .console[data-leaving]) {
+    animation: cart-out 0.5s 0.4s cubic-bezier(0.4, 0, 0.3, 1);
   }
 
   @keyframes cart-in {
@@ -539,15 +706,35 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       translate: calc(var(--fx) * 0.6) calc(var(--fy) * 0.6 - 70px);
       rotate: 20deg;
     }
+    /* entra a la ranura de la consola chica, que mide la mitad del cartucho */
     100% {
       translate: var(--fx) var(--fy);
-      rotate: -7deg;
-      scale: 0.7;
+      scale: 0.5;
     }
   }
 
+  @keyframes cart-out {
+    0% {
+      opacity: 1;
+      translate: var(--fx) var(--fy);
+      scale: 0.5;
+    }
+    40% {
+      translate: calc(var(--fx) * 0.6) calc(var(--fy) * 0.6 - 70px);
+      rotate: 20deg;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /*
+   * Sale de la consola de la repisa (derecha y a un tercio de esta) cuando la pantallita ya mostró
+   * el juego, y al cerrar vuelve a ella.
+   */
   .console {
-    --delay: 0.5s;
+    --delay: var(--console-out);
+    --fly-rot: 0deg;
     top: 118px;
     left: 500px;
     width: 600px;
@@ -560,10 +747,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     display: grid;
     grid-template-columns: 110px 1fr 110px;
     align-items: center;
-    border: 5px solid var(--color-plum);
     border-radius: 44px;
-    background: #6c5aa8;
-    box-shadow: 6px 8px 0 rgb(42 27 107 / 0.3);
+    background: #6a56b8;
   }
 
   .slot {
@@ -573,7 +758,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     width: 70px;
     height: 44px;
     margin-left: -35px;
-    border: 4px solid var(--color-plum);
     border-radius: 8px 8px 0 0;
     background: var(--c);
   }
@@ -588,8 +772,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .dpad::before,
   .dpad::after {
     position: absolute;
-    border-radius: 4px;
-    background: var(--color-ink);
+    border-radius: 7px;
+    background: #2e2170;
     content: '';
   }
 
@@ -618,24 +802,24 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .buttons i {
     width: 30px;
     height: 30px;
-    border: 3px solid var(--color-plum);
     border-radius: 50%;
     background: var(--color-pink);
   }
 
   .buttons i + i {
-    background: var(--color-mint);
+    background: #a9c4f5;
     translate: 0 -16px;
   }
 
+  /* La pantalla con su marco índigo (una sombra sólida, para no cambiar su tamaño). */
   .screen {
     position: relative;
     height: 236px;
     overflow: hidden;
-    border: 5px solid var(--color-plum);
     border-radius: 10px;
-    background: var(--color-night-deep);
-    color: #cffff3;
+    background: #2e2170;
+    box-shadow: 0 0 0 7px #2e2170;
+    color: #fbf4ff;
   }
 
   .bar,
@@ -646,12 +830,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     z-index: 1;
     margin: 0;
     padding: 6px 10px;
-    background: rgb(27 18 69 / 0.85);
+    background: rgb(46 33 112 / 0.85);
   }
 
   .screen .bar {
     top: 0;
-    color: #cffff3;
+    color: #fbf4ff;
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -666,15 +850,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     font-weight: 700;
   }
 
-  /* scanlines */
-  .screen::after {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.14) 0 1px, transparent 1px 3px);
-    content: '';
-  }
-
   /* El clip aparece cuando se enciende la pantalla, y ahí empieza a reproducirse (`data-clip-start`). */
   .clip {
     position: absolute;
@@ -684,8 +859,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     object-fit: cover;
   }
 
+  /* El clip aparece cuando la consola ya llegó al frente. */
   .console[data-open] .clip {
-    animation: clip-in 0.3s 1.2s backwards;
+    animation: clip-in 0.3s calc(var(--delay) + 0.7s) backwards;
   }
 
   @keyframes clip-in {
@@ -705,7 +881,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .console[data-open] .scene-placeholder {
-    animation: scene-cycle 8s calc(1.2s + var(--i) * 4s) infinite backwards;
+    animation: scene-cycle 8s calc(var(--delay) + 0.7s + var(--i) * 4s) infinite backwards;
   }
 
   @keyframes scene-cycle {

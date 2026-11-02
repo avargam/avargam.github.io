@@ -8,11 +8,19 @@
  *   [data-sub-detail=id]      su detalle, visible con `data-open`
  *   [data-sub-close]          botón ✕ del detalle
  *
- * Música (audio y reproductor) y Juegos (el d20) tienen además su propia lógica aquí.
+ * Música (audio y reproductor), Juegos (el d20) y Cine (la claqueta) tienen además su propia
+ * lógica aquí.
  */
 import { prefersReducedMotion } from '../../stage/camera';
 import { panToSceneRect } from '../../stage/router';
 import type { ItemNav } from '../../stage/itemNav';
+
+/** Lo que tarda el brazo del tocadiscos en bajar sobre el vinilo (`arm-drop` en `MusicShelf`). */
+const ARM_DOWN_MS = 1600;
+/** Lo que tarda el brazo en subir o bajar al pausar y reanudar (su transición en `MusicShelf`). */
+const ARM_MOVE_MS = 500;
+/** Espera de la primera nota al elegir un disco (el retraso base de `float` en `MusicShelf`). */
+const NOTE_DELAY_MS = 1600;
 
 export interface Shelf {
   /** Teclas con un objeto abierto (← →, Esc, espacio en Música). Devuelve `true` si la consumió. */
@@ -81,11 +89,19 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     const topic = topicOf(id);
     const detail = details.get(id);
     if (!topic || !detail) return;
-    hide();
+    // Si ya sonaba otro disco, el brazo parte desde abajo y sube antes de que caiga el nuevo.
+    const switching = open !== null && topicOf(open) === topic;
+    if (topic === 'musica') {
+      topicEl(topic)?.style.setProperty('--arm-from', switching ? '-16deg' : '0deg');
+    }
+    hide(false);
+    detail.removeAttribute('data-leaving');
+    // Un recálculo de estilos entre cerrar y abrir reinicia las animaciones de la repisa y del
+    // detalle al cambiar de objeto (el vinilo vuelve a caer, la cuenta regresiva vuelve a correr).
+    void detail.offsetWidth;
     open = id;
     topicEl(topic)?.setAttribute('data-open', id);
     objects.get(id)?.setAttribute('aria-current', 'true');
-    void detail.offsetWidth;
     detail.setAttribute('data-open', '');
     // Durante la cuenta regresiva, el clip carga y vuelve al inicio sin verse; sin animaciones no
     // hay cuenta regresiva y se reproduce de inmediato.
@@ -102,11 +118,26 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (announcer) announcer.textContent = detail.getAttribute('aria-label') ?? '';
   }
 
-  /** Quita el detalle abierto (sin mover la cámara ni la URL). */
-  function hide() {
+  /**
+   * Quita el detalle abierto (sin mover la cámara ni la URL). Con `leave`, los detalles con
+   * `data-leave` (la consola y las cajas de Juegos) vuelven achicándose a su objeto (`data-leaving`
+   * hasta que terminan todas sus animaciones); al cambiar de objeto se van de inmediato, porque el
+   * nuevo ya entra.
+   */
+  function hide(leave = true) {
     if (!open) return;
     const detail = details.get(open);
     detail?.removeAttribute('data-open');
+    if (leave && detail?.hasAttribute('data-leave') && !prefersReducedMotion()) {
+      detail.setAttribute('data-leaving', '');
+      const done = (event: AnimationEvent) => {
+        if (event.target !== detail) return;
+        if (detail.getAnimations().some((animation) => animation.playState !== 'finished')) return;
+        detail.removeAttribute('data-leaving');
+        detail.removeEventListener('animationend', done);
+      };
+      detail.addEventListener('animationend', done);
+    }
     for (const video of detail?.querySelectorAll('video') ?? []) video.pause();
     objects.get(open)?.removeAttribute('aria-current');
     const topic = topicOf(open);
@@ -165,6 +196,18 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       void roll();
       return;
     }
+    if (target.closest('[data-clap]')) {
+      replay('cine', 'data-clap');
+      return;
+    }
+    if (target.closest('[data-chime]')) {
+      replay('anime', 'data-chime');
+      return;
+    }
+    if (target.closest('[data-phones]')) {
+      replay('musica', 'data-swing');
+      return;
+    }
     const peg = target.closest<HTMLAnchorElement>('[data-peg]');
     if (peg) {
       event.preventDefault();
@@ -180,7 +223,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     if (!open || event.defaultPrevented || target.closest('[data-overlay]')) return;
     if (
       target.closest(
-        '[data-sub], [data-roll], .sub-detail.fly, .film-screen, .ticket, [data-player]',
+        '[data-sub], [data-roll], [data-clap], [data-chime], [data-phones], .sub-detail.fly, .film-screen, .ticket, [data-player]',
       )
     )
       return;
@@ -200,6 +243,19 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   }
 
   /* ---------- Juegos: el d20 elige un juego al azar ---------- */
+  /**
+   * Reproduce la animación de un objeto de la repisa (la claqueta de Cine, el fūrin de Anime, los
+   * audífonos de Música) con
+   * el atributo `attr` en su tema; otro clic la reinicia aunque no haya terminado.
+   */
+  function replay(topic: string, attr: string) {
+    const el = topicEl(topic);
+    if (!el) return;
+    el.removeAttribute(attr);
+    void el.offsetWidth;
+    el.setAttribute(attr, '');
+  }
+
   async function roll() {
     const games = topicEl('juegos');
     const die = games?.querySelector<SVGSVGElement>('.big-d20');
@@ -241,7 +297,34 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
     const fmt = (t: number) =>
       `${Math.floor((t || 0) / 60)}:${String(Math.floor(t || 0) % 60).padStart(2, '0')}`;
 
+    const notes = [...(topic?.querySelectorAll<HTMLElement>('.note') ?? [])];
+    // Las animaciones de las notas en pausa: al terminar dejan de aparecer en `getAnimations()`.
+    let held: Animation[] = [];
+
+    /**
+     * Al pausar, cada nota termina el vuelo en que va y no sale otra; al reanudar, vuelven a salir
+     * escalonadas desde que el brazo baja.
+     */
+    function setNotes(paused: boolean) {
+      if (paused) {
+        held = notes.flatMap((note) => note.getAnimations());
+        for (const anim of held) {
+          const iteration = anim.effect?.getComputedTiming().currentIteration;
+          anim.effect?.updateTiming({ iterations: iteration == null ? 0 : iteration + 1 });
+        }
+        return;
+      }
+      for (const anim of held) {
+        // Rebobina hasta que al retraso de cada nota le quede lo que tarda el brazo en bajar: así
+        // se conserva el escalonado entre notas.
+        anim.effect?.updateTiming({ iterations: Infinity });
+        anim.currentTime = NOTE_DELAY_MS - ARM_MOVE_MS;
+      }
+      held = [];
+    }
+
     function setPaused(paused: boolean) {
+      if (topic && topic.hasAttribute('data-paused') !== paused) setNotes(paused);
       topic?.toggleAttribute('data-paused', paused);
       if (!toggle) return;
       toggle.textContent = paused ? '▶' : '❚❚';
@@ -277,11 +360,24 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
       step(action === 'prev' ? -1 : 1);
     });
 
+    /** Reproduce; si el navegador no lo permite, el reproductor queda en pausa. */
+    function start() {
+      if (!audio) return;
+      setPaused(false);
+      audio.play().catch(() => setPaused(true));
+    }
+
+    /**
+     * Pausa o reanuda. Decide por el estado del reproductor y no por el audio, que aún no suena
+     * mientras baja la aguja: pausar en ese momento cancela el arranque. Al reanudar, el brazo baja
+     * y el audio vuelve cuando la aguja toca el disco.
+     */
     function togglePlay() {
       if (!audio) return;
-      if (audio.paused) {
-        void audio.play().catch(() => {});
+      clearTimeout(timer);
+      if (topic?.hasAttribute('data-paused')) {
         setPaused(false);
+        timer = window.setTimeout(start, prefersReducedMotion() ? 0 : ARM_MOVE_MS);
       } else {
         audio.pause();
         setPaused(true);
@@ -308,10 +404,7 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
         audio.src = song.dataset.audio ?? '';
         audio.volume = 0.6;
         // La música parte cuando la aguja baja (y nunca sin un clic o una tecla de por medio).
-        timer = window.setTimeout(
-          () => void audio.play().catch(() => {}),
-          prefersReducedMotion() ? 0 : 1100,
-        );
+        timer = window.setTimeout(start, prefersReducedMotion() ? 0 : ARM_DOWN_MS);
       },
       stop() {
         clearTimeout(timer);
