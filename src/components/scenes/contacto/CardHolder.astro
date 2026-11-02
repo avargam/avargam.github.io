@@ -1,6 +1,6 @@
 ---
 /**
- * LinkedIn: un tarjetero con una tarjeta que asoma ("Mi perfil de LinkedIn"). Al abrirlo, la tarjeta
+ * LinkedIn: un tarjetero de escritorio con una tarjeta que asoma ("Mi perfil de LinkedIn"). Al abrirlo, la tarjeta
  * sale, cae al lado y se da vuelta: en el reverso está el enlace. Es un objeto aparte en la mesa
  * (se arrastra y se da vuelta con un clic); Esc o cerrar la devuelve al tarjetero.
  */
@@ -32,6 +32,7 @@ const { z } = Astro.props;
   <div class="pocket rear" aria-hidden="true"></div>
   <div class="pocket" aria-hidden="true">
     LINKEDIN
+    <div class="stuck" data-surface="linkedin"></div>
   </div>
 </div>
 
@@ -53,6 +54,7 @@ const { z } = Astro.props;
         {profile.name.split(' ').slice(2).join(' ')}
       </b>
       <small>{profile.role}</small>
+      <div class="stuck" data-surface="card-front"></div>
     </div>
     <div class="side back">
       <p class="kick">LINKEDIN</p>
@@ -60,6 +62,7 @@ const { z } = Astro.props;
       <a class="desk-btn pink" href={item.href} target="_blank" rel="noopener">
         Ver mi perfil ↗
       </a>
+      <div class="stuck" data-surface="card-back"></div>
     </div>
   </div>
 </div>
@@ -82,15 +85,15 @@ const { z } = Astro.props;
     display: grid;
     width: 300px;
     height: 130px;
-    border: 5px solid var(--color-plum);
     border-radius: 14px;
-    background: #6c5aa8;
+    /* El borde de arriba del bolsillo, iluminado. */
+    background: linear-gradient(#8571d6 0 12px, #6a56b8 0);
     box-shadow: var(--sh, 8px 10px 0) var(--shadow);
-    color: var(--color-wall);
+    color: var(--color-lilac);
     font-family: var(--font-display);
     font-size: 20px;
     font-weight: 800;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.24em;
     place-items: center;
     transition: box-shadow 0.15s;
   }
@@ -99,6 +102,7 @@ const { z } = Astro.props;
     top: 140px;
     z-index: 0;
     height: 120px;
+    background: #4b3a8f;
     box-shadow: none;
   }
 
@@ -128,11 +132,9 @@ const { z } = Astro.props;
   .side {
     position: absolute;
     inset: 0;
-    overflow: hidden;
-    padding: 14px 20px 0 34px;
-    border: 4px solid var(--color-plum);
+    padding: 18px 20px 0 34px;
     border-radius: 10px;
-    background: #fff;
+    background: #fbf4ff;
     backface-visibility: hidden;
     box-shadow: var(--sh, 6px 8px 0) var(--shadow);
     color: var(--color-plum);
@@ -144,6 +146,8 @@ const { z } = Astro.props;
     bottom: 0;
     left: 0;
     width: 14px;
+    /* La franja sigue la esquina de la tarjeta (sin recortar: los stickers pueden sobresalir). */
+    border-radius: 10px 0 0 10px;
     background: var(--color-lilac);
     content: '';
   }
@@ -189,7 +193,7 @@ const { z } = Astro.props;
   }
 
   .back {
-    padding-top: 16px;
+    padding-top: 20px;
     background: var(--color-lilac);
     transform: rotateY(180deg);
   }

@@ -1,11 +1,13 @@
 ---
 /**
  * Vista previa de Sudoku Coach (460×340): se detecta el tablero de papel, se leen las celdas y la
- * pista se revela en tres etapas, como en la app. Se anima con la ventana activa.
+ * pista se revela en tres etapas, como en la app. Se anima con la ventana activa. La hoja deja
+ * libre la franja de abajo para las pistas.
  */
-const S = 252 / 9;
-const OX = 104;
-const OY = 30;
+const SIZE = 200;
+const S = SIZE / 9;
+const OX = 130;
+const OY = 40;
 // Sudoku clásico; en la fila 5, columna 5 (vacía) va un 5.
 const PUZZLE = '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79';
 const PENCIL = new Set([13, 22, 39, 59]);
@@ -14,7 +16,7 @@ const TARGET = { row: 4, col: 4, digit: '5' };
 const digits = [...PUZZLE].flatMap((d, i) =>
   d === '.' ? [] : [{ d, row: Math.floor(i / 9), col: i % 9, pencil: PENCIL.has(i) }],
 );
-const lines = Array.from({ length: 10 }, (_, i) => ({ at: i * S, width: i % 3 === 0 ? 2.6 : 1 }));
+const lines = Array.from({ length: 10 }, (_, i) => ({ at: i * S, width: i % 3 === 0 ? 2 : 0.8 }));
 const hints = [
   { text: '1 · Single oculto', color: '#C6B8FF' },
   { text: '2 · Mira la fila 5', color: '#FFE86B' },
@@ -24,13 +26,22 @@ const hints = [
 
 <svg class="sudoku" width="460" height="340" viewBox="0 0 460 340" aria-hidden="true">
   <rect width="460" height="340" fill="#3B2A80"></rect>
-  <g transform="rotate(-3 230 156)">
-    <rect x={OX - 22} y={OY - 16} width="296" height="290" rx="4" fill="#FFF6E6"></rect>
+  <g transform="rotate(-3 230 140)">
+    <rect
+      x={OX - 12}
+      y={OY - 10}
+      width={SIZE + 36}
+      height={SIZE + 36}
+      rx="4"
+      fill="#2A1B6B"
+      opacity=".3"
+    ></rect>
+    <rect x={OX - 18} y={OY - 18} width={SIZE + 36} height={SIZE + 36} rx="4" fill="#FFF6E6"></rect>
     <rect
       class="row"
       x={OX}
       y={OY + TARGET.row * S}
-      width="252"
+      width={SIZE}
       height={S}
       fill="#FFE86B"
       opacity=".6"
@@ -40,7 +51,7 @@ const hints = [
         <line
           x1={OX}
           y1={OY + at}
-          x2={OX + 252}
+          x2={OX + SIZE}
           y2={OY + at}
           stroke="#2B2D42"
           stroke-width={width}
@@ -49,7 +60,7 @@ const hints = [
           x1={OX + at}
           y1={OY}
           x2={OX + at}
-          y2={OY + 252}
+          y2={OY + SIZE}
           stroke="#2B2D42"
           stroke-width={width}
         />
@@ -60,7 +71,7 @@ const hints = [
         class:list={['digit', pencil && 'pencil']}
         style={`--r:${row}`}
         x={OX + col * S + S / 2}
-        y={OY + row * S + S / 2 + 7}
+        y={OY + row * S + S / 2 + 5.5}
       >
         {d}
       </text>
@@ -73,28 +84,28 @@ const hints = [
       height={S - 4}
       fill="none"
       stroke="#FF4FA3"
-      stroke-width="4"
+      stroke-width="3"
     ></rect>
     <text
       class="placed"
       x={OX + TARGET.col * S + S / 2}
-      y={OY + TARGET.row * S + S / 2 + 8}
+      y={OY + TARGET.row * S + S / 2 + 6.5}
       text-anchor="middle"
       fill="#FF4FA3"
     >
       {TARGET.digit}
     </text>
-    <rect class="scan" x={OX} y={OY} width="252" height="4" fill="#8ADBC8"></rect>
+    <rect class="scan" x={OX} y={OY} width={SIZE} height="4" fill="#8ADBC8"></rect>
   </g>
   <path
     class="quad"
     pathLength="1"
-    d={`M${OX - 8} ${OY - 4} L${OX + 262} ${OY - 14} L${OX + 274} ${OY + 254} L${OX + 4} ${OY + 266} Z`}
+    d={`M${OX - 12} ${OY - 10} L${OX + 214} ${OY - 20} L${OX + 224} ${OY + 214} L${OX - 4} ${OY + 224} Z`}
   ></path>
   {hints.map((hint, i) => (
     <g class="hint" style={`--h:${i}`}>
-      <rect x={20 + i * 142} y="300" width="134" height="30" rx="15" fill={hint.color} />
-      <text x={87 + i * 142} y="320" text-anchor="middle" class="hint-text">
+      <rect x={26 + i * 140} y="288" width="128" height="30" rx="15" fill={hint.color} />
+      <text x={90 + i * 140} y="308" text-anchor="middle" class="hint-text">
         {hint.text}
       </text>
     </g>
@@ -104,26 +115,26 @@ const hints = [
 <style>
   .digit {
     fill: var(--color-ink);
-    font-size: 19px;
+    font-size: 15px;
     font-weight: 700;
     text-anchor: middle;
   }
 
   .digit.pencil {
     fill: #6c6c8a;
-    font-size: 18px;
+    font-size: 14px;
     font-style: italic;
     font-weight: 500;
   }
 
   .placed {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 800;
   }
 
   .hint-text {
     fill: var(--color-ink);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
   }
 
@@ -193,7 +204,7 @@ const hints = [
 
     100% {
       opacity: 0;
-      translate: 0 252px;
+      translate: 0 200px;
     }
   }
 

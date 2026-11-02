@@ -176,7 +176,8 @@ export function initRouter(): void {
   let settled = true;
   let generation = 0;
   history.replaceState({ section: current, fromRoom: false } satisfies HistoryState, '');
-  if (current === null) root.dataset.view = 'room';
+  // La vista en reposo: el cuarto o la sección abierta (ver las animaciones ambientales en World.astro).
+  root.dataset.view = current ?? 'room';
 
   const announce = (message: string) => {
     announcer.textContent = message;
@@ -286,7 +287,7 @@ export function initRouter(): void {
     }
 
     settled = true;
-    if (target === null) root.dataset.view = 'room';
+    root.dataset.view = target ?? 'room';
     if (target !== null) {
       overlay?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true });
       announce(sectionBySlug(target)?.label ?? '');

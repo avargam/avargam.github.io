@@ -16,7 +16,7 @@ const BASE = (process.argv[2] ?? 'http://localhost:4321').replace(/\/$/, '');
 const OUT = new URL('../public/og/', import.meta.url);
 /**
  * Rutas, el nombre de su imagen (coincide con `ogImage` en Head.astro) y desde qué altura se recorta
- * la franja de 840 (en el cuarto, desde arriba, para que entre la placa con el nombre).
+ * la franja de 840 (en el cuarto, casi desde arriba, para que entren las etiquetas de las repisas).
  */
 const ROUTES = [
   ['/', 'cuarto', 20],

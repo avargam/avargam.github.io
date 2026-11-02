@@ -1,8 +1,9 @@
 ---
 /**
- * Correo: un sobre cerrado con la dirección al frente. Al abrirlo, la solapa gira y la carta sube
- * con "Escribir" (`mailto:`) y "Copiar dirección"; copiar estampa "¡COPIADO!" en la carta. Las
- * estampillas y stickers que se sueltan encima quedan pegados en `[data-stuck]`.
+ * Correo: un sobre cerrado con lacre y la dirección al frente. Al abrirlo, la solapa gira, el frente
+ * da paso al bolsillo y la carta asoma desde adentro con "Escribir" (`mailto:`) y "Copiar
+ * dirección"; copiar estampa "¡COPIADO!" en la carta. Los stickers se pegan al frente (cerrado) o
+ * a la carta y el bolsillo (abierto), en su `[data-surface]`.
  */
 import { profile } from '../../../data/profile';
 import { contact } from '../../../data/contact';
@@ -29,6 +30,7 @@ const [line1, line2] = profile.tagline.split(', ');
     aria-expanded="false"
     aria-label={item.name}
   ></a>
+  <div class="paper"></div>
   <section class="letter" aria-label="Carta">
     <p class="hand">Escríbeme a:</p>
     <p class="mail">{profile.email}</p>
@@ -56,73 +58,50 @@ const [line1, line2] = profile.tagline.split(', ');
     <p class="copied" aria-hidden="true">
       ¡COPIADO!
     </p>
+    <div class="stuck" data-surface="carta"></div>
   </section>
-  <div class="paper"></div>
+  <svg class="pocket" width="570" height="400" viewBox="0 0 570 400" aria-hidden="true">
+    <path
+      d="M0 152L285 266L570 152V388Q570 400 558 400H12Q0 400 0 388Z"
+      fill="var(--color-paper)"
+    ></path>
+    <path d="M0 152L218 240L0 400Z" fill="#fbe9d6"></path>
+    <path d="M570 152L352 240L570 400Z" fill="#fbe9d6"></path>
+  </svg>
+  <!-- Abierto, lo que queda bajo la carta: el bolsillo. -->
+  <div class="stuck pocket-stuck" style="top: 150px" data-surface="bolsillo"></div>
   <svg class="front" width="570" height="400" viewBox="0 0 570 400" aria-hidden="true">
-    <text x="60" y="310" class="to">
+    <rect width="570" height="400" rx="12" fill="var(--color-paper)"></rect>
+    <text x="56" y="300" class="to">
       PARA
     </text>
-    <text x="60" y="354" class="address">
+    <text x="56" y="350" class="address">
       {profile.email}
     </text>
     <path
-      d="M60 368 q120 -10 240 0 t130 0"
+      d="M56 366q95-10 190 0t150 0"
       fill="none"
       stroke="var(--color-pink)"
-      stroke-width="5"
+      stroke-width="7"
       stroke-linecap="round"
     ></path>
-    <rect
-      x="470"
-      y="40"
-      width="64"
-      height="74"
-      rx="3"
-      fill="none"
-      stroke="var(--color-plum)"
-      stroke-width="2"
-      stroke-dasharray="6 6"
-      opacity=".35"
-    ></rect>
   </svg>
   <div class="flap" aria-hidden="true">
     <svg class="out" width="570" height="214" viewBox="0 0 570 214">
-      <polygon
-        points="2,4 285,208 568,4"
-        fill="#ffe9d0"
-        stroke="var(--color-plum)"
-        stroke-width="5"
-        stroke-linejoin="round"
-      ></polygon>
-      <circle
-        cx="285"
-        cy="198"
-        r="34"
-        fill="var(--color-hotpink)"
-        stroke="var(--color-plum)"
-        stroke-width="4"
-      ></circle>
-      <circle
-        cx="285"
-        cy="198"
-        r="23"
-        fill="none"
-        stroke="#fff"
-        stroke-width="3"
-        opacity=".6"
-      ></circle>
+      <polygon points="10,5 285,214 560,5" fill="#ffe4ec"></polygon>
+      <polygon points="10,5 285,214 285,176 52,5" fill="#ffd3e2"></polygon>
+      <circle cx="285" cy="200" r="43" fill="var(--color-hotpink)"></circle>
+      <circle cx="285" cy="200" r="26" fill="none" stroke="#ff9cc8" stroke-width="6"></circle>
+      <!-- La estampilla va en la esquina del sobre, sobre la solapa: se va con ella al abrir. -->
+      <rect x="461" y="33" width="76" height="90" rx="5" fill="#fbf4ff"></rect>
+      <rect x="468" y="40" width="62" height="76" rx="2" fill="var(--color-mint)"></rect>
+      <circle cx="499" cy="78" r="14" fill="#fbf4ff" opacity=".7"></circle>
     </svg>
     <svg class="in" width="570" height="214" viewBox="0 0 570 214">
-      <polygon
-        points="2,210 285,6 568,210"
-        fill="#f2d6c0"
-        stroke="var(--color-plum)"
-        stroke-width="5"
-        stroke-linejoin="round"
-      ></polygon>
+      <polygon points="10,209 285,4 560,209" fill="#f7d3df"></polygon>
     </svg>
   </div>
-  <div class="stuck" data-stuck></div>
+  <div class="stuck front-stuck" data-surface="correo"></div>
 </div>
 
 <style>
@@ -131,34 +110,58 @@ const [line1, line2] = profile.tagline.split(', ');
     height: 400px;
   }
 
+  /*
+   * Por capas: el interior (`.paper`), la carta, el bolsillo y el frente opaco, que tapa todo lo de
+   * adentro con el sobre cerrado. Al abrir, el frente se desvanece, la solapa gira y la carta sube;
+   * al cerrar, al revés: primero baja la carta y, ya guardada, vuelven el frente y la solapa.
+   */
   .paper {
     position: absolute;
     inset: 0;
-    z-index: 2;
-    border: 5px solid var(--color-plum);
     border-radius: 12px;
-    background: var(--color-paper);
+    background: #f2d6c0;
     box-shadow: var(--sh, 8px 10px 0) var(--shadow);
     transition: box-shadow 0.15s;
   }
 
-  .front {
+  .front,
+  .pocket {
     position: absolute;
     inset: 0;
+  }
+
+  .front {
     z-index: 3;
+    transition: opacity 0.15s 0.4s;
+  }
+
+  .pocket {
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0s 0.55s;
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .front {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .pocket {
+    opacity: 1;
+    transition: opacity 0.15s;
   }
 
   .to {
     fill: var(--color-violet);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 800;
-    letter-spacing: 2.2px;
+    letter-spacing: 3px;
   }
 
   .address {
     fill: var(--color-plum);
     font-family: var(--font-display);
-    font-size: 46px;
+    font-size: 50px;
     font-weight: 800;
   }
 
@@ -173,7 +176,10 @@ const [line1, line2] = profile.tagline.split(', ');
     transform: perspective(1600px) rotateX(0deg);
     transform-origin: 50% 0;
     transform-style: preserve-3d;
-    transition: transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
+    /* Se cierra cuando la carta ya bajó; pasa adelante de ella al quedar vertical. */
+    transition:
+      transform 0.45s cubic-bezier(0.5, 0, 0.3, 1) 0.4s,
+      z-index 0s 0.62s;
   }
 
   .flap svg {
@@ -195,6 +201,7 @@ const [line1, line2] = profile.tagline.split(', ');
       z-index 0s 0.22s;
   }
 
+  /* Entre el interior y el bolsillo: abierta, sube y su borde de abajo queda dentro del sobre. */
   .letter {
     position: absolute;
     top: 30px;
@@ -203,23 +210,24 @@ const [line1, line2] = profile.tagline.split(', ');
     width: 450px;
     height: 360px;
     padding: 22px 34px;
-    border: 4px solid var(--color-plum);
     border-radius: 8px;
     background: #fffdf7;
     color: var(--color-plum);
     /* Guardada no se ve ni recibe clics o foco (el papel del sobre no la tapa para el puntero). */
     visibility: hidden;
+    /* Al guardarla, sin rebote (no asoma por debajo del sobre); se oculta cuando vuelve el frente. */
     transition:
-      translate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1),
-      visibility 0s 0.5s;
+      translate 0.4s cubic-bezier(0.5, 0, 0.7, 1),
+      visibility 0s 0.4s;
   }
 
   .envelope:is([data-open], :global(html:not(.js)) :target) .letter {
     visibility: visible;
+    /* Aparece cuando el frente ya se fue y sube. */
     transition:
       translate 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) 0.35s,
-      visibility 0s;
-    translate: 0 -330px;
+      visibility 0s 0.15s;
+    translate: 0 -240px;
   }
 
   .letter p {
@@ -298,18 +306,41 @@ const [line1, line2] = profile.tagline.split(', ');
     }
   }
 
-  .stuck {
-    position: absolute;
-    inset: 0;
+  /* Los del frente van sobre todo el sobre cerrado y se van con el frente al abrirlo; los del
+     bolsillo, al revés. */
+  .front-stuck {
     z-index: 5;
-    pointer-events: none;
+    transition:
+      opacity 0.15s 0.4s,
+      visibility 0s 0.4s;
+  }
+
+  .pocket-stuck {
+    z-index: 2;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0s 0.55s,
+      visibility 0s 0.55s;
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .front-stuck {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.15s,
+      visibility 0s 0.15s;
+  }
+
+  .envelope:is([data-open], :global(html:not(.js)) :target) .pocket-stuck {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.15s;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .flap,
-    .letter,
-    .envelope:is([data-open], :global(html:not(.js)) :target) :is(.flap, .letter) {
-      transition: none;
+    .envelope :is(.paper, .front, .pocket, .front-stuck, .pocket-stuck, .flap, .letter) {
+      transition: none !important;
     }
 
     .copied:global([data-on]) {
