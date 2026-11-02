@@ -151,12 +151,15 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
 
 <style>
   /*
-   * Ambiente (solo con el cuarto en reposo, ver `--ambient-state` en World.astro): las líneas horizontales
-   * de la grilla avanzan cada una hasta la siguiente (el ciclo se repite sin salto) y las franjas
-   * del sol bajan.
+   * Ambiente (con el cuarto en reposo y también dentro de Proyectos, ver `--ambient-state` en
+   * World.astro): las líneas horizontales de la grilla avanzan cada una hasta la siguiente (el ciclo
+   * se repite sin salto).
    */
-  .wallpaper :global(line[x1='56']),
-  .wallpaper :global(rect[x='600'][width='400']) {
+  :global([data-view='proyectos']) .desktop {
+    --ambient-state: running;
+  }
+
+  .wallpaper :global(line[x1='56']) {
     animation: grid-run 2.6s linear infinite;
     animation-play-state: var(--ambient-state, paused);
   }
@@ -186,32 +189,14 @@ html:not(.js) [data-items]:has(#${id}:target) [data-item-chip="${id}"] { backgro
     --dy: 70px;
   }
 
-  .wallpaper :global(rect[x='600'][width='400']) {
-    --dy: 26px;
-    animation-name: stripe-down;
-    animation-duration: 5.2s;
-  }
-
   @keyframes grid-run {
     to {
       transform: translateY(var(--dy));
     }
   }
 
-  @keyframes stripe-down {
-    0% {
-      opacity: 0;
-    }
-    20% {
-      opacity: 0.95;
-    }
-    to {
-      transform: translateY(var(--dy));
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .wallpaper :global(:is(line, rect)) {
+    .wallpaper :global(line) {
       animation: none;
     }
   }
