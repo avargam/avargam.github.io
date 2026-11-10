@@ -128,14 +128,14 @@ export interface Film extends Favorite {
 
 export const films: Film[] = [
   {
-    id: 'cine-parasite',
-    title: 'Parasite',
-    year: 2019,
-    director: 'Bong Joon-ho',
+    id: 'cine-todo',
+    title: 'Todo en todas partes al mismo tiempo',
+    year: 2022,
+    director: 'Daniel Kwan y Daniel Scheinert',
     color: '#A9C4F5',
     textColor: '#2E2170',
-    clip: '/clips/parasite.mp4',
-    scenes: ['#3E5C4A', '#C9A36B'],
+    clip: '/clips/todo-en-todas-partes.mp4',
+    scenes: ['#F4F1FA', '#C23A3A'],
   },
   {
     id: 'cine-leviticus',

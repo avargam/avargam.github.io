@@ -50,6 +50,23 @@ export function initShelf(root: HTMLElement, nav: ItemNav): Shelf {
   const topicEl = (topic: string) => root.querySelector<HTMLElement>(`[data-sub-topic="${topic}"]`);
   const idsOf = (topic: string) => [...objects.keys()].filter((id) => topicOf(id) === topic);
 
+  // Con una repisa elegida, el tabulador recorre solo sus objetos y controles (además de Volver y
+  // los chips); sin ninguna, solo las repisas. Las demás siguen recibiendo clics, por eso no `inert`.
+  function setTabStops() {
+    const selected = nav.selected();
+    for (const el of root.querySelectorAll<HTMLElement>('[data-item-hit]')) {
+      el.tabIndex = selected ? -1 : 0;
+    }
+    for (const topic of root.querySelectorAll<HTMLElement>('[data-sub-topic]')) {
+      const reachable = topic.dataset.subTopic === selected;
+      for (const el of topic.querySelectorAll<HTMLElement>('a[href], button')) {
+        el.tabIndex = reachable ? 0 : -1;
+      }
+    }
+  }
+  new MutationObserver(setTabStops).observe(root, { attributeFilter: ['data-selected'] });
+  setTabStops();
+
   // Los clips (Cine, Juegos) se reproducen cuando su pantalla aparece: la animación de entrada del
   // elemento `[data-clip-start]` (la pantalla del cine, el video de la consola) marca el inicio. En
   // Cine, así el clip parte junto con la barra de progreso, que da una vuelta cada 8 s.
