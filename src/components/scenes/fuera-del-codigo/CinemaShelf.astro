@@ -54,7 +54,7 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
   {films.map((f, k) => (
     <a
       href={`#${f.id}`}
-      class="sub-object spine side case"
+      class:list={['sub-object spine side case', f.title.length > 24 && 'long']}
       style={`left:${caseX(k)}px;top:${caseY(k)}px;width:${CINE.w}px;height:${CINE.h}px;--c:${f.color};--t:${f.textColor ?? '#fff'};--k:${k};--slide:${CINE.slide}px`}
       data-sub={f.id}
       aria-controls={f.id}
@@ -276,7 +276,8 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
   .cinema .case {
     align-items: center;
     justify-content: flex-start;
-    padding: 0 0 0 32px;
+    /* a la derecha, el espacio del disco que asoma */
+    padding: 0 34px 0 32px;
     border-radius: 6px;
     font-size: 12.5px;
   }
@@ -292,7 +293,13 @@ const clapStyle = `left:${CINE.clapper.x}px;top:${CINE.clapper.y}px;width:${CINE
   }
 
   .cinema .case span {
+    text-align: left;
     writing-mode: horizontal-tb;
+  }
+
+  /* Un título largo va más chico, para que quepa en dos líneas. */
+  .cinema .case.long {
+    font-size: 11px;
   }
 
   /* el disco que asoma de la caja */
